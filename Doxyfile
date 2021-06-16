@@ -1,0 +1,51 @@
+PROJECT_NAME            = "libASPL"
+
+QUIET                   = YES
+RECURSIVE               = YES
+
+INPUT                   = include Main.dox
+STRIP_FROM_PATH         = include
+STRIP_FROM_INC_PATH     = include
+FILE_PATTERNS           = *.hpp *.dox
+
+FULL_PATH_NAMES         = YES
+SOURCE_BROWSER          = YES
+
+JAVADOC_AUTOBRIEF       = YES
+QT_AUTOBRIEF            = YES
+MULTILINE_CPP_IS_BRIEF  = YES
+
+ALWAYS_DETAILED_SEC     = YES
+BRIEF_MEMBER_DESC       = YES
+REPEAT_BRIEF            = YES
+
+HIDE_UNDOC_CLASSES      = NO
+HIDE_UNDOC_MEMBERS      = NO
+STRIP_CODE_COMMENTS     = NO
+
+EXTRACT_ALL             = NO
+EXTRACT_PRIVATE         = NO
+
+WARN_IF_UNDOCUMENTED    = YES
+WARN_IF_DOC_ERROR       = YES
+WARN_NO_PARAMDOC        = NO
+
+ENABLE_PREPROCESSING    = YES
+MACRO_EXPANSION         = YES
+EXPAND_ONLY_PREDEF      = YES
+PREDEFINED              =
+
+OUTPUT_DIRECTORY        = .
+HTML_OUTPUT             = html
+
+GENERATE_XML            = NO
+GENERATE_HTML           = YES
+GENERATE_LATEX          = NO
+
+HTML_DYNAMIC_SECTIONS   = NO
+DISABLE_INDEX           = NO
+GENERATE_TREEVIEW       = YES
+SEARCHENGINE            = YES
+
+OUTPUT_LANGUAGE         = English
+DOXYFILE_ENCODING       = UTF-8

@@ -1,0 +1,21 @@
+/** @mainpage libASPL reference
+ *
+ * Doxygen-generated reference for <a href="https://github.com/gavv/libASPL/">libASPL</a>.
+ *
+ * <br/>
+ *
+ * Highlighted classes:
+ *
+ *  - aspl::Driver
+ *  - aspl::Object
+ *  - aspl::Plugin
+ *  - aspl::Device
+ *  - aspl::Stream
+ *  - aspl::VolumeControl
+ *  - aspl::MuteControl
+ *
+ * For a general overview of AudioServer plugins, see comments in CoreAudio headers:
+ *
+ * - <a href="https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX11.3.sdk/System/Library/Frameworks/CoreAudio.framework/Versions/A/Headers/AudioServerPlugIn.h">CoreAudio/AudioServerPlugIn.h</a>
+ * - <a href="https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX11.3.sdk/System/Library/Frameworks/CoreAudio.framework/Versions/A/Headers/AudioHardwareBase.h">CoreAudio/AudioHardwareBase.h</a>
+ */

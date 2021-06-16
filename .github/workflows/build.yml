@@ -1,0 +1,41 @@
+name: "build"
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Prepare
+        run: brew install doxygen
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: make
+
+      - name: Test
+        run: make test
+
+      - name: Example
+        run: make example
+
+      - name: Install
+        run: sudo make install
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@4.0.0
+        with:
+          branch: doxygen
+          folder: html
+          single-commit: true
