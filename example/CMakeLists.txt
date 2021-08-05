@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # set to non-empty string to enable code signing
-set(CODESIGN_ID "" CACHE STRING "codesign ID")
+set(CODESIGN_ID "" CACHE STRING "Codesign ID")
 
 set(DRIVER_NAME "ASPL_Example")
 set(DRIVER_VERSION "1.0.0")

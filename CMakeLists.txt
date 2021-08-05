@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0.0)
 
 project(aspl CXX)
 
+option(BUILD_DOCUMENTATION "Build Doxygen documentation" OFF)
+
 set(PACKAGE_NAME libASPL)
 set(PACKAGE_VERSION 1.0.0)
 
@@ -258,15 +260,17 @@ if(BUILD_TESTING)
     )
 endif(BUILD_TESTING)
 
-find_package(Doxygen)
+if(BUILD_DOCUMENTATION)
+  find_package(Doxygen)
 
-if(DOXYGEN_FOUND STREQUAL YES)
-  add_custom_target(doxygen ALL
-    DEPENDS ${LIB_TARGET}
-    COMMENT "Generating HTML documentation"
-    COMMAND cd "${PROJECT_SOURCE_DIR}" && doxygen
-    )
-endif()
+  if(DOXYGEN_FOUND STREQUAL YES)
+    add_custom_target(doxygen ALL
+      DEPENDS ${LIB_TARGET}
+      COMMENT "Generating HTML documentation"
+      COMMAND cd "${PROJECT_SOURCE_DIR}" && doxygen
+      )
+  endif()
+endif(BUILD_DOCUMENTATION)
 
 add_custom_target(compile_commands ALL
   DEPENDS ${LIB_TARGET}

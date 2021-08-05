@@ -21,8 +21,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Build
-        run: make
+      - name: Release build
+        run: make release_build
+
+      - name: Debug build
+        run: make debug_build
 
       - name: Test
         run: make test

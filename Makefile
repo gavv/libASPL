@@ -20,7 +20,11 @@ release_build:
 debug_build:
 	mkdir -p build/Debug
 	cd build/Debug && $(CMAKE) $(CMAKE_ARGS) \
-		-DCMAKE_BUILD_TYPE=Debug -DENABLE_SANITIZERS=ON -DBUILD_TESTING=ON ../..
+		-DCMAKE_BUILD_TYPE=Debug \
+		-DENABLE_SANITIZERS=ON \
+		-DBUILD_TESTING=ON \
+		-DBUILD_DOCUMENTATION=ON \
+		../..
 	cd build/Debug && make -j$(NUM_CPU)
 
 .PHONY: test
