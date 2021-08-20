@@ -270,11 +270,11 @@ stream->AttachVolumeControl(volumeControl);
 stream->AttachMuteControl(muteControl);
 ```
 
-Furthermore, all `AddXXX()` methods have overloads that allows you to specify custom parameters or provide manually created object. The latter is useful if you want to use your own subclass instead of default implementation.
+Furthermore, all `AddXXX()` methods have overloads that allow you to specify custom parameters or provide manually created object. The latter is useful if you want to use your own subclass.
 
 ### Tracing
 
-Disable tracing to syslog:
+By default, the library traces all operations to syslog. To disable it, construct tracer with Noop mode:
 
 ```cpp
 auto tracer = std::make_shared<aspl::Tracer>(aspl::Tracer::Mode::Noop);
@@ -283,7 +283,7 @@ auto context = std::make_shared<aspl::Context>(tracer);
 // pass context to all objects
 ```
 
-Provide custom tracer:
+You can provide custom tracer implementation:
 
 ```cpp
 class MyTracer : public aspl::Tracer
@@ -297,6 +297,8 @@ protected:
 
 auto tracer = std::make_shared<MyTracer>();
 auto context = std::make_shared<aspl::Context>(tracer);
+
+// pass context to all objects
 ```
 
 ## Object model
@@ -449,11 +451,11 @@ Currently unsupported control object types:
 * AudioSoloControl
 * AudioTalkbackControl
 
-If you need one of these, you can either implement it on your side, or submit a patch.
+If you need one of these, you can either implement it on your side, or submit a pull request.
 
 To implement a new object type on your side, you need to derive Object class and manually implement dynamic dispatch methods (HasProperty, IsPropertySettable, etc.).
 
-To prepare a patch that adds support for a new object type, you also need to derive Object class, but instead of implementing dynamic dispatch by hand, provide a JSON file with properties description. The internal code generation framework (see below) will do the rest of the job.
+To prepare a patch that adds support for a new object type, you also need to derive Object class, but instead of implementing dynamic dispatch by hand, provide a JSON file with properties description. The internal code generation framework (see below) will do the rest of the job for you.
 
 ## Apple documentation
 
@@ -534,4 +536,4 @@ The library is licensed under [MIT](LICENSE).
 
 This library is mostly written from scratch, but is inspired by and borrows some pieces from "SimpleAudio" and "NullAudio" plugins from [newer](https://developer.apple.com/documentation/coreaudio/building_an_audio_server_plug-in_and_driver_extension) and [older](https://github.com/HelmutJ/CocoaSampleCode/tree/master/UserLandDriverReference) Apple documentation.
 
-Apple examples are licensed under [MIT](LICENSE.apple2020) and [Apple MIT](LICENSE.apple2012) licenses.
+Apple examples are licensed under ["MIT"](LICENSE.apple2020) and ["Apple MIT"](LICENSE.apple2012) licenses.
