@@ -407,7 +407,7 @@ Internally, realtime safety is achieved by using atomics and double buffering co
 
 ## Sandboxing
 
-AudioServer plugin operates in its own sandboxed process separate from the system daemon.
+AudioServer plugin operates in its own [sandboxed process](https://developer.apple.com/library/archive/qa/qa1811/_index.html) separate from the system daemon.
 
 These things are no specific to libASPL, but worth mentioning:
 
