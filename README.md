@@ -411,7 +411,7 @@ AudioServer plugin operates in its own [sandboxed process](https://developer.app
 
 These things are no specific to libASPL, but worth mentioning:
 
-* Filesystem access is restricted. You can access only your own bundle, plus system libraries and frameworks.
+* Filesystem access is restricted. You can access only your own bundle, system libraries and frameworks, and temporary and cache directories.
 
 * IPC is allowed, including semaphores and shared memory. The plugin should list the mach services to be accessed in Info.plist.
 
