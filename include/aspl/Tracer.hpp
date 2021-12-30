@@ -11,21 +11,26 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#include <string>
+
 namespace aspl {
 
 //! Operation tracer.
 //!
-//! All objects use tracer to report operations issues by HAL. By default,
-//! tracers sends messages to syslog with "[aspl]" prefix.
+//! All objects use tracer to report operations issued by HAL. By default,
+//! tracer sends messages to syslog with "[aspl]" prefix.
 //!
 //! Tracer maintains per-thread operations depth counter. Nested operations
-//! are indented in output messages.
+//! are automatically indented.
+//!
+//! If you want to change formatting, you can use one of the predefined
+//! styles or override FormatXXX() methods.
 //!
 //! If you want to change tracer output, you can use one of the predefined
-//! modes or override Print() method. All other methods use it.
+//! modes or override Print() method.
 //!
-//! If you want to change formatting of the operations, you can override
-//! other public methods.
+//! If you want to exclude some operations from trace, you can override
+//! ShouldIgnore() method.
 class Tracer
 {
 public:
@@ -43,6 +48,32 @@ public:
         //! System log.
         //! Send all messages to syslog().
         Syslog,
+
+        //! Custom mode.
+        //! Use if derived class does something different.
+        Custom,
+    };
+
+    //! Tracing style.
+    enum class Style
+    {
+        //! Indent nested operations.
+        Hierarchical,
+
+        //! No indentation.
+        Flat,
+    };
+
+    //! Operation flags.
+    struct Flags
+    {
+        //! This operation is read-only, i.e. doesn't change object state.
+        static constexpr UInt32 Readonly = (1 << 0);
+
+        //! This operation is intended to be called on real-time thread on hot path.
+        //! Such operations are traced only if the user enabled the option
+        //! DeviceParameters::EnableRealtimeTracing
+        static constexpr UInt32 Realtime = (1 << 1);
     };
 
     //! Operation info.
@@ -50,6 +81,9 @@ public:
     {
         //! Operation name.
         const char* Name = nullptr;
+
+        //! Operation flags.
+        UInt32 Flags = 0;
 
         //! ID of object for which operation was initiated.
         AudioObjectID ObjectID = 0;
@@ -88,7 +122,8 @@ public:
 
     //! Initialize tracer.
     //! Mode defines where to send messages.
-    explicit Tracer(Mode mode = Mode::Syslog);
+    //! Style defines how to format messages.
+    explicit Tracer(Mode mode = Mode::Syslog, Style style = Style::Hierarchical);
 
     Tracer(const Tracer&) = delete;
     Tracer& operator=(const Tracer&) = delete;
@@ -109,17 +144,49 @@ public:
     virtual void OperationEnd(const Operation& operation, OSStatus status);
 
 protected:
+    //! Format operation begin message into string.
+    //! Called by default implementation of OperationBegin().
+    virtual std::string FormatOperationBegin(const Operation& operation, UInt32 depth);
+
+    //! Format message into string.
+    //! Called by default implementation of Message().
+    virtual std::string FormatMessage(const char* message, UInt32 depth);
+
+    //! Format operation end message into string.
+    //! Called by default implementation of OperationEnd().
+    virtual std::string FormatOperationEnd(const Operation& operation,
+        OSStatus status,
+        UInt32 depth);
+
     //! Print message somewhere.
     //! Default implementation sends message to syslog if mode is Mode::Syslog,
     //! or does nothing if mode is Mode::Noop.
     virtual void Print(const char* message);
 
+    //! Check whethe the operation should be excluded from tracing.
+    //! If this method returns true, the operation itself, as well as
+    //! all nested operations, are not printed.
+    //! Default implementation always returns false.
+    virtual bool ShouldIgnore(const Operation& operation);
+
 private:
-    // Returns thread-local operation depth counter
-    int& GetDepthCounter();
+    struct ThreadLocalState
+    {
+        UInt32 DepthCounter = 0;
+        UInt32 IgnoreCounter = 0;
+    };
+
+    static void* CreateThreadLocalState();
+    static void DestroyThreadLocalState(void*);
+
+    ThreadLocalState& GetThreadLocalState();
+
+    static constexpr size_t MaxMessageLen = 1024;
 
     const Mode mode_;
-    pthread_key_t depthCounter_;
+    const Style style_;
+
+    pthread_key_t threadKey_;
 };
 
 } // namespace aspl

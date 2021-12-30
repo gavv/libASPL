@@ -81,6 +81,7 @@ Boolean MuteControl::HasProperty(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "MuteControl::HasProperty()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -132,6 +133,7 @@ OSStatus MuteControl::IsPropertySettable(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "MuteControl::IsPropertySettable()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -197,6 +199,7 @@ OSStatus MuteControl::GetPropertyDataSize(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "MuteControl::GetPropertyDataSize()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -271,6 +274,7 @@ OSStatus MuteControl::GetPropertyData(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "MuteControl::GetPropertyData()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;

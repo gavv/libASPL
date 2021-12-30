@@ -45,6 +45,7 @@ Boolean Plugin::HasProperty(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "Plugin::HasProperty()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -102,6 +103,7 @@ OSStatus Plugin::IsPropertySettable(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "Plugin::IsPropertySettable()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -177,6 +179,7 @@ OSStatus Plugin::GetPropertyDataSize(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "Plugin::GetPropertyDataSize()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -264,6 +267,7 @@ OSStatus Plugin::GetPropertyData(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "Plugin::GetPropertyData()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;

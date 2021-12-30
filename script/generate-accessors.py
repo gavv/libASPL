@@ -223,6 +223,7 @@ Boolean {{ class }}::HasProperty(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "{{ class }}::HasProperty()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -290,6 +291,7 @@ OSStatus {{ class }}::IsPropertySettable(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "{{ class }}::IsPropertySettable()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -344,6 +346,7 @@ OSStatus {{ class }}::GetPropertyDataSize(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "{{ class }}::GetPropertyDataSize()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -418,6 +421,7 @@ OSStatus {{ class }}::GetPropertyData(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "{{ class }}::GetPropertyData()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;

@@ -24,34 +24,35 @@ unsigned long GetThreadID()
     return static_cast<unsigned long>(tid);
 }
 
-void* CreateDepthCounter()
-{
-    return new int(0);
-}
-
-void DestroyDepthCounter(void* key)
-{
-    delete static_cast<int*>(key);
-}
-
 } // namespace
 
-Tracer::Tracer(Mode mode)
+Tracer::Tracer(Mode mode, Style style)
     : mode_(mode)
+    , style_(style)
 {
-    pthread_key_create(&depthCounter_, DestroyDepthCounter);
+    pthread_key_create(&threadKey_, DestroyThreadLocalState);
 }
 
-int& Tracer::GetDepthCounter()
+void* Tracer::CreateThreadLocalState()
 {
-    void* ptr = pthread_getspecific(depthCounter_);
+    return new ThreadLocalState;
+}
+
+void Tracer::DestroyThreadLocalState(void* ptr)
+{
+    delete static_cast<ThreadLocalState*>(ptr);
+}
+
+Tracer::ThreadLocalState& Tracer::GetThreadLocalState()
+{
+    void* ptr = pthread_getspecific(threadKey_);
 
     if (!ptr) {
-        ptr = CreateDepthCounter();
-        pthread_setspecific(depthCounter_, ptr);
+        ptr = CreateThreadLocalState();
+        pthread_setspecific(threadKey_, ptr);
     }
 
-    return *static_cast<int*>(ptr);
+    return *static_cast<ThreadLocalState*>(ptr);
 }
 
 void Tracer::OperationBegin(const Operation& op)
@@ -60,18 +61,87 @@ void Tracer::OperationBegin(const Operation& op)
         return;
     }
 
-    GetDepthCounter()++;
+    auto& threadState = GetThreadLocalState();
 
+    threadState.DepthCounter++;
+
+    if (threadState.IgnoreCounter != 0 &&
+        threadState.DepthCounter >= threadState.IgnoreCounter) {
+        return;
+    }
+
+    if (ShouldIgnore(op)) {
+        threadState.IgnoreCounter = threadState.DepthCounter;
+        return;
+    }
+
+    const auto str = FormatOperationBegin(op, threadState.DepthCounter);
+
+    Print(str.c_str());
+}
+
+void Tracer::Message(const char* format, ...)
+{
+    if (mode_ == Mode::Noop) {
+        return;
+    }
+
+    auto& threadState = GetThreadLocalState();
+
+    if (threadState.IgnoreCounter != 0 &&
+        threadState.DepthCounter >= threadState.IgnoreCounter) {
+        return;
+    }
+
+    char message[MaxMessageLen] = {};
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(message, sizeof(message), format, args);
+    va_end(args);
+
+    const auto str = FormatMessage(message, threadState.DepthCounter);
+
+    Print(str.c_str());
+}
+
+void Tracer::OperationEnd(const Operation& op, OSStatus status)
+{
+    if (mode_ == Mode::Noop) {
+        return;
+    }
+
+    auto& threadState = GetThreadLocalState();
+
+    if (threadState.IgnoreCounter != 0 &&
+        threadState.DepthCounter >= threadState.IgnoreCounter) {
+        if (threadState.DepthCounter == threadState.IgnoreCounter) {
+            threadState.IgnoreCounter = 0;
+        }
+        threadState.DepthCounter--;
+        return;
+    }
+
+    const auto str = FormatOperationEnd(op, status, threadState.DepthCounter);
+
+    Print(str.c_str());
+
+    threadState.DepthCounter--;
+}
+
+std::string Tracer::FormatOperationBegin(const Operation& op, UInt32 depth)
+{
     std::ostringstream ss;
 
-    ss << "|";
-    for (int i = 0; i < GetDepthCounter(); i++) {
-        ss << "-";
+    if (style_ == Style::Hierarchical) {
+        ss << "|";
+        for (UInt32 i = 0; i < depth; i++) {
+            ss << "-";
+        }
+        ss << " ";
     }
 
-    if (op.Name) {
-        ss << " " << op.Name << " begin";
-    }
+    ss << op.Name << " begin";
 
     if (op.PropertyAddress) {
         ss << " " << PropertySelectorToString(op.PropertyAddress->mSelector);
@@ -95,51 +165,39 @@ void Tracer::OperationBegin(const Operation& op)
         ss << " qualSize=" << op.QualifierDataSize;
     }
 
-    Print(ss.str().c_str());
+    return ss.str();
 }
 
-void Tracer::Message(const char* format, ...)
+std::string Tracer::FormatMessage(const char* message, UInt32 depth)
 {
-    if (mode_ == Mode::Noop) {
-        return;
-    }
-
-    va_list args;
-    va_start(args, format);
-
-    char message[1024] = {};
-    vsnprintf(message, sizeof(message), format, args);
-
-    va_end(args);
-
     std::ostringstream ss;
 
-    ss << "|";
-    for (int i = 0; i <= GetDepthCounter(); i++) {
-        ss << "-";
+    if (style_ == Style::Hierarchical) {
+        ss << "|";
+        for (UInt32 i = 0; i <= depth; i++) {
+            ss << "-";
+        }
+        ss << " ";
     }
 
-    ss << " " << message;
+    ss << message;
 
-    Print(ss.str().c_str());
+    return ss.str();
 }
 
-void Tracer::OperationEnd(const Operation& op, OSStatus status)
+std::string Tracer::FormatOperationEnd(const Operation& op, OSStatus status, UInt32 depth)
 {
-    if (mode_ == Mode::Noop) {
-        return;
-    }
-
     std::ostringstream ss;
 
-    ss << "|";
-    for (int i = 0; i < GetDepthCounter(); i++) {
-        ss << "-";
+    if (style_ == Style::Hierarchical) {
+        ss << "|";
+        for (UInt32 i = 0; i < depth; i++) {
+            ss << "-";
+        }
+        ss << " ";
     }
 
-    if (op.Name) {
-        ss << " " << op.Name << " end";
-    }
+    ss << op.Name << " end";
 
     ss << " status=" << StatusToString(status);
 
@@ -147,9 +205,7 @@ void Tracer::OperationEnd(const Operation& op, OSStatus status)
         ss << " outSize=" << *op.OutDataSize;
     }
 
-    Print(ss.str().c_str());
-
-    GetDepthCounter()--;
+    return ss.str();
 }
 
 void Tracer::Print(const char* message)
@@ -165,7 +221,17 @@ void Tracer::Print(const char* message)
     case Mode::Syslog:
         syslog(LOG_NOTICE, "[aspl] [tid:%lu] %s", GetThreadID(), message);
         return;
+
+    case Mode::Custom:
+        return;
     }
+}
+
+bool Tracer::ShouldIgnore(const Operation& operation)
+{
+    (void)operation;
+
+    return false;
 }
 
 } // namespace aspl

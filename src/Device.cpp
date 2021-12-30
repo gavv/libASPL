@@ -1172,6 +1172,7 @@ OSStatus Device::GetZeroTimeStamp(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "Device::GetZeroTimeStamp()";
+    op.Flags = (Tracer::Flags::Realtime | Tracer::Flags::Readonly);
     op.ObjectID = GetID();
 
     if (params_.EnableRealtimeTracing) {
@@ -1252,6 +1253,7 @@ OSStatus Device::WillDoIOOperation(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "Device::WillDoIOOperation()";
+    op.Flags = (Tracer::Flags::Realtime | Tracer::Flags::Readonly);
     op.ObjectID = GetID();
 
     if (params_.EnableRealtimeTracing) {
@@ -1346,6 +1348,7 @@ OSStatus Device::DoIOOperation(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "Device::DoIOOperation()";
+    op.Flags = Tracer::Flags::Realtime;
     op.ObjectID = GetID();
 
     if (params_.EnableRealtimeTracing) {

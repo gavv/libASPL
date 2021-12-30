@@ -47,6 +47,7 @@ Boolean VolumeControl::HasProperty(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "VolumeControl::HasProperty()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -122,6 +123,7 @@ OSStatus VolumeControl::IsPropertySettable(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "VolumeControl::IsPropertySettable()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -227,6 +229,7 @@ OSStatus VolumeControl::GetPropertyDataSize(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "VolumeControl::GetPropertyDataSize()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
@@ -345,6 +348,7 @@ OSStatus VolumeControl::GetPropertyData(AudioObjectID objectID,
 
     Tracer::Operation op;
     op.Name = "VolumeControl::GetPropertyData()";
+    op.Flags = Tracer::Flags::Readonly;
     op.ObjectID = objectID;
     op.ClientPID = clientPID;
     op.PropertyAddress = address;
