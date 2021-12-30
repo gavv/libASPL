@@ -2,6 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Object.json
+// Timestamp: Thu Dec 30 21:58:23 2021 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT

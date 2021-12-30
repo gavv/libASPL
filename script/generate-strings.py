@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 import argparse
 import builtins
+import datetime
 import jinja2
 import os
 import re
@@ -137,6 +138,7 @@ template = env.from_string('''
 
 // Generator: {{ generator_script }}
 // Source: {{ generator_input }}
+// Timestamp: {{ timestamp }}
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -247,6 +249,7 @@ text = template.render(
     formatFlag=formatFlag,
     generator_script=os.path.basename(__file__),
     generator_input=input_file,
+    timestamp=datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S %Y UTC"),
     )
 
 with open(args.o, 'w') as out:
