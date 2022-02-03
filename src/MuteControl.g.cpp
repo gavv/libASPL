@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: MuteControl.json
-// Timestamp: Thu Dec 30 21:58:23 2021 UTC
+// Timestamp: Thu Feb 03 11:44:38 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
