@@ -65,8 +65,8 @@ class2code = {}
 scope2code = {}
 operation2code = {}
 error2code = {}
-formatID = set()
-formatFlag = set()
+fmtid2code = {}
+fmtflag2code = {}
 
 # fill selector2code
 for m in re.finditer(r'(kAudio\S+Property\S+)\s*=\s*(\'\S+\')', defs):
@@ -119,14 +119,23 @@ for m in re.finditer(r'(kAudioHardware\S+)\s*=\s*(\'\S+\')', defs):
     name, code = m.group(1), m.group(2)
     error2code[name] = code
 
-# fill formatID and formatFlag
-for m in re.finditer(r'(kAudioFormat\S+)\s*=\s*(\S+)', defs):
+# fill fmtid2code and fmtflag2code
+for m in re.finditer(r'(kAudioFormat\S+)\s*=\s*([^,}]+)', defs):
     name, code = m.group(1), m.group(2)
+    code = code.strip()
+
+    if name == 'kAudioFormatFlagsAreAllClear':
+        continue
+
+    if name == 'kAudioFormatFlagsNativeEndian':
+        continue
+
     if name.startswith('kAudioFormatFlag'):
-        if code != '0':
-            formatFlag.add(name)
+        if code == '0' or '|' in code:
+            continue
+        fmtflag2code[name] = code
     else:
-        formatID.add(name)
+        fmtid2code[name] = code
 
 env = jinja2.Environment(
     trim_blocks=True,
@@ -150,8 +159,8 @@ namespace aspl {
 std::string ClassIDToString(AudioClassID classID)
 {
     switch (classID) {
-    {% for name in sorted(class2code.keys()) %}
-    case {{ name }}:
+    {% for name, code in sorted(class2code.items()) %}
+    case {{ code }}:
         return "{{ name }}";
     {% endfor %}
     default:
@@ -162,8 +171,8 @@ std::string ClassIDToString(AudioClassID classID)
 std::string PropertySelectorToString(AudioObjectPropertySelector selector)
 {
     switch (selector) {
-    {% for name in sorted(selector2code.keys()) %}
-    case {{ name }}:
+    {% for name, code in sorted(selector2code.items()) %}
+    case {{ code }}:
         return "{{ name }}";
     {% endfor %}
     default:
@@ -174,8 +183,8 @@ std::string PropertySelectorToString(AudioObjectPropertySelector selector)
 std::string PropertyScopeToString(AudioObjectPropertyScope scope)
 {
     switch (scope) {
-    {% for name in sorted(scope2code.keys()) %}
-    case {{ name }}:
+    {% for name, code in sorted(scope2code.items()) %}
+    case {{ code }}:
         return "{{ name }}";
     {% endfor %}
     default:
@@ -186,8 +195,8 @@ std::string PropertyScopeToString(AudioObjectPropertyScope scope)
 std::string OperationIDToString(UInt32 operationID)
 {
     switch (operationID) {
-    {% for name in sorted(operation2code.keys()) %}
-    case {{ name }}:
+    {% for name, code in sorted(operation2code.items()) %}
+    case {{ code }}:
         return "{{ name }}";
     {% endfor %}
     default:
@@ -200,8 +209,8 @@ std::string StatusToString(OSStatus status)
     switch (status) {
     case kAudioHardwareNoError:
         return "OK";
-    {% for name in sorted(error2code.keys()) %}
-    case {{ name }}:
+    {% for name, code in sorted(error2code.items()) %}
+    case {{ code }}:
         return "{{ name }}";
     {% endfor %}
     default:
@@ -209,23 +218,23 @@ std::string StatusToString(OSStatus status)
     }
 }
 
-std::string FormatIDToString(AudioFormatID formatID)
+std::string FormatIDToString(AudioFormatID fmtid2code)
 {
-    switch (formatID) {
-    {% for name in sorted(formatID) %}
-    case {{ name }}:
+    switch (fmtid2code) {
+    {% for name, code in sorted(fmtid2code.items()) %}
+    case {{ code }}:
         return "{{ name }}";
     {% endfor %}
     default:
-        return CodeToString(formatID);
+        return CodeToString(fmtid2code);
     }
 }
 
 std::string FormatFlagsToString(AudioFormatFlags formatFlags)
 {
     std::string ret;
-    {% for name in sorted(formatFlag) %}
-    if (formatFlags & {{ name }}) {
+    {% for name, code in sorted(fmtflag2code.items()) %}
+    if (formatFlags & {{ code }}) {
         if (!ret.empty()) {
             ret += "|";
         }
@@ -245,8 +254,8 @@ text = template.render(
     scope2code=scope2code,
     operation2code=operation2code,
     error2code=error2code,
-    formatID=formatID,
-    formatFlag=formatFlag,
+    fmtid2code=fmtid2code,
+    fmtflag2code=fmtflag2code,
     generator_script=os.path.basename(__file__),
     generator_input=input_file,
     timestamp=datetime.datetime.utcnow().strftime("%a %b %d %H:%M:%S %Y UTC"),

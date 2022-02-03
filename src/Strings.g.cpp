@@ -2,7 +2,7 @@
 
 // Generator: generate-strings.py
 // Source: CoreAudio/AudioServerPlugIn.h
-// Timestamp: Thu Dec 30 21:58:40 2021 UTC
+// Timestamp: Thu Feb 03 11:43:21 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -14,67 +14,67 @@ namespace aspl {
 std::string ClassIDToString(AudioClassID classID)
 {
     switch (classID) {
-    case kAudioBooleanControlClassID:
+    case 'togl':
         return "kAudioBooleanControlClassID";
-    case kAudioBoxClassID:
+    case 'abox':
         return "kAudioBoxClassID";
-    case kAudioClipLightControlClassID:
+    case 'clip':
         return "kAudioClipLightControlClassID";
-    case kAudioClockDeviceClassID:
+    case 'aclk':
         return "kAudioClockDeviceClassID";
-    case kAudioClockSourceControlClassID:
+    case 'clck':
         return "kAudioClockSourceControlClassID";
-    case kAudioControlClassID:
+    case 'actl':
         return "kAudioControlClassID";
-    case kAudioDataDestinationControlClassID:
+    case 'dest':
         return "kAudioDataDestinationControlClassID";
-    case kAudioDataSourceControlClassID:
+    case 'dsrc':
         return "kAudioDataSourceControlClassID";
-    case kAudioDeviceClassID:
+    case 'adev':
         return "kAudioDeviceClassID";
-    case kAudioEndPointClassID:
+    case 'endp':
         return "kAudioEndPointClassID";
-    case kAudioEndPointDeviceClassID:
+    case 'edev':
         return "kAudioEndPointDeviceClassID";
-    case kAudioHighPassFilterControlClassID:
+    case 'hipf':
         return "kAudioHighPassFilterControlClassID";
-    case kAudioJackControlClassID:
+    case 'jack':
         return "kAudioJackControlClassID";
-    case kAudioLFEMuteControlClassID:
+    case 'subm':
         return "kAudioLFEMuteControlClassID";
-    case kAudioLFEVolumeControlClassID:
+    case 'subv':
         return "kAudioLFEVolumeControlClassID";
-    case kAudioLevelControlClassID:
+    case 'levl':
         return "kAudioLevelControlClassID";
-    case kAudioLineLevelControlClassID:
+    case 'nlvl':
         return "kAudioLineLevelControlClassID";
-    case kAudioListenbackControlClassID:
+    case 'lsnb':
         return "kAudioListenbackControlClassID";
-    case kAudioMuteControlClassID:
+    case 'mute':
         return "kAudioMuteControlClassID";
-    case kAudioObjectClassID:
+    case 'aobj':
         return "kAudioObjectClassID";
-    case kAudioPhantomPowerControlClassID:
+    case 'phan':
         return "kAudioPhantomPowerControlClassID";
-    case kAudioPhaseInvertControlClassID:
+    case 'phsi':
         return "kAudioPhaseInvertControlClassID";
-    case kAudioPlugInClassID:
+    case 'aplg':
         return "kAudioPlugInClassID";
-    case kAudioSelectorControlClassID:
+    case 'slct':
         return "kAudioSelectorControlClassID";
-    case kAudioSliderControlClassID:
+    case 'sldr':
         return "kAudioSliderControlClassID";
-    case kAudioSoloControlClassID:
+    case 'solo':
         return "kAudioSoloControlClassID";
-    case kAudioStereoPanControlClassID:
+    case 'span':
         return "kAudioStereoPanControlClassID";
-    case kAudioStreamClassID:
+    case 'astr':
         return "kAudioStreamClassID";
-    case kAudioTalkbackControlClassID:
+    case 'talb':
         return "kAudioTalkbackControlClassID";
-    case kAudioTransportManagerClassID:
+    case 'trpm':
         return "kAudioTransportManagerClassID";
-    case kAudioVolumeControlClassID:
+    case 'vlme':
         return "kAudioVolumeControlClassID";
     default:
         return CodeToString(classID);
@@ -84,165 +84,165 @@ std::string ClassIDToString(AudioClassID classID)
 std::string PropertySelectorToString(AudioObjectPropertySelector selector)
 {
     switch (selector) {
-    case kAudioBooleanControlPropertyValue:
+    case 'bcvl':
         return "kAudioBooleanControlPropertyValue";
-    case kAudioBoxPropertyAcquired:
+    case 'bxon':
         return "kAudioBoxPropertyAcquired";
-    case kAudioBoxPropertyAcquisitionFailed:
+    case 'bxof':
         return "kAudioBoxPropertyAcquisitionFailed";
-    case kAudioBoxPropertyBoxUID:
+    case 'buid':
         return "kAudioBoxPropertyBoxUID";
-    case kAudioBoxPropertyClockDeviceList:
+    case 'bcl#':
         return "kAudioBoxPropertyClockDeviceList";
-    case kAudioBoxPropertyDeviceList:
+    case 'bdv#':
         return "kAudioBoxPropertyDeviceList";
-    case kAudioBoxPropertyHasAudio:
+    case 'bhau':
         return "kAudioBoxPropertyHasAudio";
-    case kAudioBoxPropertyHasMIDI:
+    case 'bhmi':
         return "kAudioBoxPropertyHasMIDI";
-    case kAudioBoxPropertyHasVideo:
+    case 'bhvi':
         return "kAudioBoxPropertyHasVideo";
-    case kAudioBoxPropertyIsProtected:
+    case 'bpro':
         return "kAudioBoxPropertyIsProtected";
-    case kAudioClockDevicePropertyDeviceUID:
+    case 'cuid':
         return "kAudioClockDevicePropertyDeviceUID";
-    case kAudioControlPropertyElement:
+    case 'celm':
         return "kAudioControlPropertyElement";
-    case kAudioControlPropertyScope:
+    case 'cscp':
         return "kAudioControlPropertyScope";
-    case kAudioDevicePropertyAvailableNominalSampleRates:
+    case 'nsr#':
         return "kAudioDevicePropertyAvailableNominalSampleRates";
-    case kAudioDevicePropertyClockAlgorithm:
+    case 'clok':
         return "kAudioDevicePropertyClockAlgorithm";
-    case kAudioDevicePropertyClockDomain:
+    case 'clkd':
         return "kAudioDevicePropertyClockDomain";
-    case kAudioDevicePropertyClockIsStable:
+    case 'cstb':
         return "kAudioDevicePropertyClockIsStable";
-    case kAudioDevicePropertyConfigurationApplication:
+    case 'capp':
         return "kAudioDevicePropertyConfigurationApplication";
-    case kAudioDevicePropertyDeviceCanBeDefaultDevice:
+    case 'dflt':
         return "kAudioDevicePropertyDeviceCanBeDefaultDevice";
-    case kAudioDevicePropertyDeviceCanBeDefaultSystemDevice:
+    case 'sflt':
         return "kAudioDevicePropertyDeviceCanBeDefaultSystemDevice";
-    case kAudioDevicePropertyDeviceIsAlive:
+    case 'livn':
         return "kAudioDevicePropertyDeviceIsAlive";
-    case kAudioDevicePropertyDeviceIsRunning:
+    case 'goin':
         return "kAudioDevicePropertyDeviceIsRunning";
-    case kAudioDevicePropertyIcon:
+    case 'icon':
         return "kAudioDevicePropertyIcon";
-    case kAudioDevicePropertyIsHidden:
+    case 'hidn':
         return "kAudioDevicePropertyIsHidden";
-    case kAudioDevicePropertyLatency:
+    case 'ltnc':
         return "kAudioDevicePropertyLatency";
-    case kAudioDevicePropertyModelUID:
+    case 'muid':
         return "kAudioDevicePropertyModelUID";
-    case kAudioDevicePropertyNominalSampleRate:
+    case 'nsrt':
         return "kAudioDevicePropertyNominalSampleRate";
-    case kAudioDevicePropertyPreferredChannelLayout:
+    case 'srnd':
         return "kAudioDevicePropertyPreferredChannelLayout";
-    case kAudioDevicePropertyPreferredChannelsForStereo:
+    case 'dch2':
         return "kAudioDevicePropertyPreferredChannelsForStereo";
-    case kAudioDevicePropertyRelatedDevices:
+    case 'akin':
         return "kAudioDevicePropertyRelatedDevices";
-    case kAudioDevicePropertySafetyOffset:
+    case 'saft':
         return "kAudioDevicePropertySafetyOffset";
-    case kAudioDevicePropertyStreams:
+    case 'stm#':
         return "kAudioDevicePropertyStreams";
-    case kAudioDevicePropertyTransportType:
+    case 'tran':
         return "kAudioDevicePropertyTransportType";
-    case kAudioDevicePropertyZeroTimeStampPeriod:
+    case 'ring':
         return "kAudioDevicePropertyZeroTimeStampPeriod";
-    case kAudioEndPointDevicePropertyComposition:
+    case 'acom':
         return "kAudioEndPointDevicePropertyComposition";
-    case kAudioEndPointDevicePropertyEndPointList:
+    case 'agrp':
         return "kAudioEndPointDevicePropertyEndPointList";
-    case kAudioEndPointDevicePropertyIsPrivate:
+    case 'priv':
         return "kAudioEndPointDevicePropertyIsPrivate";
-    case kAudioLevelControlPropertyConvertDecibelsToScalar:
+    case 'lcds':
         return "kAudioLevelControlPropertyConvertDecibelsToScalar";
-    case kAudioLevelControlPropertyConvertScalarToDecibels:
+    case 'lcsd':
         return "kAudioLevelControlPropertyConvertScalarToDecibels";
-    case kAudioLevelControlPropertyDecibelRange:
+    case 'lcdr':
         return "kAudioLevelControlPropertyDecibelRange";
-    case kAudioLevelControlPropertyDecibelValue:
+    case 'lcdv':
         return "kAudioLevelControlPropertyDecibelValue";
-    case kAudioLevelControlPropertyScalarValue:
+    case 'lcsv':
         return "kAudioLevelControlPropertyScalarValue";
-    case kAudioObjectPropertyBaseClass:
+    case 'bcls':
         return "kAudioObjectPropertyBaseClass";
-    case kAudioObjectPropertyClass:
+    case 'clas':
         return "kAudioObjectPropertyClass";
-    case kAudioObjectPropertyControlList:
+    case 'ctrl':
         return "kAudioObjectPropertyControlList";
-    case kAudioObjectPropertyCustomPropertyInfoList:
+    case 'cust':
         return "kAudioObjectPropertyCustomPropertyInfoList";
-    case kAudioObjectPropertyFirmwareVersion:
+    case 'fwvn':
         return "kAudioObjectPropertyFirmwareVersion";
-    case kAudioObjectPropertyIdentify:
+    case 'iden':
         return "kAudioObjectPropertyIdentify";
-    case kAudioObjectPropertyManufacturer:
+    case 'lmak':
         return "kAudioObjectPropertyManufacturer";
-    case kAudioObjectPropertyModelName:
+    case 'lmod':
         return "kAudioObjectPropertyModelName";
-    case kAudioObjectPropertyName:
+    case 'lnam':
         return "kAudioObjectPropertyName";
-    case kAudioObjectPropertyOwnedObjects:
+    case 'ownd':
         return "kAudioObjectPropertyOwnedObjects";
-    case kAudioObjectPropertyOwner:
+    case 'stdv':
         return "kAudioObjectPropertyOwner";
-    case kAudioObjectPropertySelectorWildcard:
+    case '****':
         return "kAudioObjectPropertySelectorWildcard";
-    case kAudioObjectPropertySerialNumber:
+    case 'snum':
         return "kAudioObjectPropertySerialNumber";
-    case kAudioPlugInPropertyBoxList:
+    case 'box#':
         return "kAudioPlugInPropertyBoxList";
-    case kAudioPlugInPropertyBundleID:
+    case 'piid':
         return "kAudioPlugInPropertyBundleID";
-    case kAudioPlugInPropertyClockDeviceList:
+    case 'clk#':
         return "kAudioPlugInPropertyClockDeviceList";
-    case kAudioPlugInPropertyDeviceList:
+    case 'dev#':
         return "kAudioPlugInPropertyDeviceList";
-    case kAudioPlugInPropertyResourceBundle:
+    case 'rsrc':
         return "kAudioPlugInPropertyResourceBundle";
-    case kAudioPlugInPropertyTranslateUIDToBox:
+    case 'uidb':
         return "kAudioPlugInPropertyTranslateUIDToBox";
-    case kAudioPlugInPropertyTranslateUIDToClockDevice:
+    case 'uidc':
         return "kAudioPlugInPropertyTranslateUIDToClockDevice";
-    case kAudioPlugInPropertyTranslateUIDToDevice:
+    case 'uidd':
         return "kAudioPlugInPropertyTranslateUIDToDevice";
-    case kAudioSelectorControlPropertyAvailableItems:
+    case 'scai':
         return "kAudioSelectorControlPropertyAvailableItems";
-    case kAudioSelectorControlPropertyCurrentItem:
+    case 'scci':
         return "kAudioSelectorControlPropertyCurrentItem";
-    case kAudioSelectorControlPropertyItemKind:
+    case 'clkk':
         return "kAudioSelectorControlPropertyItemKind";
-    case kAudioSelectorControlPropertyItemName:
+    case 'scin':
         return "kAudioSelectorControlPropertyItemName";
-    case kAudioSliderControlPropertyRange:
+    case 'sdrr':
         return "kAudioSliderControlPropertyRange";
-    case kAudioSliderControlPropertyValue:
+    case 'sdrv':
         return "kAudioSliderControlPropertyValue";
-    case kAudioStereoPanControlPropertyPanningChannels:
+    case 'spcc':
         return "kAudioStereoPanControlPropertyPanningChannels";
-    case kAudioStereoPanControlPropertyValue:
+    case 'spcv':
         return "kAudioStereoPanControlPropertyValue";
-    case kAudioStreamPropertyAvailablePhysicalFormats:
+    case 'pfta':
         return "kAudioStreamPropertyAvailablePhysicalFormats";
-    case kAudioStreamPropertyAvailableVirtualFormats:
+    case 'sfma':
         return "kAudioStreamPropertyAvailableVirtualFormats";
-    case kAudioStreamPropertyDirection:
+    case 'sdir':
         return "kAudioStreamPropertyDirection";
-    case kAudioStreamPropertyIsActive:
+    case 'sact':
         return "kAudioStreamPropertyIsActive";
-    case kAudioStreamPropertyStartingChannel:
+    case 'schn':
         return "kAudioStreamPropertyStartingChannel";
-    case kAudioStreamPropertyTerminalType:
+    case 'term':
         return "kAudioStreamPropertyTerminalType";
-    case kAudioStreamPropertyVirtualFormat:
+    case 'sfmt':
         return "kAudioStreamPropertyVirtualFormat";
-    case kAudioTransportManagerPropertyEndPointList:
+    case 'end#':
         return "kAudioTransportManagerPropertyEndPointList";
-    case kAudioTransportManagerPropertyTranslateUIDToEndPoint:
+    case 'uide':
         return "kAudioTransportManagerPropertyTranslateUIDToEndPoint";
     default:
         return CodeToString(selector);
@@ -252,15 +252,15 @@ std::string PropertySelectorToString(AudioObjectPropertySelector selector)
 std::string PropertyScopeToString(AudioObjectPropertyScope scope)
 {
     switch (scope) {
-    case kAudioObjectPropertyScopeGlobal:
+    case 'glob':
         return "kAudioObjectPropertyScopeGlobal";
-    case kAudioObjectPropertyScopeInput:
+    case 'inpt':
         return "kAudioObjectPropertyScopeInput";
-    case kAudioObjectPropertyScopeOutput:
+    case 'outp':
         return "kAudioObjectPropertyScopeOutput";
-    case kAudioObjectPropertyScopePlayThrough:
+    case 'ptru':
         return "kAudioObjectPropertyScopePlayThrough";
-    case kAudioObjectPropertyScopeWildcard:
+    case '****':
         return "kAudioObjectPropertyScopeWildcard";
     default:
         return CodeToString(scope);
@@ -270,25 +270,25 @@ std::string PropertyScopeToString(AudioObjectPropertyScope scope)
 std::string OperationIDToString(UInt32 operationID)
 {
     switch (operationID) {
-    case kAudioServerPlugInIOOperationConvertInput:
+    case 'cinp':
         return "kAudioServerPlugInIOOperationConvertInput";
-    case kAudioServerPlugInIOOperationConvertMix:
+    case 'cmix':
         return "kAudioServerPlugInIOOperationConvertMix";
-    case kAudioServerPlugInIOOperationCycle:
+    case 'cycl':
         return "kAudioServerPlugInIOOperationCycle";
-    case kAudioServerPlugInIOOperationMixOutput:
+    case 'mixo':
         return "kAudioServerPlugInIOOperationMixOutput";
-    case kAudioServerPlugInIOOperationProcessInput:
+    case 'pinp':
         return "kAudioServerPlugInIOOperationProcessInput";
-    case kAudioServerPlugInIOOperationProcessMix:
+    case 'pmix':
         return "kAudioServerPlugInIOOperationProcessMix";
-    case kAudioServerPlugInIOOperationProcessOutput:
+    case 'pout':
         return "kAudioServerPlugInIOOperationProcessOutput";
-    case kAudioServerPlugInIOOperationReadInput:
+    case 'read':
         return "kAudioServerPlugInIOOperationReadInput";
-    case kAudioServerPlugInIOOperationThread:
+    case 'thrd':
         return "kAudioServerPlugInIOOperationThread";
-    case kAudioServerPlugInIOOperationWriteMix:
+    case 'rite':
         return "kAudioServerPlugInIOOperationWriteMix";
     default:
         return CodeToString(operationID);
@@ -300,179 +300,163 @@ std::string StatusToString(OSStatus status)
     switch (status) {
     case kAudioHardwareNoError:
         return "OK";
-    case kAudioHardwareBadDeviceError:
+    case '!dev':
         return "kAudioHardwareBadDeviceError";
-    case kAudioHardwareBadObjectError:
+    case '!obj':
         return "kAudioHardwareBadObjectError";
-    case kAudioHardwareBadPropertySizeError:
+    case '!siz':
         return "kAudioHardwareBadPropertySizeError";
-    case kAudioHardwareBadStreamError:
+    case '!str':
         return "kAudioHardwareBadStreamError";
-    case kAudioHardwareIllegalOperationError:
+    case 'nope':
         return "kAudioHardwareIllegalOperationError";
-    case kAudioHardwareNotRunningError:
+    case 'nrdy':
+        return "kAudioHardwareNotReadyError";
+    case 'stop':
         return "kAudioHardwareNotRunningError";
-    case kAudioHardwareUnknownPropertyError:
+    case 'who?':
         return "kAudioHardwareUnknownPropertyError";
-    case kAudioHardwareUnspecifiedError:
+    case 'what':
         return "kAudioHardwareUnspecifiedError";
-    case kAudioHardwareUnsupportedOperationError:
+    case 'unop':
         return "kAudioHardwareUnsupportedOperationError";
     default:
         return CodeToString(UInt32(status));
     }
 }
 
-std::string FormatIDToString(AudioFormatID formatID)
+std::string FormatIDToString(AudioFormatID fmtid2code)
 {
-    switch (formatID) {
-    case kAudioFormat60958AC3:
+    switch (fmtid2code) {
+    case 'cac3':
         return "kAudioFormat60958AC3";
-    case kAudioFormatAC3:
+    case 'ac-3':
         return "kAudioFormatAC3";
-    case kAudioFormatAES3:
+    case 'aes3':
         return "kAudioFormatAES3";
-    case kAudioFormatALaw:
+    case 'alaw':
         return "kAudioFormatALaw";
-    case kAudioFormatAMR:
+    case 'samr':
         return "kAudioFormatAMR";
-    case kAudioFormatAMR_WB:
+    case 'sawb':
         return "kAudioFormatAMR_WB";
-    case kAudioFormatAppleIMA4:
+    case 'ima4':
         return "kAudioFormatAppleIMA4";
-    case kAudioFormatAppleLossless:
+    case 'alac':
         return "kAudioFormatAppleLossless";
-    case kAudioFormatAudible:
+    case 'AUDB':
         return "kAudioFormatAudible";
-    case kAudioFormatDVIIntelIMA:
+    case 0x6D730011:
         return "kAudioFormatDVIIntelIMA";
-    case kAudioFormatEnhancedAC3:
+    case 'ec-3':
         return "kAudioFormatEnhancedAC3";
-    case kAudioFormatFLAC:
+    case 'flac':
         return "kAudioFormatFLAC";
-    case kAudioFormatLinearPCM:
+    case 'lpcm':
         return "kAudioFormatLinearPCM";
-    case kAudioFormatMACE3:
+    case 'MAC3':
         return "kAudioFormatMACE3";
-    case kAudioFormatMACE6:
+    case 'MAC6':
         return "kAudioFormatMACE6";
-    case kAudioFormatMIDIStream:
+    case 'midi':
         return "kAudioFormatMIDIStream";
-    case kAudioFormatMPEG4AAC:
+    case 'aac ':
         return "kAudioFormatMPEG4AAC";
-    case kAudioFormatMPEG4AAC_ELD:
+    case 'aace':
         return "kAudioFormatMPEG4AAC_ELD";
-    case kAudioFormatMPEG4AAC_ELD_SBR:
+    case 'aacf':
         return "kAudioFormatMPEG4AAC_ELD_SBR";
-    case kAudioFormatMPEG4AAC_ELD_V2:
+    case 'aacg':
         return "kAudioFormatMPEG4AAC_ELD_V2";
-    case kAudioFormatMPEG4AAC_HE:
+    case 'aach':
         return "kAudioFormatMPEG4AAC_HE";
-    case kAudioFormatMPEG4AAC_HE_V2:
+    case 'aacp':
         return "kAudioFormatMPEG4AAC_HE_V2";
-    case kAudioFormatMPEG4AAC_LD:
+    case 'aacl':
         return "kAudioFormatMPEG4AAC_LD";
-    case kAudioFormatMPEG4AAC_Spatial:
+    case 'aacs':
         return "kAudioFormatMPEG4AAC_Spatial";
-    case kAudioFormatMPEG4CELP:
+    case 'celp':
         return "kAudioFormatMPEG4CELP";
-    case kAudioFormatMPEG4HVXC:
+    case 'hvxc':
         return "kAudioFormatMPEG4HVXC";
-    case kAudioFormatMPEG4TwinVQ:
+    case 'twvq':
         return "kAudioFormatMPEG4TwinVQ";
-    case kAudioFormatMPEGD_USAC:
+    case 'usac':
         return "kAudioFormatMPEGD_USAC";
-    case kAudioFormatMPEGLayer1:
+    case '.mp1':
         return "kAudioFormatMPEGLayer1";
-    case kAudioFormatMPEGLayer2:
+    case '.mp2':
         return "kAudioFormatMPEGLayer2";
-    case kAudioFormatMPEGLayer3:
+    case '.mp3':
         return "kAudioFormatMPEGLayer3";
-    case kAudioFormatMicrosoftGSM:
+    case 0x6D730031:
         return "kAudioFormatMicrosoftGSM";
-    case kAudioFormatOpus:
+    case 'opus':
         return "kAudioFormatOpus";
-    case kAudioFormatParameterValueStream:
+    case 'apvs':
         return "kAudioFormatParameterValueStream";
-    case kAudioFormatQDesign:
+    case 'QDMC':
         return "kAudioFormatQDesign";
-    case kAudioFormatQDesign2:
+    case 'QDM2':
         return "kAudioFormatQDesign2";
-    case kAudioFormatQUALCOMM:
+    case 'Qclp':
         return "kAudioFormatQUALCOMM";
-    case kAudioFormatTimeCode:
+    case 'time':
         return "kAudioFormatTimeCode";
-    case kAudioFormatULaw:
+    case 'ulaw':
         return "kAudioFormatULaw";
-    case kAudioFormatiLBC:
+    case 'ilbc':
         return "kAudioFormatiLBC";
     default:
-        return CodeToString(formatID);
+        return CodeToString(fmtid2code);
     }
 }
 
 std::string FormatFlagsToString(AudioFormatFlags formatFlags)
 {
     std::string ret;
-    if (formatFlags & kAudioFormatFlagIsAlignedHigh) {
+    if (formatFlags & (1U << 4)) {
         if (!ret.empty()) {
             ret += "|";
         }
         ret += "kAudioFormatFlagIsAlignedHigh";
     }
-    if (formatFlags & kAudioFormatFlagIsBigEndian) {
+    if (formatFlags & (1U << 1)) {
         if (!ret.empty()) {
             ret += "|";
         }
         ret += "kAudioFormatFlagIsBigEndian";
     }
-    if (formatFlags & kAudioFormatFlagIsFloat) {
+    if (formatFlags & (1U << 0)) {
         if (!ret.empty()) {
             ret += "|";
         }
         ret += "kAudioFormatFlagIsFloat";
     }
-    if (formatFlags & kAudioFormatFlagIsNonInterleaved) {
+    if (formatFlags & (1U << 5)) {
         if (!ret.empty()) {
             ret += "|";
         }
         ret += "kAudioFormatFlagIsNonInterleaved";
     }
-    if (formatFlags & kAudioFormatFlagIsNonMixable) {
+    if (formatFlags & (1U << 6)) {
         if (!ret.empty()) {
             ret += "|";
         }
         ret += "kAudioFormatFlagIsNonMixable";
     }
-    if (formatFlags & kAudioFormatFlagIsPacked) {
+    if (formatFlags & (1U << 3)) {
         if (!ret.empty()) {
             ret += "|";
         }
         ret += "kAudioFormatFlagIsPacked";
     }
-    if (formatFlags & kAudioFormatFlagIsSignedInteger) {
+    if (formatFlags & (1U << 2)) {
         if (!ret.empty()) {
             ret += "|";
         }
         ret += "kAudioFormatFlagIsSignedInteger";
-    }
-    if (formatFlags & kAudioFormatFlagsAreAllClear) {
-        if (!ret.empty()) {
-            ret += "|";
-        }
-        ret += "kAudioFormatFlagsAreAllClear";
-    }
-    if (formatFlags & kAudioFormatFlagsNativeEndian) {
-        if (!ret.empty()) {
-            ret += "|";
-        }
-        ret += "kAudioFormatFlagsNativeEndian";
-    }
-    if (formatFlags & kAudioFormatFlagsNativeFloatPacked) {
-        if (!ret.empty()) {
-            ret += "|";
-        }
-        ret += "kAudioFormatFlagsNativeFloatPacked";
     }
     return ret;
 }
