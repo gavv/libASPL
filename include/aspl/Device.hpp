@@ -356,12 +356,12 @@ public:
     //!  to the maximum value.
     //! @note
     //!  Backs @c kAudioDevicePropertyAvailableNominalSampleRates property.
-    virtual std::vector<AudioValueRange> GetAvailableSampleRates() const;
+    virtual const std::vector<AudioValueRange>& GetAvailableSampleRates() const;
 
     //! Asynchrounously set list of supported nominal sample rates.
     //! See comments for GetAvailableSampleRates().
     //! Requests HAL to asynchronously invoke SetAvailableSampleRatesImpl().
-    OSStatus SetAvailableSampleRatesAsync(std::vector<AudioValueRange> rates);
+    OSStatus SetAvailableSampleRatesAsync(std::vector<AudioValueRange>&& rates);
 
     //! Return which two channels to use as left/right for stereo data by default.
     //! By default returns the last value set by SetPreferredChannelsForStereoAsync().
@@ -982,8 +982,7 @@ protected:
     //! Invoked by SetAvailableSampleRatesAsync() to actually change the list.
     //! Default implementation just updates the list returned by
     //! GetAvailableSampleRates().
-    virtual OSStatus SetAvailableSampleRatesImpl(
-        const std::vector<AudioValueRange>& rates);
+    virtual OSStatus SetAvailableSampleRatesImpl(std::vector<AudioValueRange> &&rates);
 
     //! Set channels for stereo.
     //! Invoked by SetPreferredChannelsForStereoAsync() to actually change the value.
@@ -1070,7 +1069,7 @@ private:
     // serializes writing to fields below
     mutable std::recursive_mutex writeMutex_;
 
-    DoubleBuffer<std::optional<std::vector<AudioValueRange>>> availableSampleRates_;
+    std::vector<AudioValueRange> availableSampleRates_;
     DoubleBuffer<std::array<UInt32, 2>> preferredChannelsForStereo_;
     DoubleBuffer<std::optional<UInt32>> preferredChannelCount_;
     DoubleBuffer<std::optional<std::vector<AudioChannelDescription>>> preferredChannels_;

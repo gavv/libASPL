@@ -96,7 +96,7 @@
         "AvailableSampleRates": {
             "id": "kAudioDevicePropertyAvailableNominalSampleRates",
             "type": "AudioValueRange",
-            "user_type": "std::vector<AudioValueRange>",
+            "user_type": "std::vector<AudioValueRange>&&",
             "is_array": true,
             "is_user_settable": true,
             "is_async": true

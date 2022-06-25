@@ -182,10 +182,10 @@ OSStatus Device::SetSampleRateImpl(Float64 rate)
     return status;
 }
 
-std::vector<AudioValueRange> Device::GetAvailableSampleRates() const
+const std::vector<AudioValueRange> &Device::GetAvailableSampleRates() const
 {
-    if (auto rates = availableSampleRates_.Get()) {
-        return *rates;
+    if (availableSampleRates_.size()) {
+        return availableSampleRates_;
     }
 
     const auto sampleRate = GetSampleRate();
@@ -197,9 +197,9 @@ std::vector<AudioValueRange> Device::GetAvailableSampleRates() const
     return {range};
 }
 
-OSStatus Device::SetAvailableSampleRatesImpl(const std::vector<AudioValueRange>& rates)
+OSStatus Device::SetAvailableSampleRatesImpl(std::vector<AudioValueRange>&& rates)
 {
-    availableSampleRates_.Set(rates);
+    std::swap(availableSampleRates_, rates);
 
     return kAudioHardwareNoError;
 }

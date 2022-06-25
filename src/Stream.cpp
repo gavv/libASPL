@@ -18,6 +18,11 @@ Stream::Stream(const std::shared_ptr<const Context>& context,
     , physicalFormat_(params.Format)
     , virtualFormat_(params.Format)
 {
+    AudioStreamRangedDescription format;
+    format.mFormat = params.Format;
+    format.mSampleRateRange.mMinimum = format.mSampleRateRange.mMaximum = params.Format.mSampleRate;
+    availPhysicalFormats_.push_back(format);
+    availVirtualFormats_.push_back(format);
 }
 
 bool Stream::GetIsActive() const
@@ -77,14 +82,14 @@ AudioStreamBasicDescription Stream::GetPhysicalFormat() const
 
 OSStatus Stream::CheckPhysicalFormat(const AudioStreamBasicDescription& format) const
 {
-    const auto availFormats = GetAvailablePhysicalFormats();
+    const auto& availFormats = GetAvailablePhysicalFormats();
 
     if (availFormats.empty()) {
         return kAudioHardwareNoError;
     }
 
-    if (std::find(availFormats.begin(), availFormats.end(), format) !=
-        availFormats.end()) {
+    if (availFormats.end() != std::find_if(availFormats.begin(), availFormats.end(),
+                  [&format](const auto& it){return it.mFormat == format;})) {
         return kAudioHardwareNoError;
     }
 
@@ -93,9 +98,9 @@ OSStatus Stream::CheckPhysicalFormat(const AudioStreamBasicDescription& format) 
     return kAudioDeviceUnsupportedFormatError;
 }
 
-OSStatus Stream::SetPhysicalFormatImpl(const AudioStreamBasicDescription& format)
+OSStatus Stream::SetPhysicalFormatImpl(AudioStreamBasicDescription&& format)
 {
-    physicalFormat_.Set(format);
+    physicalFormat_.Set(std::move(format));
 
     OSStatus status = kAudioHardwareNoError;
 
@@ -124,19 +129,15 @@ OSStatus Stream::SetPhysicalSampleRateAsync(Float64 rate)
     return status;
 }
 
-std::vector<AudioStreamBasicDescription> Stream::GetAvailablePhysicalFormats() const
+const std::vector<AudioStreamRangedDescription> &Stream::GetAvailablePhysicalFormats() const
 {
-    if (auto formats = availPhysicalFormats_.Get()) {
-        return *formats;
-    }
-
-    return {GetPhysicalFormat()};
+    return availPhysicalFormats_;
 }
 
 OSStatus Stream::SetAvailablePhysicalFormatsImpl(
-    const std::vector<AudioStreamBasicDescription>& formats)
+    std::vector<AudioStreamRangedDescription>&& formats)
 {
-    availPhysicalFormats_.Set(formats);
+    std::swap(formats, availPhysicalFormats_);
 
     return kAudioHardwareNoError;
 }
@@ -148,14 +149,14 @@ AudioStreamBasicDescription Stream::GetVirtualFormat() const
 
 OSStatus Stream::CheckVirtualFormat(const AudioStreamBasicDescription& format) const
 {
-    const auto availFormats = GetAvailableVirtualFormats();
+    const auto& availFormats = GetAvailableVirtualFormats();
 
     if (availFormats.empty()) {
         return kAudioHardwareNoError;
     }
 
-    if (std::find(availFormats.begin(), availFormats.end(), format) !=
-        availFormats.end()) {
+    if (availFormats.end() != std::find_if(availFormats.begin(), availFormats.end(),
+                  [&format](const auto& it){return it.mFormat == format;})) {
         return kAudioHardwareNoError;
     }
 
@@ -164,9 +165,9 @@ OSStatus Stream::CheckVirtualFormat(const AudioStreamBasicDescription& format) c
     return kAudioDeviceUnsupportedFormatError;
 }
 
-OSStatus Stream::SetVirtualFormatImpl(const AudioStreamBasicDescription& format)
+OSStatus Stream::SetVirtualFormatImpl(AudioStreamBasicDescription&& format)
 {
-    virtualFormat_.Set(format);
+    virtualFormat_.Set(std::move(format));
 
     OSStatus status = kAudioHardwareNoError;
 
@@ -195,20 +196,14 @@ OSStatus Stream::SetVirtualSampleRateAsync(Float64 rate)
     return status;
 }
 
-std::vector<AudioStreamBasicDescription> Stream::GetAvailableVirtualFormats() const
+const std::vector<AudioStreamRangedDescription>& Stream::GetAvailableVirtualFormats() const
 {
-    if (auto formats = availVirtualFormats_.Get()) {
-        return *formats;
-    }
-
-    return {GetVirtualFormat()};
+    return availVirtualFormats_;
 }
 
-OSStatus Stream::SetAvailableVirtualFormatsImpl(
-    const std::vector<AudioStreamBasicDescription>& formats)
+OSStatus Stream::SetAvailableVirtualFormatsImpl(std::vector<AudioStreamRangedDescription>&& formats)
 {
-    availVirtualFormats_.Set(formats);
-
+    std::swap(formats, availVirtualFormats_);
     return kAudioHardwareNoError;
 }
 
