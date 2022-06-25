@@ -138,7 +138,7 @@ OSStatus {{ class }}::Set{{ prop_name }}Async({{ prop.user_type or prop.type }} 
     }
 {% endif %}
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]()mutable {
         std::lock_guard<decltype({{ setter_mutex }})> writeLock({{ setter_mutex }});
 
         Tracer::Operation op;
@@ -155,7 +155,7 @@ OSStatus {{ class }}::Set{{ prop_name }}Async({{ prop.user_type or prop.type }} 
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = Set{{ prop_name }}Impl(value);
+            status = Set{{ prop_name }}Impl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);

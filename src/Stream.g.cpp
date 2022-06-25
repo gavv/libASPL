@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Stream.json
-// Timestamp: Thu Feb 03 11:44:38 2022 UTC
+// Timestamp: Thu Jun 23 19:46:33 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -89,7 +89,7 @@ OSStatus Stream::SetLatencyAsync(UInt32 value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, &value]() {
         std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -106,7 +106,7 @@ OSStatus Stream::SetLatencyAsync(UInt32 value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetLatencyImpl(value);
+            status = SetLatencyImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -141,7 +141,7 @@ OSStatus Stream::SetPhysicalFormatAsync(AudioStreamBasicDescription value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, &value]() {
         std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -158,7 +158,7 @@ OSStatus Stream::SetPhysicalFormatAsync(AudioStreamBasicDescription value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetPhysicalFormatImpl(value);
+            status = SetPhysicalFormatImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -193,7 +193,7 @@ OSStatus Stream::SetVirtualFormatAsync(AudioStreamBasicDescription value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, &value]() {
         std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -210,7 +210,7 @@ OSStatus Stream::SetVirtualFormatAsync(AudioStreamBasicDescription value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetVirtualFormatImpl(value);
+            status = SetVirtualFormatImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -222,7 +222,7 @@ end:
     return status;
 }
 
-OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamBasicDescription> value)
+OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamRangedDescription>&& value)
 {
     std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
@@ -239,7 +239,7 @@ OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamBasicDe
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, &value]() {
         std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -256,7 +256,7 @@ OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamBasicDe
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetAvailablePhysicalFormatsImpl(value);
+            status = SetAvailablePhysicalFormatsImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -268,7 +268,7 @@ end:
     return status;
 }
 
-OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamBasicDescription> value)
+OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamRangedDescription>&& value)
 {
     std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
@@ -285,7 +285,7 @@ OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamBasicDes
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, &value]() {
         std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -302,7 +302,7 @@ OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamBasicDes
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetAvailableVirtualFormatsImpl(value);
+            status = SetAvailableVirtualFormatsImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -636,7 +636,7 @@ OSStatus Stream::GetPropertyDataSize(AudioObjectID objectID,
                 if (outDataSize) {
                     const auto values = GetAvailablePhysicalFormats();
                     *outDataSize = UInt32(values.size()
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                     GetContext()->Tracer->Message("returning PropertySize=%u",
                         unsigned(*outDataSize));
                 } else {
@@ -649,7 +649,7 @@ OSStatus Stream::GetPropertyDataSize(AudioObjectID objectID,
                 if (outDataSize) {
                     const auto values = GetAvailableVirtualFormats();
                     *outDataSize = UInt32(values.size()
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                     GetContext()->Tracer->Message("returning PropertySize=%u",
                         unsigned(*outDataSize));
                 } else {
@@ -894,11 +894,11 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
             {
                 const auto values = GetAvailablePhysicalFormats();
                 const size_t valuesCount = std::min(
-                    inDataSize / sizeof(AudioStreamBasicDescription),
+                    inDataSize / sizeof(AudioStreamRangedDescription),
                     values.size());
                 if (outDataSize) {
                     *outDataSize = UInt32(valuesCount
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                 } else {
                     GetContext()->Tracer->Message("size buffer is null");
                 }
@@ -906,7 +906,7 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
                     for (size_t i = 0; i < valuesCount; i++) {
                         Convert::ToFoundation(
                             values[i],
-                            static_cast<AudioStreamBasicDescription*>(outData)[i]);
+                            static_cast<AudioStreamRangedDescription*>(outData)[i]);
                     }
                     GetContext()->Tracer->Message(
                         "returning AvailablePhysicalFormats=%s (%u/%u)",
@@ -922,11 +922,11 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
             {
                 const auto values = GetAvailableVirtualFormats();
                 const size_t valuesCount = std::min(
-                    inDataSize / sizeof(AudioStreamBasicDescription),
+                    inDataSize / sizeof(AudioStreamRangedDescription),
                     values.size());
                 if (outDataSize) {
                     *outDataSize = UInt32(valuesCount
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                 } else {
                     GetContext()->Tracer->Message("size buffer is null");
                 }
@@ -934,7 +934,7 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
                     for (size_t i = 0; i < valuesCount; i++) {
                         Convert::ToFoundation(
                             values[i],
-                            static_cast<AudioStreamBasicDescription*>(outData)[i]);
+                            static_cast<AudioStreamRangedDescription*>(outData)[i]);
                     }
                     GetContext()->Tracer->Message(
                         "returning AvailableVirtualFormats=%s (%u/%u)",

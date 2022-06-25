@@ -109,6 +109,25 @@ std::shared_ptr<aspl::Driver> CreateExampleDriver()
     device->SetControlHandler(handler);
     device->SetIOHandler(handler);
 
+    //we just added a new stream so we should be safe here
+    auto ids = device->GetStreamIDs();
+    auto stream = device->GetStreamByID(ids[0]);
+    auto formats = stream->GetAvailablePhysicalFormats();
+    auto format = formats[0];
+    format.mFormat.mSampleRate = 48000;
+    format.mSampleRateRange.mMinimum = format.mSampleRateRange.mMaximum = format.mFormat.mSampleRate;
+    formats.push_back(format);
+    format.mFormat.mSampleRate = 88200;
+    format.mSampleRateRange.mMinimum = format.mSampleRateRange.mMaximum = format.mFormat.mSampleRate;
+    formats.push_back(format);
+    format.mFormat.mSampleRate = 96000;
+    format.mSampleRateRange.mMinimum = format.mSampleRateRange.mMaximum = format.mFormat.mSampleRate;
+    formats.push_back(format);
+    auto vFormats{formats};
+    stream->SetAvailablePhysicalFormatsAsync(std::move(formats));
+    stream->SetAvailableVirtualFormatsAsync(std::move(vFormats));
+    device->SetAvailableSampleRatesAsync({{44100.,44100.}, {48000.,48000.}, {88200.,88200.}, {96000.,96000.}});
+
     // Create plugin object, the root of the object hierarchy, and add
     // our device to it.
     //
