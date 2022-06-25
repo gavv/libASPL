@@ -136,7 +136,7 @@ public:
     //! This is automatically called by all setters.
     void NotifyPropertyChanged(AudioObjectPropertySelector selector,
         AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal,
-        AudioObjectPropertyElement element = kAudioObjectPropertyElementMaster) const
+        AudioObjectPropertyElement element = kAudioObjectPropertyElementMain) const
     {
         NotifyPropertiesChanged({selector}, scope, element);
     }
@@ -146,7 +146,7 @@ public:
     void NotifyPropertiesChanged(
         const std::vector<AudioObjectPropertySelector>& selectors,
         AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal,
-        AudioObjectPropertyElement element = kAudioObjectPropertyElementMaster) const;
+        AudioObjectPropertyElement element = kAudioObjectPropertyElementMain) const;
 
     //! @}
 
