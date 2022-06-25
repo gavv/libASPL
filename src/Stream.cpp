@@ -83,8 +83,10 @@ OSStatus Stream::CheckPhysicalFormat(const AudioStreamBasicDescription& format) 
         return kAudioHardwareNoError;
     }
 
-    if (std::find(availFormats.begin(), availFormats.end(), format) !=
-        availFormats.end()) {
+    if (availFormats.end() !=
+        std::find_if(availFormats.begin(), availFormats.end(), [&format](const auto& it) {
+            return it.mFormat == format;
+        })) {
         return kAudioHardwareNoError;
     }
 
@@ -124,17 +126,22 @@ OSStatus Stream::SetPhysicalSampleRateAsync(Float64 rate)
     return status;
 }
 
-std::vector<AudioStreamBasicDescription> Stream::GetAvailablePhysicalFormats() const
+std::vector<AudioStreamRangedDescription> Stream::GetAvailablePhysicalFormats() const
 {
     if (auto formats = availPhysicalFormats_.Get()) {
         return *formats;
     }
 
-    return {GetPhysicalFormat()};
+    AudioStreamRangedDescription format = {};
+    format.mFormat = GetPhysicalFormat();
+    format.mSampleRateRange.mMinimum = format.mFormat.mSampleRate;
+    format.mSampleRateRange.mMaximum = format.mFormat.mSampleRate;
+
+    return {format};
 }
 
 OSStatus Stream::SetAvailablePhysicalFormatsImpl(
-    const std::vector<AudioStreamBasicDescription>& formats)
+    const std::vector<AudioStreamRangedDescription>& formats)
 {
     availPhysicalFormats_.Set(formats);
 
@@ -154,8 +161,10 @@ OSStatus Stream::CheckVirtualFormat(const AudioStreamBasicDescription& format) c
         return kAudioHardwareNoError;
     }
 
-    if (std::find(availFormats.begin(), availFormats.end(), format) !=
-        availFormats.end()) {
+    if (availFormats.end() !=
+        std::find_if(availFormats.begin(), availFormats.end(), [&format](const auto& it) {
+            return it.mFormat == format;
+        })) {
         return kAudioHardwareNoError;
     }
 
@@ -195,17 +204,22 @@ OSStatus Stream::SetVirtualSampleRateAsync(Float64 rate)
     return status;
 }
 
-std::vector<AudioStreamBasicDescription> Stream::GetAvailableVirtualFormats() const
+std::vector<AudioStreamRangedDescription> Stream::GetAvailableVirtualFormats() const
 {
     if (auto formats = availVirtualFormats_.Get()) {
         return *formats;
     }
 
-    return {GetVirtualFormat()};
+    AudioStreamRangedDescription format = {};
+    format.mFormat = GetVirtualFormat();
+    format.mSampleRateRange.mMinimum = format.mFormat.mSampleRate;
+    format.mSampleRateRange.mMaximum = format.mFormat.mSampleRate;
+
+    return {format};
 }
 
 OSStatus Stream::SetAvailableVirtualFormatsImpl(
-    const std::vector<AudioStreamBasicDescription>& formats)
+    const std::vector<AudioStreamRangedDescription>& formats)
 {
     availVirtualFormats_.Set(formats);
 

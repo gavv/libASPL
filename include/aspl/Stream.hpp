@@ -176,13 +176,13 @@ public:
     //! GetPhysicalFormat().
     //! @note
     //!  Backs @c kAudioStreamPropertyAvailablePhysicalFormats property.
-    virtual std::vector<AudioStreamBasicDescription> GetAvailablePhysicalFormats() const;
+    virtual std::vector<AudioStreamRangedDescription> GetAvailablePhysicalFormats() const;
 
     //! Asynchronously set list of supported physical formats.
     //! See comments for GetAvailablePhysicalFormats().
     //! Requests HAL to asynchronously invoke SetAvailablePhysicalFormatsImpl().
     OSStatus SetAvailablePhysicalFormatsAsync(
-        std::vector<AudioStreamBasicDescription> formats);
+        std::vector<AudioStreamRangedDescription> formats);
 
     //! Get the current format of the stream.
     //! Virtual format defines the format used to present the device to the apps.
@@ -219,13 +219,13 @@ public:
     //! GetVirtualFormat().
     //! @note
     //!  Backs @c kAudioStreamPropertyAvailableVirtualFormats property.
-    virtual std::vector<AudioStreamBasicDescription> GetAvailableVirtualFormats() const;
+    virtual std::vector<AudioStreamRangedDescription> GetAvailableVirtualFormats() const;
 
     //! Asynchronously set list of supported virtual formats.
     //! See comments for GetAvailableVirtualFormats().
     //! Requests HAL to asynchronously invoke SetAvailableVirtualFormatsImpl().
     OSStatus SetAvailableVirtualFormatsAsync(
-        std::vector<AudioStreamBasicDescription> formats);
+        std::vector<AudioStreamRangedDescription> formats);
 
     //! @}
 
@@ -353,7 +353,7 @@ protected:
     //! Default implementation just changes the list returned by
     //! GetAvailablePhysicalFormats().
     virtual OSStatus SetAvailablePhysicalFormatsImpl(
-        const std::vector<AudioStreamBasicDescription>& formats);
+        const std::vector<AudioStreamRangedDescription>& formats);
 
     //! Set current virtual format of the stream.
     //! Invoked by SetVirtualFormatAsync() to actually change the format.
@@ -369,7 +369,7 @@ protected:
     //! Default implementation just changes the list returned by
     //! GetAvailableVirtualFormats().
     virtual OSStatus SetAvailableVirtualFormatsImpl(
-        const std::vector<AudioStreamBasicDescription>& formats);
+        const std::vector<AudioStreamRangedDescription>& formats);
 
     //! @}
 
@@ -391,10 +391,10 @@ private:
     DoubleBuffer<AudioStreamBasicDescription> physicalFormat_;
     DoubleBuffer<AudioStreamBasicDescription> virtualFormat_;
 
-    DoubleBuffer<std::optional<std::vector<AudioStreamBasicDescription>>>
+    DoubleBuffer<std::optional<std::vector<AudioStreamRangedDescription>>>
         availPhysicalFormats_;
 
-    DoubleBuffer<std::optional<std::vector<AudioStreamBasicDescription>>>
+    DoubleBuffer<std::optional<std::vector<AudioStreamRangedDescription>>>
         availVirtualFormats_;
 
     DoubleBuffer<std::shared_ptr<VolumeControl>> volumeControl_;

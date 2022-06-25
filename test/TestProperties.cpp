@@ -124,6 +124,17 @@ std::vector<AudioChannelDescription> MakeAudioChannelDescriptions(UInt32 numChan
     return ret;
 }
 
+AudioStreamRangedDescription MakeRangedFormat(
+    const AudioStreamBasicDescription& basicFormat,
+    const AudioValueRange& range)
+{
+    AudioStreamRangedDescription rangedFormat;
+    rangedFormat.mFormat = basicFormat;
+    rangedFormat.mSampleRateRange = range;
+
+    return rangedFormat;
+}
+
 bool HasProperty(const std::shared_ptr<aspl::Driver>& driver,
     AudioObjectID objectID,
     AudioObjectPropertySelector selector,
@@ -963,8 +974,14 @@ TEST_F(PropertiesTest, Stream)
         kAudioStreamPropertyPhysicalFormat);
 
     // AvailablePhysicalFormats
-    ExpectVectorsEq({streamParams.Format}, stream->GetAvailablePhysicalFormats());
-    ExpectVectorProperty<AudioStreamBasicDescription>({streamParams.Format},
+    ExpectVectorsEq({MakeRangedFormat(streamParams.Format,
+                        MakeAudioValueRange(streamParams.Format.mSampleRate,
+                            streamParams.Format.mSampleRate))},
+        stream->GetAvailablePhysicalFormats());
+    ExpectVectorProperty<AudioStreamRangedDescription>(
+        {MakeRangedFormat(streamParams.Format,
+            MakeAudioValueRange(
+                streamParams.Format.mSampleRate, streamParams.Format.mSampleRate))},
         stream->GetID(),
         kAudioStreamPropertyAvailablePhysicalFormats);
 
@@ -981,8 +998,14 @@ TEST_F(PropertiesTest, Stream)
         kAudioStreamPropertyVirtualFormat);
 
     // AvailableVirtualFormats
-    ExpectVectorsEq({streamParams.Format}, stream->GetAvailableVirtualFormats());
-    ExpectVectorProperty<AudioStreamBasicDescription>({streamParams.Format},
+    ExpectVectorsEq({MakeRangedFormat(streamParams.Format,
+                        MakeAudioValueRange(streamParams.Format.mSampleRate,
+                            streamParams.Format.mSampleRate))},
+        stream->GetAvailableVirtualFormats());
+    ExpectVectorProperty<AudioStreamRangedDescription>(
+        {MakeRangedFormat(streamParams.Format,
+            MakeAudioValueRange(
+                streamParams.Format.mSampleRate, streamParams.Format.mSampleRate))},
         stream->GetID(),
         kAudioStreamPropertyAvailableVirtualFormats);
 }

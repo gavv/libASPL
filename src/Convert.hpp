@@ -40,6 +40,10 @@ public:
             return FormatToString(value);
         }
 
+        if constexpr (std::is_same<T, AudioStreamRangedDescription>::value) {
+            return FormatToString(value);
+        }
+
         return "...";
     }
 
@@ -89,6 +93,7 @@ public:
 
 private:
     static std::string FormatToString(const AudioStreamBasicDescription& format);
+    static std::string FormatToString(const AudioStreamRangedDescription& format);
 
     template <typename T>
     static std::string ArrayToString(const T& array)

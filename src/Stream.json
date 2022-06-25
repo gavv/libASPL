@@ -47,16 +47,16 @@
         },
         "AvailablePhysicalFormats": {
             "id": "kAudioStreamPropertyAvailablePhysicalFormats",
-            "type": "AudioStreamBasicDescription",
-            "user_type": "std::vector<AudioStreamBasicDescription>",
+            "type": "AudioStreamRangedDescription",
+            "user_type": "std::vector<AudioStreamRangedDescription>",
             "is_array": true,
             "is_user_settable": true,
             "is_async": true
         },
         "AvailableVirtualFormats": {
             "id": "kAudioStreamPropertyAvailableVirtualFormats",
-            "type": "AudioStreamBasicDescription",
-            "user_type": "std::vector<AudioStreamBasicDescription>",
+            "type": "AudioStreamRangedDescription",
+            "user_type": "std::vector<AudioStreamRangedDescription>",
             "is_array": true,
             "is_user_settable": true,
             "is_async": true

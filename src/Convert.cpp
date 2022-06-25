@@ -71,4 +71,22 @@ std::string Convert::FormatToString(const AudioStreamBasicDescription& format)
     return ss.str();
 }
 
+std::string Convert::FormatToString(const AudioStreamRangedDescription& format)
+{
+    std::ostringstream ss;
+
+    ss << "{";
+    ss << "id:" << FormatIDToString(format.mFormat.mFormatID) << " ";
+    ss << "flags:" << FormatFlagsToString(format.mFormat.mFormatFlags) << " ";
+    ss << "rate:" << format.mFormat.mSampleRate << " ";
+    ss << "bits:" << format.mFormat.mBitsPerChannel << " ";
+    ss << "chans:" << format.mFormat.mChannelsPerFrame << " ";
+    ss << "pkt:" << format.mFormat.mFramesPerPacket << " ";
+    ss << "minRate:" << format.mSampleRateRange.mMinimum << " ";
+    ss << "maxRate:" << format.mSampleRateRange.mMaximum;
+    ss << "}";
+
+    return ss.str();
+}
+
 } // namespace aspl

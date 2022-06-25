@@ -44,3 +44,15 @@ inline bool operator!=(const AudioStreamBasicDescription& a,
 {
     return !(a == b);
 }
+
+inline bool operator==(const AudioStreamRangedDescription& a,
+    const AudioStreamRangedDescription& b)
+{
+    return a.mFormat == b.mFormat && a.mSampleRateRange == b.mSampleRateRange;
+}
+
+inline bool operator!=(const AudioStreamRangedDescription& a,
+    const AudioStreamRangedDescription& b)
+{
+    return !(a == b);
+}

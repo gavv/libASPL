@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Stream.json
-// Timestamp: Thu Feb 03 11:44:38 2022 UTC
+// Timestamp: Fri Nov 25 09:38:11 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -222,7 +222,7 @@ end:
     return status;
 }
 
-OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamBasicDescription> value)
+OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamRangedDescription> value)
 {
     std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
@@ -268,7 +268,7 @@ end:
     return status;
 }
 
-OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamBasicDescription> value)
+OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamRangedDescription> value)
 {
     std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
@@ -636,7 +636,7 @@ OSStatus Stream::GetPropertyDataSize(AudioObjectID objectID,
                 if (outDataSize) {
                     const auto values = GetAvailablePhysicalFormats();
                     *outDataSize = UInt32(values.size()
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                     GetContext()->Tracer->Message("returning PropertySize=%u",
                         unsigned(*outDataSize));
                 } else {
@@ -649,7 +649,7 @@ OSStatus Stream::GetPropertyDataSize(AudioObjectID objectID,
                 if (outDataSize) {
                     const auto values = GetAvailableVirtualFormats();
                     *outDataSize = UInt32(values.size()
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                     GetContext()->Tracer->Message("returning PropertySize=%u",
                         unsigned(*outDataSize));
                 } else {
@@ -894,11 +894,11 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
             {
                 const auto values = GetAvailablePhysicalFormats();
                 const size_t valuesCount = std::min(
-                    inDataSize / sizeof(AudioStreamBasicDescription),
+                    inDataSize / sizeof(AudioStreamRangedDescription),
                     values.size());
                 if (outDataSize) {
                     *outDataSize = UInt32(valuesCount
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                 } else {
                     GetContext()->Tracer->Message("size buffer is null");
                 }
@@ -906,7 +906,7 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
                     for (size_t i = 0; i < valuesCount; i++) {
                         Convert::ToFoundation(
                             values[i],
-                            static_cast<AudioStreamBasicDescription*>(outData)[i]);
+                            static_cast<AudioStreamRangedDescription*>(outData)[i]);
                     }
                     GetContext()->Tracer->Message(
                         "returning AvailablePhysicalFormats=%s (%u/%u)",
@@ -922,11 +922,11 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
             {
                 const auto values = GetAvailableVirtualFormats();
                 const size_t valuesCount = std::min(
-                    inDataSize / sizeof(AudioStreamBasicDescription),
+                    inDataSize / sizeof(AudioStreamRangedDescription),
                     values.size());
                 if (outDataSize) {
                     *outDataSize = UInt32(valuesCount
-                        * sizeof(AudioStreamBasicDescription));
+                        * sizeof(AudioStreamRangedDescription));
                 } else {
                     GetContext()->Tracer->Message("size buffer is null");
                 }
@@ -934,7 +934,7 @@ OSStatus Stream::GetPropertyData(AudioObjectID objectID,
                     for (size_t i = 0; i < valuesCount; i++) {
                         Convert::ToFoundation(
                             values[i],
-                            static_cast<AudioStreamBasicDescription*>(outData)[i]);
+                            static_cast<AudioStreamRangedDescription*>(outData)[i]);
                     }
                     GetContext()->Tracer->Message(
                         "returning AvailableVirtualFormats=%s (%u/%u)",

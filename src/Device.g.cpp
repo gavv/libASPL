@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Device.json
-// Timestamp: Thu Feb 03 11:44:38 2022 UTC
+// Timestamp: Fri Nov 25 09:38:11 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
