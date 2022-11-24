@@ -470,6 +470,8 @@ Headers with comments:
 
 * [CoreAudio/AudioServerPlugIn.h](https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX11.3.sdk/System/Library/Frameworks/CoreAudio.framework/Versions/A/Headers/AudioServerPlugIn.h)
 * [CoreAudio/AudioHardwareBase.h](https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX11.3.sdk/System/Library/Frameworks/CoreAudio.framework/Versions/A/Headers/AudioHardwareBase.h)
+* [CoreAudioTypes/AudioSessionTypes.h](https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX11.3.sdk/System/Library/Frameworks/CoreAudioTypes.framework/Versions/A/Headers/AudioSessionTypes.h)
+* [CoreAudioTypes/CoreAudioBaseTypes.h](https://github.com/phracker/MacOSX-SDKs/blob/master/MacOSX11.3.sdk/System/Library/Frameworks/CoreAudioTypes.framework/Versions/A/Headers/CoreAudioBaseTypes.h)
 
 ## Code generation
 
