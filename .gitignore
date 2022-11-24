@@ -3,5 +3,3 @@
 compile_commands.json
 GNUmakefile
 *.org
-.ackrc
-.dir-locals.el
