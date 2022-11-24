@@ -84,7 +84,7 @@ Doxygen-generated documentation is [available here](https://gavv.github.io/libAS
 
 ## Example driver
 
-A complete standalone example driver with comments can be find in [example directory](example).
+A complete standalone example driver with comments can be found in [example directory](example).
 
 You can build it using:
 
