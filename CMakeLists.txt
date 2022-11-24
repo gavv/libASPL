@@ -4,8 +4,18 @@ project(aspl CXX)
 
 option(BUILD_DOCUMENTATION "Build Doxygen documentation" OFF)
 
+execute_process(
+  OUTPUT_VARIABLE GIT_TAG
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+  COMMAND git describe --tags --abbrev=0
+  )
+string(REGEX MATCH "v?([0-9.]+)" RESULT ${GIT_TAG})
+set(GIT_TAG "${CMAKE_MATCH_1}")
+
+message(STATUS "Detected version from git: ${GIT_TAG}")
+
 set(PACKAGE_NAME libASPL)
-set(PACKAGE_VERSION 1.0.0)
+set(PACKAGE_VERSION ${GIT_TAG})
 
 set(LIB_TARGET libASPL)
 set(LIB_NAME ASPL)
