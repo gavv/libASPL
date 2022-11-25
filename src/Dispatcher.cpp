@@ -31,8 +31,7 @@ std::shared_ptr<Object> Dispatcher::FindObject(AudioObjectID objectID) const
 
     auto& registration = *iter->second;
 
-    std::shared_lock<decltype(registration.mutex)> objLock(
-        registration.mutex, std::try_to_lock);
+    std::shared_lock objLock(registration.mutex, std::try_to_lock);
 
     // The shared lock may fail only if a unique lock is obtained.
     // The only case when it can happen is when UnregisterObject() is in progress.
@@ -73,7 +72,7 @@ std::shared_ptr<Object> Dispatcher::FindObject(AudioObjectID objectID) const
 
 AudioObjectID Dispatcher::RegisterObject(Object& object, AudioObjectID objectID)
 {
-    std::lock_guard<decltype(registrationMutex_)> regLock(registrationMutex_);
+    std::lock_guard regLock(registrationMutex_);
 
     Tracer::Operation op;
     op.Name = "Dispatcher::RegisterObject()";
@@ -114,7 +113,7 @@ end:
 
 void Dispatcher::UnregisterObject(AudioObjectID objectID)
 {
-    std::lock_guard<decltype(registrationMutex_)> regLock(registrationMutex_);
+    std::lock_guard regLock(registrationMutex_);
 
     Tracer::Operation op;
     op.Name = "Dispatcher::UnregisterObject()";
@@ -158,7 +157,7 @@ void Dispatcher::UnregisterObject(AudioObjectID objectID)
         // Wait until all of them are either before checking the object for null,
         // or are finished. After this, we can be sure that the object is never
         // accessed by other threads, so it's safe to destroy it after we return.
-        std::unique_lock<decltype(registration->mutex)> objLock(registration->mutex);
+        std::unique_lock objLock(registration->mutex);
     }
 
     FreeID(objectID);

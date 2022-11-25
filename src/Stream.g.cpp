@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Stream.json
-// Timestamp: Fri Nov 25 09:38:11 2022 UTC
+// Timestamp: Fri Nov 25 12:38:02 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -40,7 +40,7 @@ bool Stream::IsInstance(AudioClassID classID) const
 
 OSStatus Stream::SetIsActive(bool value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetIsActive()";
@@ -74,7 +74,7 @@ end:
 
 OSStatus Stream::SetLatencyAsync(UInt32 value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetLatencyAsync()";
@@ -90,7 +90,7 @@ OSStatus Stream::SetLatencyAsync(UInt32 value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Stream::SetLatencyImpl()";
@@ -120,7 +120,7 @@ end:
 
 OSStatus Stream::SetPhysicalFormatAsync(AudioStreamBasicDescription value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetPhysicalFormatAsync()";
@@ -142,7 +142,7 @@ OSStatus Stream::SetPhysicalFormatAsync(AudioStreamBasicDescription value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Stream::SetPhysicalFormatImpl()";
@@ -172,7 +172,7 @@ end:
 
 OSStatus Stream::SetVirtualFormatAsync(AudioStreamBasicDescription value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetVirtualFormatAsync()";
@@ -194,7 +194,7 @@ OSStatus Stream::SetVirtualFormatAsync(AudioStreamBasicDescription value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Stream::SetVirtualFormatImpl()";
@@ -224,7 +224,7 @@ end:
 
 OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamRangedDescription> value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetAvailablePhysicalFormatsAsync()";
@@ -240,7 +240,7 @@ OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamRangedD
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Stream::SetAvailablePhysicalFormatsImpl()";
@@ -270,7 +270,7 @@ end:
 
 OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamRangedDescription> value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetAvailableVirtualFormatsAsync()";
@@ -286,7 +286,7 @@ OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamRangedDe
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Stream::SetAvailableVirtualFormatsImpl()";

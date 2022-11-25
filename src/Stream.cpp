@@ -110,7 +110,7 @@ OSStatus Stream::SetPhysicalFormatImpl(const AudioStreamBasicDescription& format
 
 OSStatus Stream::SetPhysicalSampleRateAsync(Float64 rate)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetPhysicalSampleRateAsync()";
@@ -188,7 +188,7 @@ OSStatus Stream::SetVirtualFormatImpl(const AudioStreamBasicDescription& format)
 
 OSStatus Stream::SetVirtualSampleRateAsync(Float64 rate)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Stream::SetVirtualSampleRateAsync()";

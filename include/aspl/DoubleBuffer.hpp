@@ -237,7 +237,7 @@ public:
     void Set(TT&& value)
     {
         // Serialize setters.
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         // Load current buffer index.
         // Since this index is modified only by setters, it's safe to use "relaxed".
@@ -269,7 +269,7 @@ public:
             // Note that since it is the other buffer, not the current one, chances are
             // that there are no getters already, and most times we will acquire the lock
             // immediately here.
-            std::unique_lock<decltype(newBuffer.mutex)> lock(newBuffer.mutex);
+            std::unique_lock lock(newBuffer.mutex);
 
             // Forward the value to the buffer.
             newBuffer.value = std::forward<TT>(value);
@@ -287,7 +287,7 @@ public:
 
             // Wait until finishing of ongoing getters that are still using the buffer.
             // Here we can block for a while.
-            std::unique_lock<decltype(oldBuffer.mutex)> lock(oldBuffer.mutex);
+            std::unique_lock lock(oldBuffer.mutex);
 
             // Destroy value.
             // This is needed to provide semantics of "replacing" value. We've written

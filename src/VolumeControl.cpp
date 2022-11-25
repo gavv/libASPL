@@ -41,7 +41,7 @@ SInt32 VolumeControl::GetRawValue() const
 
 OSStatus VolumeControl::SetRawValue(SInt32 value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "VolumeControl::SetRawValue()";

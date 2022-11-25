@@ -102,7 +102,7 @@ std::vector<AudioObjectID> Object::GetOwnedObjectIDs(AudioObjectPropertyScope sc
 void Object::AddOwnedObject(const std::shared_ptr<Object>& object,
     AudioObjectPropertyScope scope)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     if (!object) {
         GetContext()->Tracer->Message(
@@ -142,7 +142,7 @@ void Object::AddOwnedObject(const std::shared_ptr<Object>& object,
 
 void Object::RemoveOwnedObject(AudioObjectID objectID)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     auto ownedObjects = ownedObjects_.Get();
 
@@ -181,7 +181,7 @@ void Object::RemoveOwnedObject(AudioObjectID objectID)
 
 void Object::AttachOwner(Object& owner)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     if (ownerObject_) {
         GetContext()->Tracer->Message(
@@ -195,7 +195,7 @@ void Object::AttachOwner(Object& owner)
 
 void Object::DetachOwner()
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     ownerObjectID_ = kAudioObjectUnknown;
     ownerObject_ = nullptr;
@@ -262,7 +262,7 @@ void Object::RegisterCustomProperty(AudioObjectPropertySelector selector,
     std::function<CFStringRef()> getter,
     std::function<void(CFStringRef)> setter)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     auto customProps = customProps_.Get();
 
@@ -276,7 +276,7 @@ void Object::RegisterCustomProperty(AudioObjectPropertySelector selector,
     std::function<CFPropertyListRef()> getter,
     std::function<void(CFPropertyListRef)> setter)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     auto customProps = customProps_.Get();
 

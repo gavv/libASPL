@@ -115,7 +115,7 @@ bool {{ class }}::IsInstance(AudioClassID classID) const
 
 OSStatus {{ class }}::Set{{ prop_name }}Async({{ prop.user_type or prop.type }} value)
 {
-    std::lock_guard<decltype({{ setter_mutex }})> writeLock({{ setter_mutex }});
+    std::lock_guard writeLock({{ setter_mutex }});
 
     Tracer::Operation op;
     op.Name = "{{ class }}::Set{{ prop_name }}Async()";
@@ -139,7 +139,7 @@ OSStatus {{ class }}::Set{{ prop_name }}Async({{ prop.user_type or prop.type }} 
 {% endif %}
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype({{ setter_mutex }})> writeLock({{ setter_mutex }});
+        std::lock_guard writeLock({{ setter_mutex }});
 
         Tracer::Operation op;
         op.Name = "{{ class }}::Set{{ prop_name }}Impl()";
@@ -170,7 +170,7 @@ end:
 
 OSStatus {{ class }}::Set{{ prop_name }}({{ prop.user_type or prop.type }} value)
 {
-    std::lock_guard<decltype({{ setter_mutex }})> writeLock({{ setter_mutex }});
+    std::lock_guard writeLock({{ setter_mutex }});
 
     Tracer::Operation op;
     op.Name = "{{ class }}::Set{{ prop_name }}()";

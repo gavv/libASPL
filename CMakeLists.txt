@@ -39,6 +39,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     "-Wno-c++98-c++11-c++14-compat"
     "-Wno-c++98-compat"
     "-Wno-c++98-compat-pedantic"
+    "-Wno-ctad-maybe-unsupported"
     "-Wno-double-promotion"
     "-Wno-exit-time-destructors"
     "-Wno-float-equal"

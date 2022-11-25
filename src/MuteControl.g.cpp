@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: MuteControl.json
-// Timestamp: Thu Feb 03 11:44:38 2022 UTC
+// Timestamp: Fri Nov 25 12:38:02 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -42,7 +42,7 @@ bool MuteControl::IsInstance(AudioClassID classID) const
 
 OSStatus MuteControl::SetIsMuted(bool value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "MuteControl::SetIsMuted()";

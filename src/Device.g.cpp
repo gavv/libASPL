@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Device.json
-// Timestamp: Fri Nov 25 09:38:11 2022 UTC
+// Timestamp: Fri Nov 25 12:38:02 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -40,7 +40,7 @@ bool Device::IsInstance(AudioClassID classID) const
 
 OSStatus Device::SetLatencyAsync(UInt32 value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetLatencyAsync()";
@@ -56,7 +56,7 @@ OSStatus Device::SetLatencyAsync(UInt32 value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetLatencyImpl()";
@@ -86,7 +86,7 @@ end:
 
 OSStatus Device::SetSafetyOffsetAsync(UInt32 value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetSafetyOffsetAsync()";
@@ -102,7 +102,7 @@ OSStatus Device::SetSafetyOffsetAsync(UInt32 value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetSafetyOffsetImpl()";
@@ -132,7 +132,7 @@ end:
 
 OSStatus Device::SetZeroTimeStampPeriodAsync(UInt32 value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetZeroTimeStampPeriodAsync()";
@@ -148,7 +148,7 @@ OSStatus Device::SetZeroTimeStampPeriodAsync(UInt32 value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetZeroTimeStampPeriodImpl()";
@@ -178,7 +178,7 @@ end:
 
 OSStatus Device::SetSampleRateAsync(Float64 value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetSampleRateAsync()";
@@ -200,7 +200,7 @@ OSStatus Device::SetSampleRateAsync(Float64 value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetSampleRateImpl()";
@@ -230,7 +230,7 @@ end:
 
 OSStatus Device::SetAvailableSampleRatesAsync(std::vector<AudioValueRange> value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetAvailableSampleRatesAsync()";
@@ -246,7 +246,7 @@ OSStatus Device::SetAvailableSampleRatesAsync(std::vector<AudioValueRange> value
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetAvailableSampleRatesImpl()";
@@ -276,7 +276,7 @@ end:
 
 OSStatus Device::SetPreferredChannelsForStereoAsync(std::array<UInt32, 2> value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetPreferredChannelsForStereoAsync()";
@@ -292,7 +292,7 @@ OSStatus Device::SetPreferredChannelsForStereoAsync(std::array<UInt32, 2> value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetPreferredChannelsForStereoImpl()";
@@ -322,7 +322,7 @@ end:
 
 OSStatus Device::SetPreferredChannelCountAsync(UInt32 value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetPreferredChannelCountAsync()";
@@ -338,7 +338,7 @@ OSStatus Device::SetPreferredChannelCountAsync(UInt32 value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetPreferredChannelCountImpl()";
@@ -368,7 +368,7 @@ end:
 
 OSStatus Device::SetPreferredChannelsAsync(std::vector<AudioChannelDescription> value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetPreferredChannelsAsync()";
@@ -384,7 +384,7 @@ OSStatus Device::SetPreferredChannelsAsync(std::vector<AudioChannelDescription> 
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetPreferredChannelsImpl()";
@@ -414,7 +414,7 @@ end:
 
 OSStatus Device::SetPreferredChannelLayoutAsync(std::vector<UInt8> value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetPreferredChannelLayoutAsync()";
@@ -430,7 +430,7 @@ OSStatus Device::SetPreferredChannelLayoutAsync(std::vector<UInt8> value)
     }
 
     RequestConfigurationChange([this, value]() {
-        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+        std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
         op.Name = "Device::SetPreferredChannelLayoutImpl()";
@@ -460,7 +460,7 @@ end:
 
 OSStatus Device::SetIsIdentifying(bool value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetIsIdentifying()";
@@ -494,7 +494,7 @@ end:
 
 OSStatus Device::SetIsAlive(bool value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetIsAlive()";
@@ -528,7 +528,7 @@ end:
 
 OSStatus Device::SetIsHidden(bool value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetIsHidden()";
@@ -562,7 +562,7 @@ end:
 
 OSStatus Device::SetCanBeDefaultDevice(bool value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetCanBeDefaultDevice()";
@@ -596,7 +596,7 @@ end:
 
 OSStatus Device::SetCanBeDefaultSystemDevice(bool value)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::SetCanBeDefaultSystemDevice()";

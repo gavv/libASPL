@@ -446,7 +446,7 @@ std::shared_ptr<Stream> Device::GetStreamByID(AudioObjectID streamID) const
 
 std::shared_ptr<Stream> Device::AddStreamWithControlsAsync(Direction dir)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     auto stream = AddStreamAsync(dir);
 
@@ -466,7 +466,7 @@ std::shared_ptr<Stream> Device::AddStreamWithControlsAsync(Direction dir)
 
 std::shared_ptr<Stream> Device::AddStreamWithControlsAsync(const StreamParameters& params)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     auto stream = AddStreamAsync(params);
 
@@ -486,7 +486,7 @@ std::shared_ptr<Stream> Device::AddStreamWithControlsAsync(const StreamParameter
 
 std::shared_ptr<Stream> Device::AddStreamAsync(Direction dir)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     StreamParameters params;
 
@@ -527,7 +527,7 @@ std::shared_ptr<Stream> Device::AddStreamAsync(const StreamParameters& params)
 
 void Device::AddStreamAsync(const std::shared_ptr<Stream>& stream)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::AddStreamAsync()";
@@ -572,7 +572,7 @@ void Device::AddStreamAsync(const std::shared_ptr<Stream>& stream)
 
 void Device::RemoveStreamAsync(const std::shared_ptr<Stream>& stream)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::RemoveStreamAsync()";
@@ -683,7 +683,7 @@ std::shared_ptr<VolumeControl> Device::AddVolumeControlAsync(
 
 void Device::AddVolumeControlAsync(const std::shared_ptr<VolumeControl>& control)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::AddVolumeControlAsync()";
@@ -720,7 +720,7 @@ void Device::AddVolumeControlAsync(const std::shared_ptr<VolumeControl>& control
 
 void Device::RemoveVolumeControlAsync(const std::shared_ptr<VolumeControl>& control)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::RemoveVolumeControlAsync()";
@@ -823,7 +823,7 @@ std::shared_ptr<MuteControl> Device::AddMuteControlAsync(
 
 void Device::AddMuteControlAsync(const std::shared_ptr<MuteControl>& control)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::AddMuteControlAsync()";
@@ -860,7 +860,7 @@ void Device::AddMuteControlAsync(const std::shared_ptr<MuteControl>& control)
 
 void Device::RemoveMuteControlAsync(const std::shared_ptr<MuteControl>& control)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::RemoveMuteControlAsync()";
@@ -900,7 +900,7 @@ void Device::RemoveMuteControlAsync(const std::shared_ptr<MuteControl>& control)
 
 void Device::SetControlHandler(const std::shared_ptr<ControlRequestHandler>& handler)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
         controlHandler_ = handler;
@@ -913,7 +913,7 @@ void Device::SetControlHandler(const std::shared_ptr<ControlRequestHandler>& han
 OSStatus Device::AddClient(AudioObjectID objectID,
     const AudioServerPlugInClientInfo* rawClientInfo)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::AddClient()";
@@ -971,7 +971,7 @@ end:
 OSStatus Device::RemoveClient(AudioObjectID objectID,
     const AudioServerPlugInClientInfo* rawClientInfo)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::RemoveClient()";
@@ -1069,7 +1069,7 @@ std::shared_ptr<Client> Device::GetClientByID(UInt32 clientID) const
 
 OSStatus Device::StartIO(AudioObjectID objectID, UInt32 clientID)
 {
-    std::lock_guard<decltype(ioMutex_)> ioLock(ioMutex_);
+    std::lock_guard ioLock(ioMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::StartIO()";
@@ -1114,7 +1114,7 @@ end:
 
 OSStatus Device::StopIO(AudioObjectID objectID, UInt32 clientID)
 {
-    std::lock_guard<decltype(ioMutex_)> ioLock(ioMutex_);
+    std::lock_guard ioLock(ioMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::StopIO()";
@@ -1152,7 +1152,7 @@ end:
 
 void Device::SetIOHandler(const std::shared_ptr<IORequestHandler>& handler)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
         ioHandler_.Set(handler);
@@ -1168,7 +1168,7 @@ OSStatus Device::GetZeroTimeStamp(AudioObjectID objectID,
     UInt64* outHostTime,
     UInt64* outSeed)
 {
-    std::lock_guard<decltype(ioMutex_)> ioLock(ioMutex_);
+    std::lock_guard ioLock(ioMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::GetZeroTimeStamp()";
@@ -1249,7 +1249,7 @@ OSStatus Device::WillDoIOOperation(AudioObjectID objectID,
     Boolean* outWillDo,
     Boolean* outWillDoInPlace)
 {
-    std::lock_guard<decltype(ioMutex_)> ioLock(ioMutex_);
+    std::lock_guard ioLock(ioMutex_);
 
     Tracer::Operation op;
     op.Name = "Device::WillDoIOOperation()";
@@ -1319,7 +1319,7 @@ OSStatus Device::BeginIOOperation(AudioObjectID objectID,
     UInt32 ioFrameCount,
     const AudioServerPlugInIOCycleInfo* ioCycleInfo)
 {
-    std::lock_guard<decltype(ioMutex_)> ioLock(ioMutex_);
+    std::lock_guard ioLock(ioMutex_);
 
     if (params_.EnableRealtimeTracing) {
         GetContext()->Tracer->Message("Device::BeginIOOperation()");
@@ -1341,7 +1341,7 @@ OSStatus Device::DoIOOperation(AudioObjectID objectID,
     void* ioMainBuffer,
     void* ioSecondaryBuffer)
 {
-    std::lock_guard<decltype(ioMutex_)> ioLock(ioMutex_);
+    std::lock_guard ioLock(ioMutex_);
 
     std::shared_ptr<Client> client;
     std::shared_ptr<Stream> stream;
@@ -1484,7 +1484,7 @@ OSStatus Device::EndIOOperation(AudioObjectID objectID,
     UInt32 ioFrameCount,
     const AudioServerPlugInIOCycleInfo* ioCycleInfo)
 {
-    std::lock_guard<decltype(ioMutex_)> ioLock(ioMutex_);
+    std::lock_guard ioLock(ioMutex_);
 
     if (params_.EnableRealtimeTracing) {
         GetContext()->Tracer->Message("Device::EndIOOperation()");
@@ -1499,7 +1499,7 @@ OSStatus Device::EndIOOperation(AudioObjectID objectID,
 
 void Device::RequestConfigurationChange(const std::function<void()>& func)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     auto host = GetContext()->Host.load();
 
@@ -1525,7 +1525,7 @@ OSStatus Device::PerformConfigurationChange(AudioObjectID objectID,
     UInt64 changeAction,
     void* changeInfo)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     insideConfigurationHandler_++;
 
@@ -1556,7 +1556,7 @@ OSStatus Device::AbortConfigurationChange(AudioObjectID objectID,
     UInt64 changeAction,
     void* changeInfo)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     const auto reqID = changeAction;
 

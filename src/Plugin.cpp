@@ -81,7 +81,7 @@ std::shared_ptr<Device> Plugin::GetDeviceByID(AudioObjectID deviceID) const
 
 void Plugin::AddDevice(const std::shared_ptr<Device>& device)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Plugin::AddDevice()";
@@ -123,7 +123,7 @@ void Plugin::AddDevice(const std::shared_ptr<Device>& device)
 
 void Plugin::RemoveDevice(const std::shared_ptr<Device>& device)
 {
-    std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
+    std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
     op.Name = "Plugin::RemoveDevice()";
