@@ -10,6 +10,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
 #include <utility>
 
@@ -90,12 +91,12 @@ namespace aspl {
 template <typename T>
 class DoubleBuffer
 {
-    using BufferIndex = UInt64;
+    using BufferIndex = SInt64;
 
     struct Buffer
     {
-        T value;
-        std::atomic<BufferIndex> index = 0;
+        std::optional<T> value = {};
+        std::atomic<BufferIndex> index = -1;
         mutable std::shared_mutex mutex;
     };
 
@@ -117,10 +118,10 @@ public:
         {
             for (;;) {
                 // Load current buffer index.
-                const auto index = doubleBuffer.currentIndex_.load();
+                const auto currentIndex = doubleBuffer.currentIndex_.load();
 
                 // Get reference to the current buffer.
-                auto& currentBuffer = doubleBuffer.GetBufferAt(index);
+                auto& currentBuffer = doubleBuffer.GetBufferAt(currentIndex);
 
                 // Try to lock buffer for reading.
                 //
@@ -145,7 +146,7 @@ public:
                 //
                 // This check catches the case similar to the above one, but when
                 // the second setter is already finished.
-                if (currentBuffer.index.load() != index) {
+                if (currentBuffer.index.load() != currentIndex) {
                     currentBuffer.mutex.unlock_shared();
                     continue;
                 }
@@ -168,8 +169,9 @@ public:
 
         //! Move lock.
         ReadLock(ReadLock&& other)
+            : buffer_(other.buffer_)
         {
-            std::swap(buffer_, other.buffer_);
+            other.buffer_ = nullptr;
         }
 
         ReadLock(const ReadLock&) = delete;
@@ -181,7 +183,7 @@ public:
         //! The referred value is guaranteed to be immutable until that.
         const T& GetReference() const
         {
-            return buffer_->value;
+            return *buffer_->value;
         }
 
     private:
@@ -235,36 +237,63 @@ public:
     void Set(TT&& value)
     {
         // Serialize setters.
-        std::lock_guard<std::mutex> writeLock(writeMutex_);
+        std::lock_guard<decltype(writeMutex_)> writeLock(writeMutex_);
 
         // Load current buffer index.
         // Since this index is modified only by setters, it's safe to use "relaxed".
-        const auto index = currentIndex_.load(std::memory_order_relaxed);
+        const auto oldIndex = currentIndex_.load(std::memory_order_relaxed);
 
-        // Get reference to the "other" buffer, i.e. not the current one.
-        auto& otherBuffer = GetBufferAt(index + 1);
+        // Calculate next index.
+        // Maximum signed value overflows to zero.
+        // Negative indicies are reserved to indiciate invalidated buffers.
+        const auto newIndex =
+            oldIndex < std::numeric_limits<BufferIndex>::max() ? oldIndex + 1 : 0;
 
-        // Notify getters which were started earlier and are working or going to work
-        // with the previous buffer that this buffer is going to be invalidated.
-        otherBuffer.index = (index + 1);
+        // Get reference to the current buffer.
+        auto& oldBuffer = GetBufferAt(oldIndex);
 
-        // Wait until finishing of ongoing getters that are still using this buffer.
-        //
-        // After we obtain the lock, we can be sure that old getters are either finished
-        // or will see the index which we've updated above and wont use the buffer.
-        //
-        // Note that since it is the previous buffer, not the current one, chances are
-        // that there are no getters already, and most times we will acquire the lock
-        // immediately here.
-        std::unique_lock<decltype(otherBuffer.mutex)> lock(otherBuffer.mutex);
+        // Get reference to the next buffer, i.e. not the current one.
+        auto& newBuffer = GetBufferAt(newIndex);
 
-        // Forward the value to the buffer.
-        otherBuffer.value = std::forward<TT>(value);
+        {
+            // Notify getters which were started earlier and are either working or going
+            // to work with this buffer that the buffer is going to be invalidated.
+            newBuffer.index = newIndex;
 
-        // Switch current buffer index to the other buffer.
+            // Wait until finishing of ongoing getters that are still using this buffer.
+            //
+            // After we obtain the lock, we can be sure that old getters are either
+            // finished or will see the index which we've updated above and wont use the
+            // buffer.
+            //
+            // Note that since it is the other buffer, not the current one, chances are
+            // that there are no getters already, and most times we will acquire the lock
+            // immediately here.
+            std::unique_lock<decltype(newBuffer.mutex)> lock(newBuffer.mutex);
+
+            // Forward the value to the buffer.
+            newBuffer.value = std::forward<TT>(value);
+        }
+
+        // Switch current buffer index to the new buffer.
         // It is guaranteed that all getters invoked after this point will return
         // the new value.
-        currentIndex_ = (index + 1);
+        currentIndex_ = newIndex;
+
+        if constexpr (!std::is_trivial<T>::value) {
+            // Notify getters which were started earlier and are either working or going
+            // to work with this buffer that the buffer is going to be invalidated.
+            oldBuffer.index = -1;
+
+            // Wait until finishing of ongoing getters that are still using the buffer.
+            // Here we can block for a while.
+            std::unique_lock<decltype(oldBuffer.mutex)> lock(oldBuffer.mutex);
+
+            // Destroy value.
+            // This is needed to provide semantics of "replacing" value. We've written
+            // the new value and we should destroy the old one.
+            oldBuffer.value = {};
+        }
     }
 
 private:
