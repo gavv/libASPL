@@ -244,6 +244,7 @@ if(BUILD_TESTING)
     "test/Main.cpp"
     "test/TestClients.cpp"
     "test/TestConstruction.cpp"
+    "test/TestDoubleBuffer.cpp"
     "test/TestProperties.cpp"
     "test/TestRegistration.cpp"
     )
