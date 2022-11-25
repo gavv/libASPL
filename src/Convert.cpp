@@ -55,35 +55,47 @@ void Convert::FromFoundation(CFURLRef value, std::string& result)
     FromFoundation(stringValue, result);
 }
 
-std::string Convert::FormatToString(const AudioStreamBasicDescription& format)
+std::string Convert::FormatValue(const AudioValueRange& value)
 {
     std::ostringstream ss;
 
     ss << "{";
-    ss << "id:" << FormatIDToString(format.mFormatID) << " ";
-    ss << "flags:" << FormatFlagsToString(format.mFormatFlags) << " ";
-    ss << "rate:" << format.mSampleRate << " ";
-    ss << "bits:" << format.mBitsPerChannel << " ";
-    ss << "chans:" << format.mChannelsPerFrame << " ";
-    ss << "pkt:" << format.mFramesPerPacket;
+    ss << "min:" << value.mMinimum << " ";
+    ss << "max:" << value.mMaximum;
     ss << "}";
 
     return ss.str();
 }
 
-std::string Convert::FormatToString(const AudioStreamRangedDescription& format)
+std::string Convert::FormatValue(const AudioStreamBasicDescription& value)
 {
     std::ostringstream ss;
 
     ss << "{";
-    ss << "id:" << FormatIDToString(format.mFormat.mFormatID) << " ";
-    ss << "flags:" << FormatFlagsToString(format.mFormat.mFormatFlags) << " ";
-    ss << "rate:" << format.mFormat.mSampleRate << " ";
-    ss << "bits:" << format.mFormat.mBitsPerChannel << " ";
-    ss << "chans:" << format.mFormat.mChannelsPerFrame << " ";
-    ss << "pkt:" << format.mFormat.mFramesPerPacket << " ";
-    ss << "minRate:" << format.mSampleRateRange.mMinimum << " ";
-    ss << "maxRate:" << format.mSampleRateRange.mMaximum;
+    ss << "id:" << FormatIDToString(value.mFormatID) << " ";
+    ss << "flags:" << FormatFlagsToString(value.mFormatFlags) << " ";
+    ss << "rate:" << value.mSampleRate << " ";
+    ss << "bits:" << value.mBitsPerChannel << " ";
+    ss << "chans:" << value.mChannelsPerFrame << " ";
+    ss << "pkt:" << value.mFramesPerPacket;
+    ss << "}";
+
+    return ss.str();
+}
+
+std::string Convert::FormatValue(const AudioStreamRangedDescription& value)
+{
+    std::ostringstream ss;
+
+    ss << "{";
+    ss << "id:" << FormatIDToString(value.mFormat.mFormatID) << " ";
+    ss << "flags:" << FormatFlagsToString(value.mFormat.mFormatFlags) << " ";
+    ss << "rate:" << value.mFormat.mSampleRate << " ";
+    ss << "bits:" << value.mFormat.mBitsPerChannel << " ";
+    ss << "chans:" << value.mFormat.mChannelsPerFrame << " ";
+    ss << "pkt:" << value.mFormat.mFramesPerPacket << " ";
+    ss << "minRate:" << value.mSampleRateRange.mMinimum << " ";
+    ss << "maxRate:" << value.mSampleRateRange.mMaximum;
     ss << "}";
 
     return ss.str();

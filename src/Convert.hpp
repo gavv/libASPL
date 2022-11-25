@@ -33,15 +33,19 @@ public:
         }
 
         if constexpr (std::is_array<T>::value || is_vector<T>::value) {
-            return ArrayToString(value);
+            return FormatArray(value);
+        }
+
+        if constexpr (std::is_same<T, AudioValueRange>::value) {
+            return FormatValue(value);
         }
 
         if constexpr (std::is_same<T, AudioStreamBasicDescription>::value) {
-            return FormatToString(value);
+            return FormatValue(value);
         }
 
         if constexpr (std::is_same<T, AudioStreamRangedDescription>::value) {
-            return FormatToString(value);
+            return FormatValue(value);
         }
 
         return "...";
@@ -92,11 +96,12 @@ public:
     static void FromFoundation(CFURLRef value, std::string& result);
 
 private:
-    static std::string FormatToString(const AudioStreamBasicDescription& format);
-    static std::string FormatToString(const AudioStreamRangedDescription& format);
+    static std::string FormatValue(const AudioValueRange& value);
+    static std::string FormatValue(const AudioStreamBasicDescription& value);
+    static std::string FormatValue(const AudioStreamRangedDescription& value);
 
     template <typename T>
-    static std::string ArrayToString(const T& array)
+    static std::string FormatArray(const T& array)
     {
         std::ostringstream ss;
 
