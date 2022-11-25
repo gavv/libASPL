@@ -41,8 +41,7 @@ class Dispatcher
 public:
     //! Construct dispatcher.
     //! Use tracer if you want to debug dispatcher itself, it is quite verbose.
-    Dispatcher(const std::shared_ptr<Tracer> tracer = {},
-        AudioObjectID hintMaximumID = 1000);
+    Dispatcher(std::shared_ptr<Tracer> tracer = {}, AudioObjectID hintMaximumID = 1000);
 
     Dispatcher(const Dispatcher&) = delete;
     Dispatcher& operator=(const Dispatcher&) = delete;

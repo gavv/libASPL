@@ -14,9 +14,8 @@
 
 namespace aspl {
 
-Device::Device(const std::shared_ptr<const Context>& context,
-    const DeviceParameters& params)
-    : Object(context, "Device")
+Device::Device(std::shared_ptr<const Context> context, const DeviceParameters& params)
+    : Object(std::move(context), "Device")
     , params_(params)
     , deviceUID_(!params.DeviceUID.empty() ? params.DeviceUID
                                            : params.ModelUID + ":" + GenerateUID())
@@ -197,9 +196,9 @@ std::vector<AudioValueRange> Device::GetAvailableSampleRates() const
     return {range};
 }
 
-OSStatus Device::SetAvailableSampleRatesImpl(const std::vector<AudioValueRange>& rates)
+OSStatus Device::SetAvailableSampleRatesImpl(std::vector<AudioValueRange> rates)
 {
-    availableSampleRates_.Set(rates);
+    availableSampleRates_.Set(std::move(rates));
 
     return kAudioHardwareNoError;
 }
@@ -283,10 +282,9 @@ std::vector<AudioChannelDescription> Device::GetPreferredChannels() const
     return chans;
 }
 
-OSStatus Device::SetPreferredChannelsImpl(
-    const std::vector<AudioChannelDescription>& channels)
+OSStatus Device::SetPreferredChannelsImpl(std::vector<AudioChannelDescription> channels)
 {
-    preferredChannels_.Set(channels);
+    preferredChannels_.Set(std::move(channels));
 
     return kAudioHardwareNoError;
 }
@@ -320,9 +318,9 @@ std::vector<UInt8> Device::GetPreferredChannelLayout() const
     return layoutBuffer;
 }
 
-OSStatus Device::SetPreferredChannelLayoutImpl(const std::vector<UInt8>& channelLayout)
+OSStatus Device::SetPreferredChannelLayoutImpl(std::vector<UInt8> channelLayout)
 {
-    preferredChannelLayout_.Set(channelLayout);
+    preferredChannelLayout_.Set(std::move(channelLayout));
 
     return kAudioHardwareNoError;
 }
@@ -525,7 +523,7 @@ std::shared_ptr<Stream> Device::AddStreamAsync(const StreamParameters& params)
     return stream;
 }
 
-void Device::AddStreamAsync(const std::shared_ptr<Stream>& stream)
+void Device::AddStreamAsync(std::shared_ptr<Stream> stream)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -570,7 +568,7 @@ void Device::AddStreamAsync(const std::shared_ptr<Stream>& stream)
     GetContext()->Tracer->OperationEnd(op, kAudioHardwareNoError);
 }
 
-void Device::RemoveStreamAsync(const std::shared_ptr<Stream>& stream)
+void Device::RemoveStreamAsync(std::shared_ptr<Stream> stream)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -681,7 +679,7 @@ std::shared_ptr<VolumeControl> Device::AddVolumeControlAsync(
     return control;
 }
 
-void Device::AddVolumeControlAsync(const std::shared_ptr<VolumeControl>& control)
+void Device::AddVolumeControlAsync(std::shared_ptr<VolumeControl> control)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -718,7 +716,7 @@ void Device::AddVolumeControlAsync(const std::shared_ptr<VolumeControl>& control
     GetContext()->Tracer->OperationEnd(op, kAudioHardwareNoError);
 }
 
-void Device::RemoveVolumeControlAsync(const std::shared_ptr<VolumeControl>& control)
+void Device::RemoveVolumeControlAsync(std::shared_ptr<VolumeControl> control)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -821,7 +819,7 @@ std::shared_ptr<MuteControl> Device::AddMuteControlAsync(
     return control;
 }
 
-void Device::AddMuteControlAsync(const std::shared_ptr<MuteControl>& control)
+void Device::AddMuteControlAsync(std::shared_ptr<MuteControl> control)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -858,7 +856,7 @@ void Device::AddMuteControlAsync(const std::shared_ptr<MuteControl>& control)
     GetContext()->Tracer->OperationEnd(op, kAudioHardwareNoError);
 }
 
-void Device::RemoveMuteControlAsync(const std::shared_ptr<MuteControl>& control)
+void Device::RemoveMuteControlAsync(std::shared_ptr<MuteControl> control)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -898,12 +896,12 @@ void Device::RemoveMuteControlAsync(const std::shared_ptr<MuteControl>& control)
     GetContext()->Tracer->OperationEnd(op, kAudioHardwareNoError);
 }
 
-void Device::SetControlHandler(const std::shared_ptr<ControlRequestHandler>& handler)
+void Device::SetControlHandler(std::shared_ptr<ControlRequestHandler> handler)
 {
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        controlHandler_ = handler;
+        controlHandler_ = std::move(handler);
     } else {
         // no-op handler
         controlHandler_ = std::make_shared<ControlRequestHandler>();
@@ -1150,12 +1148,12 @@ end:
     return status;
 }
 
-void Device::SetIOHandler(const std::shared_ptr<IORequestHandler>& handler)
+void Device::SetIOHandler(std::shared_ptr<IORequestHandler> handler)
 {
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        ioHandler_.Set(handler);
+        ioHandler_.Set(std::move(handler));
     } else {
         // no-op handler
         ioHandler_.Set(std::make_shared<IORequestHandler>());
@@ -1497,7 +1495,7 @@ OSStatus Device::EndIOOperation(AudioObjectID objectID,
     return kAudioHardwareNoError;
 }
 
-void Device::RequestConfigurationChange(const std::function<void()>& func)
+void Device::RequestConfigurationChange(std::function<void()> func)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -1510,7 +1508,7 @@ void Device::RequestConfigurationChange(const std::function<void()>& func)
             "Device::RequestConfigurationChange() enqueueing change reqID=%lu",
             static_cast<unsigned long>(reqID));
 
-        pendingConfigurationRequests_[reqID] = func;
+        pendingConfigurationRequests_[reqID] = std::move(func);
 
         host->RequestDeviceConfigurationChange(host, GetID(), reqID, nullptr);
     } else {

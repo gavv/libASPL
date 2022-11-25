@@ -10,7 +10,7 @@
 
 namespace aspl {
 
-// Backward compatibility macOS before 12.0
+// Backward compatibility with macOS before 12.0
 #if !defined(MAC_OS_VERSION_12_0) || MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_VERSION_12_0
 enum
 {

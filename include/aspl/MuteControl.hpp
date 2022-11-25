@@ -39,7 +39,7 @@ class MuteControl : public Object
 {
 public:
     //! Construct stream.
-    explicit MuteControl(const std::shared_ptr<const Context>& context,
+    explicit MuteControl(std::shared_ptr<const Context> context,
         const MuteControlParameters& params = {});
 
     //! @name Getters and setters

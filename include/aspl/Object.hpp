@@ -58,7 +58,7 @@ public:
     //! Class name is used for logging. It should be the name of the derived class.
     //! If objectID is @c kAudioObjectUnknown (zero), allocates new object ID.
     //! Otherwise uses given object ID.
-    explicit Object(const std::shared_ptr<const Context>& context,
+    explicit Object(std::shared_ptr<const Context> context,
         const char* className = "Object",
         AudioObjectID objectID = kAudioObjectUnknown);
 
@@ -121,7 +121,7 @@ public:
 
     //! Add object to the list of owned objects.
     //! Also invokes SetOwner() on the added object.
-    void AddOwnedObject(const std::shared_ptr<Object>& object,
+    void AddOwnedObject(std::shared_ptr<Object> object,
         AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal);
 
     //! Remove object to the list of owned objects.
@@ -144,8 +144,7 @@ public:
 
     //! Notify HAL that some properties were changed.
     //! This is automatically called by all setters.
-    void NotifyPropertiesChanged(
-        const std::vector<AudioObjectPropertySelector>& selectors,
+    void NotifyPropertiesChanged(std::vector<AudioObjectPropertySelector> selectors,
         AudioObjectPropertyScope scope = kAudioObjectPropertyScopeGlobal,
         AudioObjectPropertyElement element = kAudioObjectPropertyElementMain) const;
 

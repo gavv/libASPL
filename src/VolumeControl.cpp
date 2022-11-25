@@ -11,9 +11,9 @@
 
 namespace aspl {
 
-VolumeControl::VolumeControl(const std::shared_ptr<const Context>& context,
+VolumeControl::VolumeControl(std::shared_ptr<const Context> context,
     const VolumeControlParameters& params)
-    : Object(context, "VolumeControl")
+    : Object(std::move(context), "VolumeControl")
     , params_(params)
     , volumeCurve_(std::make_unique<VolumeCurve>())
     , rawVolume_(params_.MaxRawVolume)

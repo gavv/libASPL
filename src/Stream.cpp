@@ -8,12 +8,12 @@
 
 namespace aspl {
 
-Stream::Stream(const std::shared_ptr<const Context>& context,
-    const std::shared_ptr<Device>& device,
+Stream::Stream(std::shared_ptr<const Context> context,
+    std::shared_ptr<Device> device,
     const StreamParameters& params)
-    : Object(context, "Stream")
+    : Object(std::move(context), "Stream")
     , params_(params)
-    , device_(device)
+    , device_(std::move(device))
     , latency_(params.Latency)
     , physicalFormat_(params.Format)
     , virtualFormat_(params.Format)
@@ -141,9 +141,9 @@ std::vector<AudioStreamRangedDescription> Stream::GetAvailablePhysicalFormats() 
 }
 
 OSStatus Stream::SetAvailablePhysicalFormatsImpl(
-    const std::vector<AudioStreamRangedDescription>& formats)
+    std::vector<AudioStreamRangedDescription> formats)
 {
-    availPhysicalFormats_.Set(formats);
+    availPhysicalFormats_.Set(std::move(formats));
 
     return kAudioHardwareNoError;
 }
@@ -219,9 +219,9 @@ std::vector<AudioStreamRangedDescription> Stream::GetAvailableVirtualFormats() c
 }
 
 OSStatus Stream::SetAvailableVirtualFormatsImpl(
-    const std::vector<AudioStreamRangedDescription>& formats)
+    std::vector<AudioStreamRangedDescription> formats)
 {
-    availVirtualFormats_.Set(formats);
+    availVirtualFormats_.Set(std::move(formats));
 
     return kAudioHardwareNoError;
 }
@@ -244,14 +244,14 @@ UInt32 Stream::ConvertBytesToFrames(UInt32 numBytes) const
     return numBytes / format.mBytesPerFrame;
 }
 
-void Stream::AttachVolumeControl(const std::shared_ptr<VolumeControl>& control)
+void Stream::AttachVolumeControl(std::shared_ptr<VolumeControl> control)
 {
-    volumeControl_.Set(control);
+    volumeControl_.Set(std::move(control));
 }
 
-void Stream::AttachMuteControl(const std::shared_ptr<MuteControl>& control)
+void Stream::AttachMuteControl(std::shared_ptr<MuteControl> control)
 {
-    muteControl_.Set(control);
+    muteControl_.Set(std::move(control));
 }
 
 void Stream::ApplyProcessing(Float32* frames,
@@ -267,10 +267,10 @@ void Stream::ApplyProcessing(Float32* frames,
     }
 }
 
-void Stream::RequestConfigurationChange(const std::function<void()>& func)
+void Stream::RequestConfigurationChange(std::function<void()> func)
 {
     if (auto device = device_.lock()) {
-        device->RequestConfigurationChange(func);
+        device->RequestConfigurationChange(std::move(func));
     }
 }
 

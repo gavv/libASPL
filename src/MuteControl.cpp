@@ -8,9 +8,9 @@
 
 namespace aspl {
 
-MuteControl::MuteControl(const std::shared_ptr<const Context>& context,
+MuteControl::MuteControl(std::shared_ptr<const Context> context,
     const MuteControlParameters& params)
-    : Object(context, "MuteControl")
+    : Object(std::move(context), "MuteControl")
     , params_(params)
 {
 }

@@ -77,8 +77,8 @@ class Stream : public Object
 {
 public:
     //! Construct stream.
-    explicit Stream(const std::shared_ptr<const Context>& context,
-        const std::shared_ptr<Device>& device,
+    explicit Stream(std::shared_ptr<const Context> context,
+        std::shared_ptr<Device> device,
         const StreamParameters& params = {});
 
     //! @name Getters and setters
@@ -242,11 +242,11 @@ public:
 
     //! Attach volume control to the stream.
     //! ApplyProcessing() will use control to apply volume settings to the stream.
-    void AttachVolumeControl(const std::shared_ptr<VolumeControl>& control);
+    void AttachVolumeControl(std::shared_ptr<VolumeControl> control);
 
     //! Attach mute control to the stream.
     //! ApplyProcessing() will use control to apply mute settings to the stream.
-    void AttachMuteControl(const std::shared_ptr<MuteControl>& control);
+    void AttachMuteControl(std::shared_ptr<MuteControl> control);
 
     //! Apply processing to the stream's data.
     //! The provided buffer contains exactly @p frameCount * @p channelCount samples.
@@ -266,7 +266,7 @@ public:
 
     //! Request HAL to perform configuration update.
     //! Similar to Device::RequestConfigurationChange().
-    void RequestConfigurationChange(const std::function<void()>& func = {});
+    void RequestConfigurationChange(std::function<void()> func = {});
 
     //! @}
 
@@ -353,7 +353,7 @@ protected:
     //! Default implementation just changes the list returned by
     //! GetAvailablePhysicalFormats().
     virtual OSStatus SetAvailablePhysicalFormatsImpl(
-        const std::vector<AudioStreamRangedDescription>& formats);
+        std::vector<AudioStreamRangedDescription> formats);
 
     //! Set current virtual format of the stream.
     //! Invoked by SetVirtualFormatAsync() to actually change the format.
@@ -369,7 +369,7 @@ protected:
     //! Default implementation just changes the list returned by
     //! GetAvailableVirtualFormats().
     virtual OSStatus SetAvailableVirtualFormatsImpl(
-        const std::vector<AudioStreamRangedDescription>& formats);
+        std::vector<AudioStreamRangedDescription> formats);
 
     //! @}
 

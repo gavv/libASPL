@@ -49,7 +49,7 @@ class Plugin : public Object
 {
 public:
     //! Construct plugin.
-    explicit Plugin(const std::shared_ptr<const Context>& context,
+    explicit Plugin(std::shared_ptr<const Context> context,
         const PluginParameters& params = {});
 
     //! @name Getters and setters
@@ -103,11 +103,11 @@ public:
 
     //! Add device to the plugin.
     //! Adds device to the owned object list.
-    void AddDevice(const std::shared_ptr<Device>& device);
+    void AddDevice(std::shared_ptr<Device> device);
 
     //! Remove device from the plugin.
     //! Removes device from the owned object list.
-    void RemoveDevice(const std::shared_ptr<Device>& device);
+    void RemoveDevice(std::shared_ptr<Device> device);
 
     //! @}
 

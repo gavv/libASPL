@@ -55,8 +55,8 @@ class Driver
 public:
     //! Construct driver.
     //! If context or plugin are not set, they are created automatically.
-    explicit Driver(const std::shared_ptr<Context>& context = {},
-        const std::shared_ptr<Plugin>& plugin = {});
+    explicit Driver(std::shared_ptr<Context> context = {},
+        std::shared_ptr<Plugin> plugin = {});
 
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;

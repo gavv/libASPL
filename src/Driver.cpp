@@ -9,10 +9,9 @@
 
 namespace aspl {
 
-Driver::Driver(const std::shared_ptr<Context>& context,
-    const std::shared_ptr<Plugin>& plugin)
-    : context_(context ? context : std::make_shared<Context>())
-    , plugin_(plugin ? plugin : std::make_shared<Plugin>(context_))
+Driver::Driver(std::shared_ptr<Context> context, std::shared_ptr<Plugin> plugin)
+    : context_(context ? std::move(context) : std::make_shared<Context>())
+    , plugin_(plugin ? std::move(plugin) : std::make_shared<Plugin>(context_))
 {
     GetContext()->Tracer->Message("Driver::Driver()");
 

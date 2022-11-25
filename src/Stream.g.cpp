@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Stream.json
-// Timestamp: Fri Nov 25 12:38:02 2022 UTC
+// Timestamp: Fri Nov 25 16:43:25 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -89,7 +89,7 @@ OSStatus Stream::SetLatencyAsync(UInt32 value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -106,7 +106,7 @@ OSStatus Stream::SetLatencyAsync(UInt32 value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetLatencyImpl(value);
+            status = SetLatencyImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -141,7 +141,7 @@ OSStatus Stream::SetPhysicalFormatAsync(AudioStreamBasicDescription value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -158,7 +158,7 @@ OSStatus Stream::SetPhysicalFormatAsync(AudioStreamBasicDescription value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetPhysicalFormatImpl(value);
+            status = SetPhysicalFormatImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -193,7 +193,7 @@ OSStatus Stream::SetVirtualFormatAsync(AudioStreamBasicDescription value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -210,7 +210,7 @@ OSStatus Stream::SetVirtualFormatAsync(AudioStreamBasicDescription value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetVirtualFormatImpl(value);
+            status = SetVirtualFormatImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -239,7 +239,7 @@ OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamRangedD
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -256,7 +256,7 @@ OSStatus Stream::SetAvailablePhysicalFormatsAsync(std::vector<AudioStreamRangedD
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetAvailablePhysicalFormatsImpl(value);
+            status = SetAvailablePhysicalFormatsImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -285,7 +285,7 @@ OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamRangedDe
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -302,7 +302,7 @@ OSStatus Stream::SetAvailableVirtualFormatsAsync(std::vector<AudioStreamRangedDe
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetAvailableVirtualFormatsImpl(value);
+            status = SetAvailableVirtualFormatsImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);

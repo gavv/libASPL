@@ -8,8 +8,8 @@
 
 namespace aspl {
 
-Dispatcher::Dispatcher(const std::shared_ptr<Tracer> tracer, AudioObjectID hintMaximumID)
-    : tracer_(tracer)
+Dispatcher::Dispatcher(std::shared_ptr<Tracer> tracer, AudioObjectID hintMaximumID)
+    : tracer_(std::move(tracer))
     , desiredMaximumID_(hintMaximumID)
 {
 }

@@ -37,10 +37,11 @@ struct Context
     //! Create context.
     //! If dispatcher or tracer is not specified, default one is created.
     //! Default tracer sends output to syslog.
-    explicit Context(const std::shared_ptr<aspl::Tracer>& tracer = {},
-        const std::shared_ptr<aspl::Dispatcher>& dispatcher = {})
-        : Dispatcher(dispatcher ? dispatcher : std::make_shared<aspl::Dispatcher>())
-        , Tracer(tracer ? tracer : std::make_shared<aspl::Tracer>())
+    explicit Context(std::shared_ptr<aspl::Tracer> tracer = {},
+        std::shared_ptr<aspl::Dispatcher> dispatcher = {})
+        : Dispatcher(
+              dispatcher ? std::move(dispatcher) : std::make_shared<aspl::Dispatcher>())
+        , Tracer(tracer ? std::move(tracer) : std::make_shared<aspl::Tracer>())
     {
     }
 };

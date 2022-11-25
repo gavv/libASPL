@@ -43,12 +43,12 @@ struct Object::CustomProperty
     }
 };
 
-Object::Object(const std::shared_ptr<const Context>& context,
+Object::Object(std::shared_ptr<const Context> context,
     const char* className,
     AudioObjectID objectID)
-    : context_(context)
+    : context_(std::move(context))
     , className_(className)
-    , objectID_(context->Dispatcher->RegisterObject(*this, objectID))
+    , objectID_(context_->Dispatcher->RegisterObject(*this, objectID))
 {
     GetContext()->Tracer->Message(
         "%s::%s() objectID=%u", className_, className_, unsigned(GetID()));
@@ -99,7 +99,7 @@ std::vector<AudioObjectID> Object::GetOwnedObjectIDs(AudioObjectPropertyScope sc
     return objectIDList;
 }
 
-void Object::AddOwnedObject(const std::shared_ptr<Object>& object,
+void Object::AddOwnedObject(std::shared_ptr<Object> object,
     AudioObjectPropertyScope scope)
 {
     std::lock_guard writeLock(writeMutex_);
@@ -201,8 +201,7 @@ void Object::DetachOwner()
     ownerObject_ = nullptr;
 }
 
-void Object::NotifyPropertiesChanged(
-    const std::vector<AudioObjectPropertySelector>& selectors,
+void Object::NotifyPropertiesChanged(std::vector<AudioObjectPropertySelector> selectors,
     AudioObjectPropertyScope scope,
     AudioObjectPropertyElement element) const
 {

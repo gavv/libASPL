@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Device.json
-// Timestamp: Fri Nov 25 12:38:02 2022 UTC
+// Timestamp: Fri Nov 25 16:43:25 2022 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -55,7 +55,7 @@ OSStatus Device::SetLatencyAsync(UInt32 value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -72,7 +72,7 @@ OSStatus Device::SetLatencyAsync(UInt32 value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetLatencyImpl(value);
+            status = SetLatencyImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -101,7 +101,7 @@ OSStatus Device::SetSafetyOffsetAsync(UInt32 value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -118,7 +118,7 @@ OSStatus Device::SetSafetyOffsetAsync(UInt32 value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetSafetyOffsetImpl(value);
+            status = SetSafetyOffsetImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -147,7 +147,7 @@ OSStatus Device::SetZeroTimeStampPeriodAsync(UInt32 value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -164,7 +164,7 @@ OSStatus Device::SetZeroTimeStampPeriodAsync(UInt32 value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetZeroTimeStampPeriodImpl(value);
+            status = SetZeroTimeStampPeriodImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -199,7 +199,7 @@ OSStatus Device::SetSampleRateAsync(Float64 value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -216,7 +216,7 @@ OSStatus Device::SetSampleRateAsync(Float64 value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetSampleRateImpl(value);
+            status = SetSampleRateImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -245,7 +245,7 @@ OSStatus Device::SetAvailableSampleRatesAsync(std::vector<AudioValueRange> value
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -262,7 +262,7 @@ OSStatus Device::SetAvailableSampleRatesAsync(std::vector<AudioValueRange> value
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetAvailableSampleRatesImpl(value);
+            status = SetAvailableSampleRatesImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -291,7 +291,7 @@ OSStatus Device::SetPreferredChannelsForStereoAsync(std::array<UInt32, 2> value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -308,7 +308,7 @@ OSStatus Device::SetPreferredChannelsForStereoAsync(std::array<UInt32, 2> value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetPreferredChannelsForStereoImpl(value);
+            status = SetPreferredChannelsForStereoImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -337,7 +337,7 @@ OSStatus Device::SetPreferredChannelCountAsync(UInt32 value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -354,7 +354,7 @@ OSStatus Device::SetPreferredChannelCountAsync(UInt32 value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetPreferredChannelCountImpl(value);
+            status = SetPreferredChannelCountImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -383,7 +383,7 @@ OSStatus Device::SetPreferredChannelsAsync(std::vector<AudioChannelDescription> 
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -400,7 +400,7 @@ OSStatus Device::SetPreferredChannelsAsync(std::vector<AudioChannelDescription> 
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetPreferredChannelsImpl(value);
+            status = SetPreferredChannelsImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -429,7 +429,7 @@ OSStatus Device::SetPreferredChannelLayoutAsync(std::vector<UInt8> value)
         goto end;
     }
 
-    RequestConfigurationChange([this, value]() {
+    RequestConfigurationChange([this, value = std::move(value)]() mutable {
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
@@ -446,7 +446,7 @@ OSStatus Device::SetPreferredChannelLayoutAsync(std::vector<UInt8> value)
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetPreferredChannelLayoutImpl(value);
+            status = SetPreferredChannelLayoutImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);

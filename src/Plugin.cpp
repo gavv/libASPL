@@ -7,9 +7,8 @@
 
 namespace aspl {
 
-Plugin::Plugin(const std::shared_ptr<const Context>& context,
-    const PluginParameters& params)
-    : Object(context, "Plugin", kAudioObjectPlugInObject)
+Plugin::Plugin(std::shared_ptr<const Context> context, const PluginParameters& params)
+    : Object(std::move(context), "Plugin", kAudioObjectPlugInObject)
     , params_(params)
 {
 }
@@ -79,7 +78,7 @@ std::shared_ptr<Device> Plugin::GetDeviceByID(AudioObjectID deviceID) const
     return deviceByID.at(deviceID);
 }
 
-void Plugin::AddDevice(const std::shared_ptr<Device>& device)
+void Plugin::AddDevice(std::shared_ptr<Device> device)
 {
     std::lock_guard writeLock(writeMutex_);
 
@@ -121,7 +120,7 @@ void Plugin::AddDevice(const std::shared_ptr<Device>& device)
     GetContext()->Tracer->OperationEnd(op, kAudioHardwareNoError);
 }
 
-void Plugin::RemoveDevice(const std::shared_ptr<Device>& device)
+void Plugin::RemoveDevice(std::shared_ptr<Device> device)
 {
     std::lock_guard writeLock(writeMutex_);
 

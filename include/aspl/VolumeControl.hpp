@@ -65,7 +65,7 @@ class VolumeControl : public Object
 {
 public:
     //! Construct stream.
-    explicit VolumeControl(const std::shared_ptr<const Context>& context,
+    explicit VolumeControl(std::shared_ptr<const Context> context,
         const VolumeControlParameters& params = {});
 
     //! @name Getters and setters

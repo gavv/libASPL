@@ -167,7 +167,7 @@ class Device : public Object
 {
 public:
     //! Construct device.
-    explicit Device(const std::shared_ptr<const Context>& context,
+    explicit Device(std::shared_ptr<const Context> context,
         const DeviceParameters& params = {});
 
     //! @name Getters and setters
@@ -619,7 +619,7 @@ public:
 
     //! Add stream to device.
     //! Same as AddStreamAsync(Direction), but allows to construct stream manually.
-    void AddStreamAsync(const std::shared_ptr<Stream>& stream);
+    void AddStreamAsync(std::shared_ptr<Stream> stream);
 
     //! Remove stream from device.
     //! @remarks
@@ -630,7 +630,7 @@ public:
     //!  owned objects asynchronously (when HAL allows it). Hence, GetStreamCount()
     //!  and GetStreamByIndex() are updated immediately, but GetOwnedObjectIDs(),
     //!  GetStreamIDs(), etc. are updated some time later.
-    void RemoveStreamAsync(const std::shared_ptr<Stream>& stream);
+    void RemoveStreamAsync(std::shared_ptr<Stream> stream);
 
     //! @}
 
@@ -672,7 +672,7 @@ public:
     //! Add volume control to device.
     //! Same as AddVolumeControlAsync(Direction), but allows to construct control
     //! manually.
-    void AddVolumeControlAsync(const std::shared_ptr<VolumeControl>& control);
+    void AddVolumeControlAsync(std::shared_ptr<VolumeControl> control);
 
     //! Remove volume control from device.
     //! @remarks
@@ -683,7 +683,7 @@ public:
     //!  owned objects asynchronously (when HAL allows it). Hence, GetVolumeControlCount()
     //!  and GetVolumeControlByIndex() are updated immediately, but GetOwnedObjectIDs(),
     //!  GetControlIDs(), etc. are updated some time later.
-    void RemoveVolumeControlAsync(const std::shared_ptr<VolumeControl>& control);
+    void RemoveVolumeControlAsync(std::shared_ptr<VolumeControl> control);
 
     //! @}
 
@@ -723,7 +723,7 @@ public:
 
     //! Add mute control to device.
     //! Same as AddMuteControlAsync(Direction), but allows to construct control manually.
-    void AddMuteControlAsync(const std::shared_ptr<MuteControl>& control);
+    void AddMuteControlAsync(std::shared_ptr<MuteControl> control);
 
     //! Remove mute control from device.
     //! @remarks
@@ -734,7 +734,7 @@ public:
     //!  owned objects asynchronously (when HAL allows it). Hence, GetMuteControlCount()
     //!  and GetMuteControlByIndex() are updated immediately, but GetOwnedObjectIDs(),
     //!  GetControlIDs(), etc. are updated some time later.
-    void RemoveMuteControlAsync(const std::shared_ptr<MuteControl>& control);
+    void RemoveMuteControlAsync(std::shared_ptr<MuteControl> control);
 
     //! @}
 
@@ -744,7 +744,7 @@ public:
     //! Set handler for control requests.
     //! This is optional. You may provide a custom handler if you want to do
     //! custom processing or want to inject custom client implementation.
-    void SetControlHandler(const std::shared_ptr<ControlRequestHandler>& handler);
+    void SetControlHandler(std::shared_ptr<ControlRequestHandler> handler);
 
     //! Called before new client start I/O with the device.
     //! Updates client map and invokes OnAddClient().
@@ -790,7 +790,7 @@ public:
     //! You need to provide your own implementation if you want your device
     //! to actually do something useful. Default implementation is suitable for
     //! a null / black hole device.
-    void SetIOHandler(const std::shared_ptr<IORequestHandler>& handler);
+    void SetIOHandler(std::shared_ptr<IORequestHandler> handler);
 
     //! Get the current zero time stamp for the device.
     //! In default implementation, the zero time stamp and host time are increased
@@ -874,7 +874,7 @@ public:
     //!  If invoked from PerformConfigurationChange(), assumes that we're already
     //!  at the point where it's safe to change configuration and executes the
     //!  function immediately.
-    void RequestConfigurationChange(const std::function<void()>& func = {});
+    void RequestConfigurationChange(std::function<void()> func = {});
 
     //! Called by the Host to allow the device to perform a configuration change
     //! that had been previously requested via a call to the Host method,
@@ -982,8 +982,7 @@ protected:
     //! Invoked by SetAvailableSampleRatesAsync() to actually change the list.
     //! Default implementation just updates the list returned by
     //! GetAvailableSampleRates().
-    virtual OSStatus SetAvailableSampleRatesImpl(
-        const std::vector<AudioValueRange>& rates);
+    virtual OSStatus SetAvailableSampleRatesImpl(std::vector<AudioValueRange> rates);
 
     //! Set channels for stereo.
     //! Invoked by SetPreferredChannelsForStereoAsync() to actually change the value.
@@ -1003,14 +1002,13 @@ protected:
     //! By default, it also affects values returned by GetPreferredChannelCount() and
     //! GetPreferredChannelLayout().
     virtual OSStatus SetPreferredChannelsImpl(
-        const std::vector<AudioChannelDescription>& channels);
+        std::vector<AudioChannelDescription> channels);
 
     //! Invoked by SetPreferredChannelLayoutAsync() to actually change the value.
     //! Default implementation changes the value returned by GetPreferredChannelLayout().
     //! By default, it also affects values returned by GetPreferredChannelCount() and
     //! GetPreferredChannels().
-    virtual OSStatus SetPreferredChannelLayoutImpl(
-        const std::vector<UInt8>& channelLayout);
+    virtual OSStatus SetPreferredChannelLayoutImpl(std::vector<UInt8> channelLayout);
 
     //! Start or stop device identification.
     //! This can be requested by UI, but probably makes little sense to virtual devices.
