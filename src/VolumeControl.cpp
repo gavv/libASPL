@@ -1,6 +1,7 @@
 // Copyright (c) libASPL authors
 // Licensed under MIT
 
+#include <aspl/Compat.hpp>
 #include <aspl/VolumeControl.hpp>
 
 #include "Convert.hpp"
@@ -30,7 +31,7 @@ AudioObjectPropertyScope VolumeControl::GetScope() const
 
 AudioObjectPropertyElement VolumeControl::GetElement() const
 {
-    return kAudioObjectPropertyElementMaster;
+    return kAudioObjectPropertyElementMain;
 }
 
 SInt32 VolumeControl::GetRawValue() const

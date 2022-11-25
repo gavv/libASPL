@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <aspl/Compat.hpp>
 #include <aspl/Context.hpp>
 #include <aspl/DoubleBuffer.hpp>
 

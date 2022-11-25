@@ -53,8 +53,8 @@ public:
     virtual AudioObjectPropertyScope GetScope() const;
 
     //! Get the element that the control is attached to.
-    //! Typically should return kAudioObjectPropertyElementMaster.
-    //! By default returns kAudioObjectPropertyElementMaster.
+    //! Typically should return kAudioObjectPropertyElementMain.
+    //! By default returns kAudioObjectPropertyElementMain.
     //! @note
     //!  Backs @c kAudioControlPropertyElement property.
     virtual AudioObjectPropertyElement GetElement() const;

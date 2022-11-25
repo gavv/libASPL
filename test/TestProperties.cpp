@@ -1,3 +1,4 @@
+#include <aspl/Compat.hpp>
 #include <aspl/Driver.hpp>
 
 #include "Compare.hpp"
@@ -1023,8 +1024,8 @@ TEST_F(PropertiesTest, VolumeControl)
         kAudioControlPropertyScope);
 
     // Element
-    EXPECT_EQ(kAudioObjectPropertyElementMaster, volumeControl->GetElement());
-    ExpectUInt32Property(kAudioObjectPropertyElementMaster,
+    EXPECT_EQ(kAudioObjectPropertyElementMain, volumeControl->GetElement());
+    ExpectUInt32Property(kAudioObjectPropertyElementMain,
         volumeControl->GetID(),
         kAudioControlPropertyElement);
 
@@ -1123,8 +1124,8 @@ TEST_F(PropertiesTest, MuteControl)
         kAudioObjectPropertyScopeInput, muteControl->GetID(), kAudioControlPropertyScope);
 
     // Element
-    EXPECT_EQ(kAudioObjectPropertyElementMaster, muteControl->GetElement());
-    ExpectUInt32Property(kAudioObjectPropertyElementMaster,
+    EXPECT_EQ(kAudioObjectPropertyElementMain, muteControl->GetElement());
+    ExpectUInt32Property(kAudioObjectPropertyElementMain,
         muteControl->GetID(),
         kAudioControlPropertyElement);
 

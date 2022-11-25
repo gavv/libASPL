@@ -1,6 +1,7 @@
 // Copyright (c) libASPL authors
 // Licensed under MIT
 
+#include <aspl/Compat.hpp>
 #include <aspl/MuteControl.hpp>
 
 #include "Strings.hpp"
@@ -21,7 +22,7 @@ AudioObjectPropertyScope MuteControl::GetScope() const
 
 AudioObjectPropertyElement MuteControl::GetElement() const
 {
-    return kAudioObjectPropertyElementMaster;
+    return kAudioObjectPropertyElementMain;
 }
 
 bool MuteControl::GetIsMuted() const
