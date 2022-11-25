@@ -59,6 +59,9 @@ jobs:
       - name: Build
         run: make debug_build
 
+      - name: Prepare
+        run: touch html/.nojekyll
+
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
