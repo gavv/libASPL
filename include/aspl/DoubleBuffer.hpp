@@ -56,8 +56,11 @@ namespace aspl {
 //! and pass it to the setter.
 //!
 //! The value should have public default and copy constructors. If it also
-//! has move constructor, it can be used in setter, and then only one copy
-//! is needed to update value. Otherwise, two copies are needed.
+//! has move constructor, it can be used in setter.
+//!
+//! If the value has non-trivial destructor, before setter returns, it waits
+//! until the previously used value is not accessed by readers anymore and
+//! invokes destructor for the old value.
 //!
 //! Typical reader looks like the following:
 //! @code
