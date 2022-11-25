@@ -3,23 +3,28 @@ name: "build"
 on:
   workflow_dispatch:
 
+  pull_request:
+    branches:
+      - main
+
   push:
     branches:
       - main
     tags:
       - v*
 
-  pull_request:
-
 jobs:
   build:
-    runs-on: macos-latest
-    steps:
-      - name: Prepare
-        run: brew install doxygen
+    strategy:
+      matrix:
+        macos: [11, 12, latest]
 
+    runs-on: macos-${{ matrix.macos }}
+    name: macos-${{ matrix.macos }}
+
+    steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -38,8 +43,24 @@ jobs:
       - name: Install
         run: sudo make install
 
+  doxygen:
+    runs-on: macos-latest
+    if: github.event_name != 'pull_request'
+
+    steps:
+      - name: Install tools
+        run: brew install doxygen graphviz
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Build
+        run: make debug_build
+
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.0.0
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: doxygen
           folder: html
