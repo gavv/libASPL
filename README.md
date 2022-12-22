@@ -34,7 +34,7 @@ The library acts as a thin shim between Audio Server and your code and takes car
 
 * All properties have reasonable default implementation, so typically you need to override only a small subset which is specific to your driver.
 
-* The library does not hide any Audio Server functionality from you. If necessary, you can customize every aspect of the plugin by overriding correspoding virtual methods.
+* The library does not hide any Audio Server functionality from you. If necessary, you can customize every aspect of the plugin by overriding corresponding virtual methods.
 
 * The library also does not introduce any new abstractions. Audio Server properties and callbacks are mapped almost one-to-one to C++ methods.
 
@@ -323,7 +323,7 @@ This diagram shows driver and audio object tree in libASPL:
 
 ![](doc/aspl_objects.png)
 
-Audio object classes are organized in a hierarchy as well, with the AudioObject class in the root of the hierarchy. For example, AudioVolumeControl class inherits more genric AudioLevelControl, which inherits even more generic AudioControl, which finally inherits AudioObject.
+Audio object classes are organized in a hierarchy as well, with the AudioObject class in the root of the hierarchy. For example, AudioVolumeControl class inherits more generic AudioLevelControl, which inherits even more generic AudioControl, which finally inherits AudioObject.
 
 > Audio objects "classes" are more like "interfaces": they define which properties and operations should be supported by an object. Inheritance means supporting of all properties and operations of the parent class too.
 
@@ -349,7 +349,7 @@ libASPL objects provide setters of two types:
 
   Such setters are used for properties that can't be changed at arbitrary point of time, but instead the change should be negotiated with HAL. They typically request HAL to schedule configuration change. When the time comes (e.g. after I/O cycle end), the HAL invokes the scheduled code, and the change is actually applied by invoking protected virtual method SetXXXImpl() (which you can override).
 
-> Note 1: if you invoke asynchronous setter before you've published plugin to HAL by returning driver from the entry point, the setter applies the change immediately without invloving HAL, because it's safe to change anything at this point.
+> Note 1: if you invoke asynchronous setter before you've published plugin to HAL by returning driver from the entry point, the setter applies the change immediately without involving HAL, because it's safe to change anything at this point.
 
 > Note 2: if you invoke an asynchronous setter while you're already applying some asynchronous change, i.e. from some SetXXXImpl() method, again the setter applies the change immediately without scheduling it, because we're already at the point where it's safe to apply such changes.
 
@@ -359,7 +359,7 @@ The library allows several ways of customization.
 
 Builtin properties:
 
-1. Each object (Plugin, Device, Stream, etc.) can be provided with the custom config at construction time (PluginParamateres, DeviceParameters, etc), which defines initial values of the properties.
+1. Each object (Plugin, Device, Stream, etc.) can be provided with the custom config at construction time (PluginParameters, DeviceParameters, etc), which defines initial values of the properties.
 
 2. Each object also provides setters for the properties that can be changed on fly.
 
@@ -397,7 +397,7 @@ To help with this, libASPL follows the following simple rules:
 
 * All operations that modify object state, e.g. all SetXXX(), AddXXX(), and RegisterXXX() methods, are allowed to block and should be called only from non-realtime threads. So avoid calling them during I/O.
 
-* All operations that are invoked on realtime threads are groupped into a single class IORequestHandler. So typically you need to be careful only when overriding methods of that class.
+* All operations that are invoked on realtime threads are grouped into a single class IORequestHandler. So typically you need to be careful only when overriding methods of that class.
 
 When overriding libASPL methods, you can either follow the same rules for simplicity, or revise each method you override and make sure it's realtime-safe if there are paths when it's called on realtime threads.
 
@@ -483,7 +483,7 @@ There are three code generators:
 * [script/generate-bridge.py](script/generate-bridge.py) - reads JSON description of C plugin interface and generates C++ code for dispatching HAL calls to corresponding C++ objects calls
 * [script/generate-strings.py](script/generate-strings.py) - reads CoreAudio header files and generates C++ code to convert various identifiers to their string names
 
-All of the generators are created using excelent [Jinja](https://jinja.palletsprojects.com/) Python module.
+All of the generators are created using the excellent [Jinja](https://jinja.palletsprojects.com/) Python module.
 
 See CMake scripts for details on how the generators are invoked. The generated files are added to the repo. Unless you modify the sources, CMake wont regenerate them and there is no need to install Jinja.
 
