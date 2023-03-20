@@ -508,13 +508,19 @@ Build and run tests:
 make test
 ```
 
+Run code generation:
+
+```
+make gen
+```
+
 Remove build results:
 
 ```
 make clean
 ```
 
-Also remove generated files:
+Remove build results and generated files:
 
 ```
 make clobber

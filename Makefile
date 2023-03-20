@@ -12,12 +12,14 @@ CODESIGN_ID ?= \
 
 all: release_build
 
-release_build:
+release_cmake:
 	mkdir -p build/Release
 	cd build/Release && $(CMAKE) $(CMAKE_ARGS) -DCMAKE_BUILD_TYPE=Release ../..
+
+release_build: release_cmake
 	cd build/Release && make -j$(NUM_CPU)
 
-debug_build:
+debug_cmake:
 	mkdir -p build/Debug
 	cd build/Debug && $(CMAKE) $(CMAKE_ARGS) \
 		-DCMAKE_BUILD_TYPE=Debug \
@@ -25,14 +27,16 @@ debug_build:
 		-DBUILD_TESTING=ON \
 		-DBUILD_DOCUMENTATION=ON \
 		../..
+
+debug_build: debug_cmake
 	cd build/Debug && make -j$(NUM_CPU)
 
 .PHONY: test
 test: debug_build
 	cd build/Debug && make test ARGS="-V"
 
-install:
-	cd build/Release && make install
+gen: debug_cmake
+	cd build/Debug && make gen
 
 .PHONY: example
 example:
@@ -40,6 +44,9 @@ example:
 	cd build/Example && $(CMAKE) $(CMAKE_ARGS) \
 		-DCMAKE_BUILD_TYPE=Release -DCODESIGN_ID="$(CODESIGN_ID)" ../../example
 	cd build/Example && make -j$(NUM_CPU)
+
+install:
+	cd build/Release && make install
 
 clean:
 	rm -rf build

@@ -71,15 +71,13 @@ set(OBJECT_LIST
   "Plugin"
   "Stream"
   "VolumeControl"
-  )
+)
+
+add_custom_target("gen")
 
 foreach(CLASS IN LISTS OBJECT_LIST)
   add_custom_command(
-    DEPENDS
-      "${PROJECT_SOURCE_DIR}/src/${CLASS}.json"
-      "${PROJECT_SOURCE_DIR}/script/generate-accessors.py"
-    OUTPUT
-      "${PROJECT_SOURCE_DIR}/src/${CLASS}.g.cpp"
+    TARGET "gen"
     COMMAND cd "${PROJECT_SOURCE_DIR}" &&
       "${PROJECT_SOURCE_DIR}/script/generate-accessors.py"
         -i "src/${CLASS}.json"
@@ -95,11 +93,7 @@ foreach(CLASS IN LISTS OBJECT_LIST)
 endforeach()
 
 add_custom_command(
-  DEPENDS
-    "${PROJECT_SOURCE_DIR}/src/Bridge.json"
-    "${PROJECT_SOURCE_DIR}/script/generate-bridge.py"
-  OUTPUT
-    "${PROJECT_SOURCE_DIR}/src/Bridge.g.cpp"
+  TARGET "gen"
   COMMAND cd "${PROJECT_SOURCE_DIR}" &&
     "${PROJECT_SOURCE_DIR}/script/generate-bridge.py"
     -i "src/Bridge.json"
@@ -113,10 +107,7 @@ list(APPEND SOURCE_LIST
   )
 
 add_custom_command(
-  DEPENDS
-    "${PROJECT_SOURCE_DIR}/script/generate-strings.py"
-  OUTPUT
-    "${PROJECT_SOURCE_DIR}/src/Strings.g.cpp"
+  TARGET "gen"
   COMMAND cd "${PROJECT_SOURCE_DIR}" &&
     "${PROJECT_SOURCE_DIR}/script/generate-strings.py"
     -c "${CMAKE_CXX_COMPILER}"
