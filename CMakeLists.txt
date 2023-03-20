@@ -32,27 +32,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(COMPILER_FLAGS "")
 set(LINKER_FLAGS "")
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-  list(APPEND COMPILER_FLAGS
-    "-Weverything"
-    "-Wno-anon-enum-enum-conversion"
-    "-Wno-c++98-c++11-c++14-compat"
-    "-Wno-c++98-compat"
-    "-Wno-c++98-compat-pedantic"
-    "-Wno-ctad-maybe-unsupported"
-    "-Wno-double-promotion"
-    "-Wno-exit-time-destructors"
-    "-Wno-float-equal"
-    "-Wno-format-nonliteral"
-    "-Wno-four-char-constants"
-    "-Wno-global-constructors"
-    "-Wno-mismatched-tags"
-    "-Wno-padded"
-    "-Wno-shadow-uncaptured-local"
-    "-Wno-unused-parameter"
-    "-Wno-weak-vtables"
-    )
-endif()
+list(APPEND COMPILER_FLAGS
+  "-Wall"
+  "-Wextra"
+  "-Wno-unused-parameter"
+)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   list(APPEND COMPILER_FLAGS
