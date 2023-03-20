@@ -2,4 +2,5 @@
 /html
 compile_commands.json
 GNUmakefile
+.unisonignore
 *.org
