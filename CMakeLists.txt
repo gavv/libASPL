@@ -7,7 +7,7 @@ option(BUILD_DOCUMENTATION "Build Doxygen documentation" OFF)
 execute_process(
   OUTPUT_VARIABLE GIT_TAG
   OUTPUT_STRIP_TRAILING_WHITESPACE
-  COMMAND git describe --tags --abbrev=0
+  COMMAND sh -c "cd \"${PROJECT_SOURCE_DIR}\" && git describe --tags --abbrev=0"
   )
 string(REGEX MATCH "v?([0-9.]+)" RESULT ${GIT_TAG})
 set(GIT_TAG "${CMAKE_MATCH_1}")
