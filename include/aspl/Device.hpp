@@ -200,7 +200,7 @@ public:
 
     //! Get model UID.
     //! Persistent token that can identify audio devices of the same kind.
-    //! Two instances of the save device must have the same value for this property.
+    //! Two instances of the same device must have the same value for this property.
     //! By default returns DeviceParameters::ModelUID.
     //! @note
     //!  Backs @c kAudioDevicePropertyModelUID property.
