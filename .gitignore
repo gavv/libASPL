@@ -1,6 +1,6 @@
 /build
 /html
-compile_commands.json
 GNUmakefile
+compile_commands.json
 .unisonignore
 *.org

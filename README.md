@@ -82,23 +82,28 @@ Only source-level compatibility is maintained. There is no binary compatibility 
 
 Doxygen-generated documentation is [available here](https://gavv.github.io/libASPL/).
 
-## Example driver
+## Example drivers
 
-A complete standalone example driver with comments can be found in [example directory](example).
+A complete standalone example drivers with comments can be found in [examples directory](examples).
 
-You can build it using:
+| driver name                                 | device type | description                                                                                              |
+|---------------------------------------------|-------------|----------------------------------------------------------------------------------------------------------|
+| [`NetcatDevice`](examples/NetcatDevice)     | output      | Sound from apps that write to device is mixed and sent over UDP, and can be recorded using `netcat` tool |
+| [`SinewaveDevice`](examples/SinewaveDevice) | input       | Apps that read from device receive infinite sine wave (a loud beep).                                     |
+
+You can build examples with this command:
 
 ```
-make example [CODESIGN_ID=...]
+make examples [CODESIGN_ID=...]
 ```
 
-You can then (un)install driver into the system with:
+You can then (un)install drivers into the system using:
 
 ```
-sudo ./example/install.sh [-u]
+sudo ./examples/install.sh [-u]
 ```
 
-The device should appear in the device list:
+The devices should appear in the device list:
 
 ```
 $ system_profiler SPAudioDataType
@@ -108,31 +113,51 @@ Audio:
 
         ...
 
-        Example Device:
+        Netcat Device (libASPL):
 
           Manufacturer: libASPL
           Output Channels: 2
           Current SampleRate: 44100
           Transport: Virtual
           Output Source: Default
+
+        Sinewave Device (libASPL):
+
+          Input Channels: 2
+          Manufacturer: libASPL
+          Current SampleRate: 44100
+          Transport: Virtual
+          Input Source: Default
 ```
 
 You can also gather driver logs:
 
 ```
-log stream --predicate 'sender == "ASPL_Example"'
+log stream --predicate 'sender == "NetcatDevice"'
 ```
 
 Or, for more compact output:
 
 ```
-log stream --predicate 'sender == "ASPL_Example"' | sed -e 's,.*\[aspl\],,'
+log stream --predicate 'sender == "NetcatDevice"' | sed -e 's,.*\[aspl\],,'
 ```
 
-The example driver sends sound written to it via UDP to 127.0.0.1:4444. The following command receives 1M samples, decodes them, and converts to a WAV file:
+Netcat Device driver sends sound written to it via UDP to 127.0.0.1:4444. The following command receives 1M samples, decodes them, and stores to a WAV file:
 
 ```
 nc -u -l 127.0.0.1 4444 | head -c 1000000 | sox -t raw -r 44100 -e signed -b 16 -c 2 - test.wav
+```
+
+Sinewave Device driver writes an infinite sine wave to all apps connected to it. The following command records 5 seconds of audio from device and stores it to a WAV file:
+
+```
+sox -t coreaudio "Sinewave Device (libASPL)" test.wav trim 0 5
+```
+
+The above commands use `sox` tool, which can be installed using:
+
+```
+brew install sox
 ```
 
 ## Quick start

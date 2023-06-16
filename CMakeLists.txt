@@ -79,7 +79,7 @@ foreach(CLASS IN LISTS OBJECT_LIST)
   add_custom_command(
     TARGET "gen"
     COMMAND cd "${PROJECT_SOURCE_DIR}" &&
-      "${PROJECT_SOURCE_DIR}/script/generate-accessors.py"
+      "${PROJECT_SOURCE_DIR}/scripts/generate-accessors.py"
         -i "src/${CLASS}.json"
         -o "src/${CLASS}.g.cpp"
     COMMENT
@@ -95,7 +95,7 @@ endforeach()
 add_custom_command(
   TARGET "gen"
   COMMAND cd "${PROJECT_SOURCE_DIR}" &&
-    "${PROJECT_SOURCE_DIR}/script/generate-bridge.py"
+    "${PROJECT_SOURCE_DIR}/scripts/generate-bridge.py"
     -i "src/Bridge.json"
     -o "src/Bridge.g.cpp"
   COMMENT
@@ -109,7 +109,7 @@ list(APPEND SOURCE_LIST
 add_custom_command(
   TARGET "gen"
   COMMAND cd "${PROJECT_SOURCE_DIR}" &&
-    "${PROJECT_SOURCE_DIR}/script/generate-strings.py"
+    "${PROJECT_SOURCE_DIR}/scripts/generate-strings.py"
     -c "${CMAKE_CXX_COMPILER}"
     -s "${CMAKE_OSX_SYSROOT}"
     -o "src/Strings.g.cpp"
@@ -200,16 +200,17 @@ install(FILES
 if(BUILD_TESTING)
   include(ExternalProject)
   ExternalProject_Add(googletest
-    GIT_REPOSITORY    https://github.com/google/googletest.git
-    GIT_TAG           release-1.12.1
-    GIT_SHALLOW       ON
-    SOURCE_DIR        ${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-    BINARY_DIR        ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-    INSTALL_COMMAND   ""
-    TEST_COMMAND      ""
-    LOG_DOWNLOAD      ON
-    LOG_CONFIGURE     ON
-    LOG_BUILD         ON
+    GIT_REPOSITORY      https://github.com/google/googletest.git
+    GIT_TAG             release-1.12.1
+    GIT_SHALLOW         ON
+    UPDATE_DISCONNECTED 1
+    SOURCE_DIR          ${CMAKE_CURRENT_BINARY_DIR}/googletest-src
+    BINARY_DIR          ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
+    INSTALL_COMMAND     ""
+    TEST_COMMAND        ""
+    LOG_DOWNLOAD        ON
+    LOG_CONFIGURE       ON
+    LOG_BUILD           ON
     )
 
   add_dependencies(googletest
@@ -259,10 +260,14 @@ if(BUILD_DOCUMENTATION)
   endif()
 endif(BUILD_DOCUMENTATION)
 
-add_custom_target(compile_commands ALL
-  DEPENDS ${LIB_TARGET}
+add_custom_command(
   COMMENT "Copying compile_commands.json to project root"
-  COMMAND "${CMAKE_COMMAND}" -E copy
-  "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json"
-  "${PROJECT_SOURCE_DIR}/compile_commands.json"
+  DEPENDS ${LIB_TARGET}
+  OUTPUT ${PROJECT_SOURCE_DIR}/compile_commands.json
+  COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
+    ${PROJECT_SOURCE_DIR}/compile_commands.json
   )
+add_custom_target(compile_commands ALL
+  DEPENDS ${PROJECT_SOURCE_DIR}/compile_commands.json
+)

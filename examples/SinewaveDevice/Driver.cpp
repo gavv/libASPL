@@ -5,73 +5,56 @@
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <cmath>
+#include <limits>
 
 namespace {
+
+// Sinewave.
+constexpr UInt32 SineFrequency = 500;
+
+// Stream format.
+constexpr UInt32 SampleRate = 44100;
+constexpr UInt32 ChannelCount = 2;
 
 // Control and I/O request handler.
 class ExampleHandler : public aspl::ControlRequestHandler, public aspl::IORequestHandler
 {
 public:
-    // Handler will send samples to this address via UDP.
-    static constexpr const char* SocketAddr = "127.0.0.1";
-    static constexpr short SocketPort = 4444;
-    static constexpr UInt32 MaxPacketSize = 512;
-
-    // Invoked on control thread before first I/O request.
-    OSStatus OnStartIO() override
-    {
-        socket_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-        if (socket_ == -1) {
-            return kAudioHardwareUnspecifiedError;
-        }
-
-        sockaddr_in addr;
-        addr.sin_family = AF_INET;
-        addr.sin_port = htons(SocketPort);
-        inet_pton(AF_INET, SocketAddr, &addr.sin_addr);
-
-        if (connect(socket_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == -1) {
-            close(socket_);
-            socket_ = -1;
-            return kAudioHardwareUnspecifiedError;
-        }
-
-        return kAudioHardwareNoError;
-    }
-
-    // Invoked on control thread after last I/O request.
-    void OnStopIO() override
-    {
-        if (socket_ != -1) {
-            close(socket_);
-            socket_ = -1;
-        }
-    }
-
-    // Invoked on realtime I/O thread to write mixed data from clients.
-    void OnWriteMixedOutput(const std::shared_ptr<aspl::Stream>& stream,
+    void OnReadClientInput(const std::shared_ptr<aspl::Client>& client,
+        const std::shared_ptr<aspl::Stream>& stream,
         Float64 zeroTimestamp,
         Float64 timestamp,
-        const void* buff,
-        UInt32 buffBytesSize) override
+        void* bytes,
+        UInt32 bytesCount) override
     {
-        while (buffBytesSize != 0) {
-            const UInt32 packetBytesSize = std::min(buffBytesSize, MaxPacketSize);
+        SInt16* samples = (SInt16*)bytes;
+        UInt32 numSamples = bytesCount / sizeof(SInt16) / ChannelCount;
 
-            send(socket_, buff, packetBytesSize, MSG_DONTWAIT);
-
-            buff = reinterpret_cast<const UInt8*>(buff) + packetBytesSize;
-            buffBytesSize -= packetBytesSize;
+        for (UInt32 n = 0; n < numSamples; n++) {
+            for (UInt32 c = 0; c < ChannelCount; c++) {
+                samples[n * ChannelCount + c] = ConvertSample(MakeSample(timestamp, n));
+            }
         }
     }
 
 private:
-    int socket_ = -1;
+    double MakeSample(Float64 timestamp, UInt32 n)
+    {
+        return std::sin(2 * M_PI / SampleRate * SineFrequency * (timestamp + n));
+    }
+
+    SInt16 ConvertSample(double s)
+    {
+        constexpr SInt16 SInt16Min = std::numeric_limits<SInt16>::min();
+        constexpr SInt16 Sint16Max = std::numeric_limits<SInt16>::max();
+
+        s *= (Sint16Max + 1.0);
+
+        return s < SInt16Min          ? SInt16Min // clip
+               : s >= Sint16Max + 1.0 ? Sint16Max // clip
+                                      : SInt16(s);
+    }
 };
 
 std::shared_ptr<aspl::Driver> CreateExampleDriver()
@@ -82,11 +65,9 @@ std::shared_ptr<aspl::Driver> CreateExampleDriver()
 
     // Create device object with some custom parameters.
     aspl::DeviceParameters deviceParams;
-    deviceParams.Name = "Example Device";
-    deviceParams.SampleRate = 44100;
-    deviceParams.ChannelCount = 2;
-    deviceParams.EnableMixing = true;
-    deviceParams.EnableRealtimeTracing = false;
+    deviceParams.Name = "Sinewave Device (libASPL)";
+    deviceParams.SampleRate = SampleRate;
+    deviceParams.ChannelCount = ChannelCount;
 
     auto device = std::make_shared<aspl::Device>(context, deviceParams);
 
@@ -100,7 +81,7 @@ std::shared_ptr<aspl::Driver> CreateExampleDriver()
     // and to store volume and mute settings.
     //
     // IORequestHandler will use stream to apply stored volume and mute settings.
-    device->AddStreamWithControlsAsync(aspl::Direction::Output);
+    device->AddStreamWithControlsAsync(aspl::Direction::Input);
 
     // Create and set custom handler for both control and I/O requests.
     // You can use separate handlers, but here we use one.

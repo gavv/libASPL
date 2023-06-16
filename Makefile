@@ -2,13 +2,12 @@ GTEST_COLOR ?= yes
 export GTEST_COLOR
 
 CMAKE ?= cmake
-
 CMAKE_ARGS ?= -Wno-dev
 
-NUM_CPU ?= `sysctl -n hw.logicalcpu 2>/dev/null || echo 1`
+NUM_CPU ?= $(shell sysctl -n hw.logicalcpu 2>/dev/null || echo 1)
 
-CODESIGN_ID ?= \
-  `security find-identity -v 2>/dev/null | grep 'Apple Development' | head -1 | awk '{print $$2}'`
+CODESIGN_ID ?= $(shell security find-identity -v 2>/dev/null | \
+	grep 'Apple Development' | head -1 | awk '{print $$2}')
 
 all: release_build
 
@@ -38,12 +37,11 @@ test: debug_build
 gen: debug_cmake
 	cd build/Debug && make gen
 
-.PHONY: example
-example:
-	mkdir -p build/Example
-	cd build/Example && $(CMAKE) $(CMAKE_ARGS) \
-		-DCMAKE_BUILD_TYPE=Release -DCODESIGN_ID="$(CODESIGN_ID)" ../../example
-	cd build/Example && make -j$(NUM_CPU)
+.PHONY: examples
+examples:
+	mkdir -p build/Examples
+	cd build/Examples && $(CMAKE) $(CMAKE_ARGS) ../../examples
+	cd build/Examples && make -j$(NUM_CPU)
 
 install:
 	cd build/Release && make install

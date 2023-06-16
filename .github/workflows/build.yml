@@ -40,8 +40,8 @@ jobs:
       - name: Test
         run: make test
 
-      - name: Example
-        run: make example
+      - name: Examples
+        run: make examples
 
       - name: Install
         run: sudo make install
