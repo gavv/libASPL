@@ -3,10 +3,11 @@
 <!-- toc -->
 
 - [Synopsis](#synopsis)
+- [Status](#status)
 - [Instructions](#instructions)
 - [Versioning](#versioning)
 - [API reference](#api-reference)
-- [Example driver](#example-driver)
+- [Example drivers](#example-drivers)
 - [Quick start](#quick-start)
 - [Object model](#object-model)
 - [Types of setters](#types-of-setters)
@@ -39,6 +40,12 @@ The library acts as a thin shim between Audio Server and your code and takes car
 * The library also does not introduce any new abstractions. Audio Server properties and callbacks are mapped almost one-to-one to C++ methods.
 
 * As a bonus, the library performs verbose tracing of everything that happens with your driver. The output and the format of the trace can be customized.
+
+## Status
+
+This library is used in commercial and open-source applications and can be considered production-ready.
+
+You can find a real-world usage example here: [Roc Virtual Audio Device for macOS](https://github.com/roc-streaming/roc-vad).
 
 ## Instructions
 
@@ -504,9 +511,9 @@ To solve the issue with lots of the boilerplate code needed for a plugin, libASP
 
 There are three code generators:
 
-* [script/generate-accessors.py](script/generate-accessors.py) - reads JSON description of object's properties and generates C++ code for dispatching dynamic HAL requests to statically typed getters and setters
-* [script/generate-bridge.py](script/generate-bridge.py) - reads JSON description of C plugin interface and generates C++ code for dispatching HAL calls to corresponding C++ objects calls
-* [script/generate-strings.py](script/generate-strings.py) - reads CoreAudio header files and generates C++ code to convert various identifiers to their string names
+* [scripts/generate-accessors.py](scripts/generate-accessors.py) - reads JSON description of object's properties and generates C++ code for dispatching dynamic HAL requests to statically typed getters and setters
+* [scripts/generate-bridge.py](scripts/generate-bridge.py) - reads JSON description of C plugin interface and generates C++ code for dispatching HAL calls to corresponding C++ objects calls
+* [scripts/generate-strings.py](scripts/generate-strings.py) - reads CoreAudio header files and generates C++ code to convert various identifiers to their string names
 
 All of the generators are created using the excellent [Jinja](https://jinja.palletsprojects.com/) Python module.
 
