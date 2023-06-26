@@ -126,7 +126,11 @@ void Tracer::OperationEnd(const Operation& op, OSStatus status)
 
     Print(str.c_str());
 
-    threadState.DepthCounter--;
+    if (threadState.DepthCounter != 0) {
+        threadState.DepthCounter--;
+    } else {
+        Error("Tracer: detected unpaired OperationBegin/OperationEnd");
+    }
 }
 
 std::string Tracer::FormatOperationBegin(const Operation& op, UInt32 depth)
@@ -206,6 +210,11 @@ std::string Tracer::FormatOperationEnd(const Operation& op, OSStatus status, UIn
     }
 
     return ss.str();
+}
+
+void Tracer::Error(const char* message)
+{
+    Print(message);
 }
 
 void Tracer::Print(const char* message)

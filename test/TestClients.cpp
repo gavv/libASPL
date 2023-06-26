@@ -1,5 +1,7 @@
 #include <aspl/Driver.hpp>
 
+#include "TestTracer.hpp"
+
 #include <CoreAudio/AudioServerPlugIn.h>
 #include <CoreFoundation/CoreFoundation.h>
 
@@ -7,8 +9,7 @@
 
 struct ClientsTest : ::testing::Test
 {
-    std::shared_ptr<aspl::Tracer> tracer =
-        std::make_shared<aspl::Tracer>(aspl::Tracer::Mode::Noop);
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
 
     std::shared_ptr<aspl::Context> context = std::make_shared<aspl::Context>(tracer);
 

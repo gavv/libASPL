@@ -222,6 +222,7 @@ if(BUILD_TESTING)
     "test/TestClients.cpp"
     "test/TestConstruction.cpp"
     "test/TestDoubleBuffer.cpp"
+    "test/TestOperations.cpp"
     "test/TestProperties.cpp"
     "test/TestRegistration.cpp"
     )

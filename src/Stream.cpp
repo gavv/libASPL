@@ -116,6 +116,8 @@ OSStatus Stream::SetPhysicalSampleRateAsync(Float64 rate)
     op.Name = "Stream::SetPhysicalSampleRateAsync()";
     op.ObjectID = GetID();
 
+    GetContext()->Tracer->OperationBegin(op);
+
     auto format = GetPhysicalFormat();
     format.mSampleRate = rate;
 
@@ -193,6 +195,8 @@ OSStatus Stream::SetVirtualSampleRateAsync(Float64 rate)
     Tracer::Operation op;
     op.Name = "Stream::SetVirtualSampleRateAsync()";
     op.ObjectID = GetID();
+
+    GetContext()->Tracer->OperationBegin(op);
 
     auto format = GetVirtualFormat();
     format.mSampleRate = rate;

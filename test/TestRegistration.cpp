@@ -1,5 +1,7 @@
 #include <aspl/Object.hpp>
 
+#include "TestTracer.hpp"
+
 #include <algorithm>
 #include <deque>
 #include <map>
@@ -12,9 +14,7 @@ struct DispatcherTest : ::testing::Test
 {
     static constexpr UInt32 TestHintMaxID = 50;
 
-    // Set to Mode::Stderr for debugging.
-    std::shared_ptr<aspl::Tracer> tracer =
-        std::make_shared<aspl::Tracer>(aspl::Tracer::Mode::Noop);
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
 
     std::shared_ptr<aspl::Dispatcher> dispatcher =
         std::make_shared<aspl::Dispatcher>(tracer, TestHintMaxID);

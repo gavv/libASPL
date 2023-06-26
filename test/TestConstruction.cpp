@@ -1,14 +1,13 @@
 #include <aspl/Device.hpp>
 #include <aspl/Plugin.hpp>
 
+#include "TestTracer.hpp"
+
 #include <gtest/gtest.h>
 
 struct ConstructionTest : ::testing::Test
 {
-    // Set to Mode::Stderr for debugging.
-    std::shared_ptr<aspl::Tracer> tracer =
-        std::make_shared<aspl::Tracer>(aspl::Tracer::Mode::Noop);
-
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
     std::shared_ptr<aspl::Context> context = std::make_shared<aspl::Context>(tracer);
 };
 

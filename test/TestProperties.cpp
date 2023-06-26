@@ -3,6 +3,8 @@
 
 #include "Compare.hpp"
 
+#include "TestTracer.hpp"
+
 #include <CoreAudio/AudioServerPlugIn.h>
 #include <CoreFoundation/CoreFoundation.h>
 
@@ -534,9 +536,7 @@ struct PropertiesTest : ::testing::Test
 
         muteControlParams.Scope = kAudioObjectPropertyScopeInput;
 
-        // Set to Mode::Stderr for debugging.
-        tracer = std::make_shared<aspl::Tracer>(aspl::Tracer::Mode::Noop);
-
+        tracer = std::make_shared<TestTracer>();
         context = std::make_shared<aspl::Context>(tracer);
 
         device = std::make_shared<TestDevice>(context, devParams);

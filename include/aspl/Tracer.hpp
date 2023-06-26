@@ -163,6 +163,10 @@ protected:
     //! or does nothing if mode is Mode::Noop.
     virtual void Print(const char* message);
 
+    //! Report error message.
+    //! Default implementation invokes Print().
+    virtual void Error(const char* message);
+
     //! Check whethe the operation should be excluded from tracing.
     //! If this method returns true, the operation itself, as well as
     //! all nested operations, are not printed.
