@@ -9,13 +9,104 @@
 
 namespace {
 
-template <class Vector>
-void ExpectVectorsEq(const Vector& a, const Vector& b)
+void SetupAvailNominalRates(std::shared_ptr<aspl::Device> device,
+    std::vector<Float64> rates)
 {
-    ASSERT_EQ(a.size(), b.size());
-    for (size_t i = 0; i < a.size(); i++) {
-        ASSERT_TRUE(a[i] == b[i]);
+    std::vector<AudioValueRange> ranges;
+
+    for (auto r : rates) {
+        AudioValueRange rng = {
+            .mMinimum = r,
+            .mMaximum = r,
+        };
+        ranges.push_back(rng);
     }
+
+    EXPECT_EQ(kAudioHardwareNoError, device->SetAvailableSampleRatesAsync(ranges));
+}
+
+void SetupAvailPhysicalRates(std::shared_ptr<aspl::Stream> stream,
+    std::vector<Float64> rates)
+{
+    std::vector<AudioStreamRangedDescription> formats;
+
+    for (auto r : rates) {
+        AudioStreamRangedDescription fmt = {
+            .mFormat =
+                {
+                    .mSampleRate = r,
+                    .mFormatID = kAudioFormatLinearPCM,
+                    .mFormatFlags = kAudioFormatFlagIsSignedInteger |
+                                    kAudioFormatFlagsNativeEndian |
+                                    kAudioFormatFlagIsPacked,
+                    .mBitsPerChannel = 16,
+                    .mChannelsPerFrame = 2,
+                    .mBytesPerFrame = 4,
+                    .mFramesPerPacket = 1,
+                    .mBytesPerPacket = 4,
+                },
+            .mSampleRateRange =
+                {
+                    .mMinimum = r,
+                    .mMaximum = r,
+                },
+        };
+        formats.push_back(fmt);
+    }
+
+    EXPECT_EQ(kAudioHardwareNoError, stream->SetAvailablePhysicalFormatsAsync(formats));
+}
+
+void SetupAvailVirtualRates(std::shared_ptr<aspl::Stream> stream,
+    std::vector<Float64> rates)
+{
+    std::vector<AudioStreamRangedDescription> formats;
+
+    for (auto r : rates) {
+        AudioStreamRangedDescription fmt = {
+            .mFormat =
+                {
+                    .mSampleRate = r,
+                    .mFormatID = kAudioFormatLinearPCM,
+                    .mFormatFlags = kAudioFormatFlagIsSignedInteger |
+                                    kAudioFormatFlagsNativeEndian |
+                                    kAudioFormatFlagIsPacked,
+                    .mBitsPerChannel = 16,
+                    .mChannelsPerFrame = 2,
+                    .mBytesPerFrame = 4,
+                    .mFramesPerPacket = 1,
+                    .mBytesPerPacket = 4,
+                },
+            .mSampleRateRange =
+                {
+                    .mMinimum = r,
+                    .mMaximum = r,
+                },
+        };
+        formats.push_back(fmt);
+    }
+
+    EXPECT_EQ(kAudioHardwareNoError, stream->SetAvailableVirtualFormatsAsync(formats));
+}
+
+void ExpectNominalRate(Float64 rate, std::shared_ptr<aspl::Device> device)
+{
+    EXPECT_EQ(rate, device->GetNominalSampleRate());
+}
+
+void ExpectPhysicalRate(Float64 rate, std::shared_ptr<aspl::Stream> stream)
+{
+    EXPECT_EQ(rate, stream->GetPhysicalFormat().mSampleRate);
+    EXPECT_EQ(rate, stream->GetPhysicalFormat().mSampleRate);
+
+    EXPECT_EQ(rate, stream->GetSampleRate());
+    EXPECT_EQ(rate, stream->GetSampleRate());
+}
+
+void ExpectVirtualRate(Float64 rate, std::shared_ptr<aspl::Stream> stream)
+{
+    EXPECT_EQ(rate, stream->GetVirtualFormat().mSampleRate);
+    EXPECT_EQ(rate, stream->GetVirtualFormat().mSampleRate);
 }
 
 } // anonymous namespace
@@ -26,83 +117,189 @@ struct OperationsTest : ::testing::Test
     std::shared_ptr<aspl::Context> context = std::make_shared<aspl::Context>(tracer);
 };
 
-TEST_F(OperationsTest, StreamFormat)
+TEST_F(OperationsTest, DeviceSampleRate)
 {
-    const auto device = std::make_shared<aspl::Device>(context);
+    { // supported
+        const auto device = std::make_shared<aspl::Device>(context);
 
-    const auto stream1 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
-    const auto stream2 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+        const auto stream1 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+        const auto stream2 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
 
-    ASSERT_TRUE(stream1);
-    ASSERT_TRUE(stream2);
+        SetupAvailNominalRates(device, {44100, 48000});
+        SetupAvailPhysicalRates(stream1, {44100, 48000});
+        SetupAvailVirtualRates(stream1, {44100, 48000});
+        SetupAvailPhysicalRates(stream2, {44100, 48000});
+        SetupAvailVirtualRates(stream2, {44100, 48000});
 
-    {
-        // SetAvailableSampleRatesAsync
-        auto rate_list = device->GetAvailableSampleRates();
-        ASSERT_EQ(1, rate_list.size());
-        ASSERT_EQ(44100, rate_list[0].mMinimum);
-        ASSERT_EQ(44100, rate_list[0].mMaximum);
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
+
+        EXPECT_EQ(kAudioHardwareNoError, device->SetNominalSampleRateAsync(48000));
+
+        ExpectNominalRate(48000, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
+    }
+    { // unsupported
+        const auto device = std::make_shared<aspl::Device>(context);
+
+        const auto stream1 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+        const auto stream2 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+
+        SetupAvailNominalRates(device, {44100});
+        SetupAvailPhysicalRates(stream1, {44100, 48000});
+        SetupAvailVirtualRates(stream1, {44100, 48000});
+        SetupAvailPhysicalRates(stream2, {44100, 48000});
+        SetupAvailVirtualRates(stream2, {44100, 48000});
+
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
+
+        EXPECT_EQ(kAudioHardwareUnsupportedOperationError,
+            device->SetNominalSampleRateAsync(48000));
+
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
+    }
+}
+
+TEST_F(OperationsTest, StreamPhysicalFormat)
+{
+    { // supported
+        const auto device = std::make_shared<aspl::Device>(context);
+
+        const auto stream1 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+        const auto stream2 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+
+        SetupAvailNominalRates(device, {44100, 48000});
+        SetupAvailPhysicalRates(stream1, {44100, 48000});
+        SetupAvailVirtualRates(stream1, {44100, 48000});
+        SetupAvailPhysicalRates(stream2, {44100, 48000});
+        SetupAvailVirtualRates(stream2, {44100, 48000});
+
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
 
         {
-            auto rate48 = rate_list[0];
-
-            rate48.mMinimum = 48000;
-            rate48.mMaximum = 48000;
-
-            rate_list.push_back(rate48);
+            auto format = stream1->GetPhysicalFormat();
+            format.mSampleRate = 48000;
+            EXPECT_EQ(kAudioHardwareNoError, stream1->SetPhysicalFormatAsync(format));
         }
 
-        EXPECT_EQ(kAudioHardwareNoError, device->SetAvailableSampleRatesAsync(rate_list));
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(48000, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
     }
+    { // unsupported
+        const auto device = std::make_shared<aspl::Device>(context);
 
-    {
-        // SetAvailablePhysicalFormatsAsync
-        auto format_list = stream1->GetAvailablePhysicalFormats();
-        ASSERT_EQ(1, format_list.size());
-        ASSERT_EQ(44100, format_list[0].mFormat.mSampleRate);
+        const auto stream1 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+        const auto stream2 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+
+        SetupAvailNominalRates(device, {44100, 48000});
+        SetupAvailPhysicalRates(stream1, {44100});
+        SetupAvailVirtualRates(stream1, {44100, 48000});
+        SetupAvailPhysicalRates(stream2, {44100, 48000});
+        SetupAvailVirtualRates(stream2, {44100, 48000});
+
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
 
         {
-            auto format48 = format_list[0];
-
-            format48.mFormat.mSampleRate = 48000;
-            format48.mSampleRateRange.mMinimum = 48000;
-            format48.mSampleRateRange.mMaximum = 48000;
-
-            format_list.push_back(format48);
+            auto format = stream1->GetPhysicalFormat();
+            format.mSampleRate = 48000;
+            EXPECT_EQ(kAudioDeviceUnsupportedFormatError,
+                stream1->SetPhysicalFormatAsync(format));
         }
 
-        EXPECT_EQ(kAudioHardwareNoError,
-            stream1->SetAvailablePhysicalFormatsAsync(format_list));
-
-        EXPECT_EQ(kAudioHardwareNoError,
-            stream2->SetAvailablePhysicalFormatsAsync(format_list));
-
-        ExpectVectorsEq(format_list, stream1->GetAvailablePhysicalFormats());
-        ExpectVectorsEq(format_list, stream2->GetAvailablePhysicalFormats());
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
     }
+}
 
-    {
-        // SetPhysicalFormatAsync
-        auto format1 = stream1->GetPhysicalFormat();
-        auto format2 = stream2->GetPhysicalFormat();
+TEST_F(OperationsTest, StreamVirtualFormat)
+{
+    { // supported
+        const auto device = std::make_shared<aspl::Device>(context);
 
-        ASSERT_EQ(44100, format1.mSampleRate);
-        ASSERT_EQ(44100, format2.mSampleRate);
+        const auto stream1 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+        const auto stream2 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
 
-        ASSERT_EQ(44100, stream1->GetSampleRate());
-        ASSERT_EQ(44100, stream2->GetSampleRate());
+        SetupAvailNominalRates(device, {44100, 48000});
+        SetupAvailPhysicalRates(stream1, {44100, 48000});
+        SetupAvailVirtualRates(stream1, {44100, 48000});
+        SetupAvailPhysicalRates(stream2, {44100, 48000});
+        SetupAvailVirtualRates(stream2, {44100, 48000});
 
-        ASSERT_EQ(44100, device->GetSampleRate());
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
 
-        format1.mSampleRate = 48000;
-        EXPECT_EQ(kAudioHardwareNoError, stream1->SetPhysicalFormatAsync(format1));
+        {
+            auto format = stream1->GetVirtualFormat();
+            format.mSampleRate = 48000;
+            EXPECT_EQ(kAudioHardwareNoError, stream1->SetVirtualFormatAsync(format));
+        }
 
-        ASSERT_EQ(48000, stream1->GetPhysicalFormat().mSampleRate);
-        ASSERT_EQ(48000, stream2->GetPhysicalFormat().mSampleRate);
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(48000, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
+    }
+    { // unsupported
+        const auto device = std::make_shared<aspl::Device>(context);
 
-        ASSERT_EQ(48000, stream1->GetSampleRate());
-        ASSERT_EQ(48000, stream2->GetSampleRate());
+        const auto stream1 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
+        const auto stream2 = device->AddStreamWithControlsAsync(aspl::Direction::Output);
 
-        ASSERT_EQ(48000, device->GetSampleRate());
+        SetupAvailNominalRates(device, {44100, 48000});
+        SetupAvailPhysicalRates(stream1, {44100, 48000});
+        SetupAvailVirtualRates(stream1, {44100});
+        SetupAvailPhysicalRates(stream2, {44100, 48000});
+        SetupAvailVirtualRates(stream2, {44100, 48000});
+
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
+
+        {
+            auto format = stream1->GetVirtualFormat();
+            format.mSampleRate = 48000;
+            EXPECT_EQ(kAudioDeviceUnsupportedFormatError,
+                stream1->SetVirtualFormatAsync(format));
+        }
+
+        ExpectNominalRate(44100, device);
+        ExpectPhysicalRate(44100, stream1);
+        ExpectVirtualRate(44100, stream1);
+        ExpectPhysicalRate(44100, stream2);
+        ExpectVirtualRate(44100, stream2);
     }
 }

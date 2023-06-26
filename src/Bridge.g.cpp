@@ -2,7 +2,7 @@
 
 // Generator: generate-bridge.py
 // Source: Bridge.json
-// Timestamp: Thu Feb 03 11:44:38 2022 UTC
+// Timestamp: Mon Jun 26 14:04:30 2023 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT

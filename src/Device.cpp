@@ -25,7 +25,7 @@ Device::Device(std::shared_ptr<const Context> context, const DeviceParameters& p
     , safetyOffset_(params.SafetyOffset)
     , zeroTimeStampPeriod_(
           params_.ZeroTimeStampPeriod ? params_.ZeroTimeStampPeriod : params_.SampleRate)
-    , sampleRate_(params.SampleRate)
+    , nominalSampleRate_(params.SampleRate)
     , preferredChannelsForStereo_({1, 2})
 {
     SetControlHandler(nullptr);
@@ -133,12 +133,12 @@ OSStatus Device::SetZeroTimeStampPeriodImpl(UInt32 period)
     return kAudioHardwareNoError;
 }
 
-Float64 Device::GetSampleRate() const
+Float64 Device::GetNominalSampleRate() const
 {
-    return sampleRate_;
+    return nominalSampleRate_;
 }
 
-OSStatus Device::CheckSampleRate(Float64 rate) const
+OSStatus Device::CheckNominalSampleRate(Float64 rate) const
 {
     const auto availRates = GetAvailableSampleRates();
 
@@ -157,28 +157,11 @@ OSStatus Device::CheckSampleRate(Float64 rate) const
     return kAudioHardwareUnsupportedOperationError;
 }
 
-OSStatus Device::SetSampleRateImpl(Float64 rate)
+OSStatus Device::SetNominalSampleRateImpl(Float64 rate)
 {
-    sampleRate_ = rate;
+    nominalSampleRate_ = rate;
 
-    OSStatus status = kAudioHardwareNoError;
-
-    auto readLock = streams_.GetReadLock();
-
-    const auto& streams = readLock.GetReference();
-
-    for (const auto dir : {Direction::Output, Direction::Input}) {
-        if (streams.count(dir)) {
-            for (const auto& stream : streams.at(dir)) {
-                OSStatus streamStatus = stream->SetPhysicalSampleRateAsync(rate);
-                if (streamStatus != kAudioHardwareNoError) {
-                    status = streamStatus;
-                }
-            }
-        }
-    }
-
-    return status;
+    return kAudioHardwareNoError;
 }
 
 std::vector<AudioValueRange> Device::GetAvailableSampleRates() const
@@ -187,7 +170,7 @@ std::vector<AudioValueRange> Device::GetAvailableSampleRates() const
         return *rates;
     }
 
-    const auto sampleRate = GetSampleRate();
+    const auto sampleRate = GetNominalSampleRate();
 
     AudioValueRange range;
     range.mMinimum = sampleRate;
@@ -489,7 +472,7 @@ std::shared_ptr<Stream> Device::AddStreamAsync(Direction dir)
     StreamParameters params;
 
     params.Direction = dir;
-    params.Format.mSampleRate = GetSampleRate();
+    params.Format.mSampleRate = GetNominalSampleRate();
     params.Format.mChannelsPerFrame = GetPreferredChannelCount();
     params.Format.mBytesPerFrame =
         params.Format.mChannelsPerFrame * (params.Format.mBitsPerChannel / 8);
@@ -1184,7 +1167,8 @@ OSStatus Device::GetZeroTimeStamp(AudioObjectID objectID,
         goto end;
     }
 
-    if (const Float64 sampleRate = GetSampleRate(); sampleRate != lastSampleRate_) {
+    if (const Float64 sampleRate = GetNominalSampleRate();
+        sampleRate != lastSampleRate_) {
         struct mach_timebase_info timeBase;
         mach_timebase_info(&timeBase);
 

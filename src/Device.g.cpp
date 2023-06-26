@@ -2,7 +2,7 @@
 
 // Generator: generate-accessors.py
 // Source: Device.json
-// Timestamp: Fri Nov 25 16:43:25 2022 UTC
+// Timestamp: Mon Jun 26 14:04:29 2023 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -176,24 +176,24 @@ end:
     return status;
 }
 
-OSStatus Device::SetSampleRateAsync(Float64 value)
+OSStatus Device::SetNominalSampleRateAsync(Float64 value)
 {
     std::lock_guard writeLock(writeMutex_);
 
     Tracer::Operation op;
-    op.Name = "Device::SetSampleRateAsync()";
+    op.Name = "Device::SetNominalSampleRateAsync()";
     op.ObjectID = GetID();
 
     GetContext()->Tracer->OperationBegin(op);
 
     OSStatus status = kAudioHardwareNoError;
 
-    if (value == GetSampleRate()) {
+    if (value == GetNominalSampleRate()) {
         GetContext()->Tracer->Message("value not changed");
         goto end;
     }
 
-    status = CheckSampleRate(value);
+    status = CheckNominalSampleRate(value);
     if (status != kAudioHardwareNoError) {
         GetContext()->Tracer->Message("value is invalid");
         goto end;
@@ -203,20 +203,20 @@ OSStatus Device::SetSampleRateAsync(Float64 value)
         std::lock_guard writeLock(writeMutex_);
 
         Tracer::Operation op;
-        op.Name = "Device::SetSampleRateImpl()";
+        op.Name = "Device::SetNominalSampleRateImpl()";
         op.ObjectID = GetID();
 
         GetContext()->Tracer->OperationBegin(op);
 
         OSStatus status = kAudioHardwareNoError;
 
-        if (value == GetSampleRate()) {
+        if (value == GetNominalSampleRate()) {
             GetContext()->Tracer->Message("value not changed");
         } else {
             GetContext()->Tracer->Message("setting value to %s",
                 Convert::ToString(value).c_str());
 
-            status = SetSampleRateImpl(std::move(value));
+            status = SetNominalSampleRateImpl(std::move(value));
         }
 
         GetContext()->Tracer->OperationEnd(op, status);
@@ -2068,12 +2068,12 @@ OSStatus Device::GetPropertyData(AudioObjectID objectID,
                     GetContext()->Tracer->Message("size buffer is null");
                 }
                 if (outData) {
-                    const auto value = GetSampleRate();
+                    const auto value = GetNominalSampleRate();
                     Convert::ToFoundation(
                         value,
                         *static_cast<Float64*>(outData));
                     GetContext()->Tracer->Message(
-                        "returning SampleRate=%s",
+                        "returning NominalSampleRate=%s",
                         Convert::ToString(value).c_str());
                 } else {
                     GetContext()->Tracer->Message("data buffer is null");
@@ -2443,14 +2443,14 @@ OSStatus Device::SetPropertyData(AudioObjectID objectID,
                     goto end;
                 }
                 std::remove_cv_t<std::remove_reference_t<
-                    decltype(GetSampleRate())>> value;
+                    decltype(GetNominalSampleRate())>> value;
                 Convert::FromFoundation(
                     *static_cast<const Float64*>(inData),
                     value);
                 GetContext()->Tracer->Message(
-                    "setting SampleRate=%s",
+                    "setting NominalSampleRate=%s",
                     Convert::ToString(value).c_str());
-                status = SetSampleRateAsync(std::move(value));
+                status = SetNominalSampleRateAsync(std::move(value));
                 if (status != kAudioHardwareNoError) {
                     GetContext()->Tracer->Message("setter failed");
                     goto end;

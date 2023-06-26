@@ -72,7 +72,7 @@ struct DeviceParameters
     bool CanBeDefaultForSystemSounds = true;
 
     //! Device sample rate.
-    //! Used by default implementation of Device::GetSampleRate().
+    //! Used by default implementation of Device::GetNominalSampleRate().
     UInt32 SampleRate = 44100;
 
     //! Preferred number of channels.
@@ -330,26 +330,28 @@ public:
     OSStatus SetZeroTimeStampPeriodAsync(UInt32 period);
 
     //! Get nominal sample rate.
-    //! By default returns the last value set by SetSampleRateAsync().
+    //! By default returns the last value set by SetNominalSampleRateAsync().
     //! Initial value is DeviceParameters::SampleRate.
+    //! Note that each device stream can define its own sample rate in its
+    //! physical and virtual formats.
     //! @note
     //!  Backs @c kAudioDevicePropertyNominalSampleRate property.
-    virtual Float64 GetSampleRate() const;
+    virtual Float64 GetNominalSampleRate() const;
 
     //! Asynchronously set nominal sample rate.
-    //! Requests HAL to asynchronously invoke SetSampleRateImpl().
+    //! Requests HAL to asynchronously invoke SetNominalSampleRateImpl().
     //! Fails if rate is not present in GetAvailableSampleRates(), which by default
     //! returns only one rate, provided during initialization.
     //! If you want to make your device supporting multiple rates, you typically
     //! need to override both of these methods.
     //! @note
     //!  Backs @c kAudioDevicePropertyNominalSampleRate property.
-    OSStatus SetSampleRateAsync(Float64 rate);
+    OSStatus SetNominalSampleRateAsync(Float64 rate);
 
     //! Get list of supported nominal sample rates.
     //! By default returns the list set by SetAvailableSampleRatesAsync().
     //! If nothing was set, returns a single-element list with a range which min and max
-    //! are both set to the value returned by GetSampleRate().
+    //! are both set to the value returned by GetNominalSampleRate().
     //! @remarks
     //!  Empty list means that any rate is allowed.
     //!  For discrete sampler rates, the range should have the minimum value equal
@@ -970,13 +972,11 @@ protected:
     virtual OSStatus SetZeroTimeStampPeriodImpl(UInt32 period);
 
     //! Set nominal sample rate.
-    //! Invoked by SetSampleRateAsync() to actually change the rate.
-    //! Default implementation changes the value returned by GetSampleRate() and then
-    //! invokes Stream::SetPhysicalSampleRateAsync() on every stream, to ensure that
-    //! device and all streams have the same sample rate.
+    //! Invoked by SetNominalSampleRateAsync() to actually change the rate.
+    //! Default implementation just changes the value returned by GetNominalSampleRate().
     //! @note
     //!  Backs @c kAudioDevicePropertyNominalSampleRate property.
-    virtual OSStatus SetSampleRateImpl(Float64 rate);
+    virtual OSStatus SetNominalSampleRateImpl(Float64 rate);
 
     //! Set list of supported nominal sample rates.
     //! Invoked by SetAvailableSampleRatesAsync() to actually change the list.
@@ -1042,7 +1042,7 @@ protected:
 
 private:
     // value checkers for async setters
-    OSStatus CheckSampleRate(Float64 rate) const;
+    OSStatus CheckNominalSampleRate(Float64 rate) const;
 
     // these fields are immutable and can be accessed w/o lock
     const DeviceParameters params_;
@@ -1061,7 +1061,7 @@ private:
     std::atomic<UInt32> latency_;
     std::atomic<UInt32> safetyOffset_;
     std::atomic<UInt32> zeroTimeStampPeriod_;
-    std::atomic<Float64> sampleRate_;
+    std::atomic<Float64> nominalSampleRate_;
 
     std::atomic<SInt32> startCount_ = 0;
 

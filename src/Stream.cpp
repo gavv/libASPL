@@ -99,33 +99,7 @@ OSStatus Stream::SetPhysicalFormatImpl(const AudioStreamBasicDescription& format
 {
     physicalFormat_.Set(format);
 
-    OSStatus status = kAudioHardwareNoError;
-
-    if (auto device = device_.lock()) {
-        status = device->SetSampleRateAsync(format.mSampleRate);
-    }
-
-    return status;
-}
-
-OSStatus Stream::SetPhysicalSampleRateAsync(Float64 rate)
-{
-    std::lock_guard writeLock(writeMutex_);
-
-    Tracer::Operation op;
-    op.Name = "Stream::SetPhysicalSampleRateAsync()";
-    op.ObjectID = GetID();
-
-    GetContext()->Tracer->OperationBegin(op);
-
-    auto format = GetPhysicalFormat();
-    format.mSampleRate = rate;
-
-    const auto status = SetPhysicalFormatAsync(format);
-
-    GetContext()->Tracer->OperationEnd(op, status);
-
-    return status;
+    return kAudioHardwareNoError;
 }
 
 std::vector<AudioStreamRangedDescription> Stream::GetAvailablePhysicalFormats() const
@@ -179,33 +153,7 @@ OSStatus Stream::SetVirtualFormatImpl(const AudioStreamBasicDescription& format)
 {
     virtualFormat_.Set(format);
 
-    OSStatus status = kAudioHardwareNoError;
-
-    if (auto device = device_.lock()) {
-        status = device->SetSampleRateAsync(format.mSampleRate);
-    }
-
-    return status;
-}
-
-OSStatus Stream::SetVirtualSampleRateAsync(Float64 rate)
-{
-    std::lock_guard writeLock(writeMutex_);
-
-    Tracer::Operation op;
-    op.Name = "Stream::SetVirtualSampleRateAsync()";
-    op.ObjectID = GetID();
-
-    GetContext()->Tracer->OperationBegin(op);
-
-    auto format = GetVirtualFormat();
-    format.mSampleRate = rate;
-
-    const auto status = SetVirtualFormatAsync(format);
-
-    GetContext()->Tracer->OperationEnd(op, status);
-
-    return status;
+    return kAudioHardwareNoError;
 }
 
 std::vector<AudioStreamRangedDescription> Stream::GetAvailableVirtualFormats() const

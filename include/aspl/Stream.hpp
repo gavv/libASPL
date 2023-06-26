@@ -163,12 +163,6 @@ public:
     //!  Backs @c kAudioStreamPropertyPhysicalFormat property.
     OSStatus SetPhysicalFormatAsync(AudioStreamBasicDescription format);
 
-    //! Set rate in the current physical format.
-    //! Invokes SetPhysicalFormatAsync().
-    //! @note
-    //!  Used by Device::SetSampleRateAsync().
-    OSStatus SetPhysicalSampleRateAsync(Float64 rate);
-
     //! Get list of supported physical formats.
     //! Empty list means that any format is allowed.
     //! By default returns the last value set by SetAvailablePhysicalFormatsAsync().
@@ -205,12 +199,6 @@ public:
     //! @note
     //!  Backs @c kAudioStreamPropertyVirtualFormat property.
     OSStatus SetVirtualFormatAsync(AudioStreamBasicDescription format);
-
-    //! Set rate in the current virtual format.
-    //! Invokes SetVirtualFormatAsync().
-    //! @note
-    //!  Used by Device::SetSampleRateAsync().
-    OSStatus SetVirtualSampleRateAsync(Float64 rate);
 
     //! Get list of supported virtual formats.
     //! Empty list means that any format is allowed.

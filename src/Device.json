@@ -86,7 +86,7 @@
             "is_user_settable": true,
             "is_async": true
         },
-        "SampleRate": {
+        "NominalSampleRate": {
             "id": "kAudioDevicePropertyNominalSampleRate",
             "type": "Float64",
             "is_settable": true,

@@ -809,13 +809,13 @@ TEST_F(PropertiesTest, Device)
     ExpectUInt32Property(
         TestClockDomain, device->GetID(), kAudioDevicePropertyClockDomain);
 
-    // SampleRate
-    EXPECT_EQ(TestSampleRate, device->GetSampleRate());
+    // NominalSampleRate
+    EXPECT_EQ(TestSampleRate, device->GetNominalSampleRate());
     ExpectFloat64Property(
         TestSampleRate, device->GetID(), kAudioDevicePropertyNominalSampleRate);
 
     EXPECT_EQ(kAudioHardwareUnsupportedOperationError,
-        device->SetSampleRateAsync(TestSampleRate / 2));
+        device->SetNominalSampleRateAsync(TestSampleRate / 2));
     WriteFloat64Property(TestSampleRate / 2,
         kAudioHardwareUnsupportedOperationError,
         device->GetID(),
