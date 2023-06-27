@@ -4,6 +4,7 @@
 #include <aspl/Driver.hpp>
 
 #include "Bridge.hpp"
+#include "Variant.hpp"
 
 #include <cstddef>
 
@@ -94,9 +95,15 @@ void Driver::SetDriverHandler(std::shared_ptr<DriverRequestHandler> handler)
     driverHandler_.Set(handler);
 }
 
+void Driver::SetDriverHandler(DriverRequestHandler* handler)
+{
+    driverHandler_.Set(handler);
+}
+
 OSStatus Driver::Initialize()
 {
-    const auto handler = driverHandler_.Get();
+    const auto handlerVariant = driverHandler_.Get();
+    const auto handler = GetVariantPtr(handlerVariant);
 
     if (handler) {
         return handler->OnInitialize();

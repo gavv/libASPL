@@ -24,6 +24,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace aspl {
@@ -748,6 +749,12 @@ public:
     //! custom processing or want to inject custom client implementation.
     void SetControlHandler(std::shared_ptr<ControlRequestHandler> handler);
 
+    //! Set handler for control requests (raw pointer overload).
+    //! This overload uses raw pointer instead of shared_ptr, and the user
+    //! is responsible for keeping handler object alive until it's reset
+    //! or Device is destroyed.
+    void SetControlHandler(ControlRequestHandler* handler);
+
     //! Called before new client start I/O with the device.
     //! Updates client map and invokes OnAddClient().
     virtual OSStatus AddClient(AudioObjectID objectID,
@@ -793,6 +800,12 @@ public:
     //! to actually do something useful. Default implementation is suitable for
     //! a null / black hole device.
     void SetIOHandler(std::shared_ptr<IORequestHandler> handler);
+
+    //! Set handler for I/O requests (raw pointer overload).
+    //! This overload uses raw pointer instead of shared_ptr, and the user
+    //! is responsible for keeping handler object alive until it's reset
+    //! or Device is destroyed.
+    void SetIOHandler(IORequestHandler* handler);
 
     //! Get the current zero time stamp for the device.
     //! In default implementation, the zero time stamp and host time are increased
@@ -1095,8 +1108,10 @@ private:
 
     DoubleBuffer<std::unordered_map<UInt32, std::shared_ptr<Client>>> clientByID_;
 
-    std::shared_ptr<ControlRequestHandler> controlHandler_;
-    DoubleBuffer<std::shared_ptr<IORequestHandler>> ioHandler_;
+    std::variant<std::shared_ptr<ControlRequestHandler>, ControlRequestHandler*>
+        controlHandler_;
+    DoubleBuffer<std::variant<std::shared_ptr<IORequestHandler>, IORequestHandler*>>
+        ioHandler_;
 
     std::unordered_map<UInt64, std::function<void()>> pendingConfigurationRequests_;
     UInt64 lastConfigurationRequestID_ = 0;

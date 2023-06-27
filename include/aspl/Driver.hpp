@@ -16,6 +16,7 @@
 
 #include <atomic>
 #include <memory>
+#include <variant>
 
 namespace aspl {
 
@@ -105,8 +106,15 @@ public:
     //! Cast driver reference back to driver.
     static Driver* GetDriver(AudioServerPlugInDriverRef driverRef);
 
-    //! Set handler for requests from HAL to driver.
+    //! Set handler for HAL requests to driver.
+    //! Optional. Use when you need to do custom handling.
     void SetDriverHandler(std::shared_ptr<DriverRequestHandler> handler);
+
+    //! Set handler for HAL requests to driver (raw pointer overload).
+    //! This overload uses raw pointer instead of shared_ptr, and the user
+    //! is responsible for keeping handler object alive until it's reset
+    //! or Driver is destroyed.
+    void SetDriverHandler(DriverRequestHandler* handler);
 
 protected:
     //! Initialize driver.
@@ -147,7 +155,9 @@ private:
     const std::shared_ptr<Storage> storage_;
 
     // User-provided handler
-    DoubleBuffer<std::shared_ptr<DriverRequestHandler>> driverHandler_;
+    DoubleBuffer<
+        std::variant<std::shared_ptr<DriverRequestHandler>, DriverRequestHandler*>>
+        driverHandler_;
 
     // Method table
     AudioServerPlugInDriverInterface driverInterface_;
