@@ -60,9 +60,10 @@ public:
 
     template <typename T,
         typename = typename std::enable_if_t<std::is_trivially_copyable<T>::value, void>>
-    static void FromFoundation(const T& value, T& result)
+    static bool FromFoundation(const T& value, T& result)
     {
         result = value;
+        return true;
     }
 
     template <typename T,
@@ -74,9 +75,10 @@ public:
 
     template <typename T,
         typename = typename std::enable_if_t<std::is_enum<T>::value, void>>
-    static void FromFoundation(typename std::underlying_type_t<T> value, T& result)
+    static bool FromFoundation(typename std::underlying_type_t<T> value, T& result)
     {
         result = static_cast<T>(value);
+        return true;
     }
 
     static void ToFoundation(bool value, UInt32& result)
@@ -84,16 +86,32 @@ public:
         result = (value ? 1 : 0);
     }
 
-    static void FromFoundation(UInt32 value, bool& result)
+    static bool FromFoundation(UInt32 value, bool& result)
     {
         result = (value != 0);
+        return true;
     }
 
     static void ToFoundation(const std::string& value, CFStringRef& result);
-    static void FromFoundation(CFStringRef value, std::string& result);
+    static bool FromFoundation(CFStringRef value, std::string& result);
 
     static void ToFoundation(const std::string& value, CFURLRef& result);
-    static void FromFoundation(CFURLRef value, std::string& result);
+    static bool FromFoundation(CFURLRef value, std::string& result);
+
+    static void ToFoundation(const std::vector<UInt8>& value, CFPropertyListRef& result);
+    static bool FromFoundation(CFPropertyListRef value, std::vector<UInt8>& result);
+
+    static void ToFoundation(const std::string& value, CFPropertyListRef& result);
+    static bool FromFoundation(CFPropertyListRef value, std::string& result);
+
+    static void ToFoundation(bool value, CFPropertyListRef& result);
+    static bool FromFoundation(CFPropertyListRef value, bool& result);
+
+    static void ToFoundation(SInt64 value, CFPropertyListRef& result);
+    static bool FromFoundation(CFPropertyListRef value, SInt64& result);
+
+    static void ToFoundation(Float64 value, CFPropertyListRef& result);
+    static bool FromFoundation(CFPropertyListRef value, Float64& result);
 
 private:
     static std::string FormatValue(const AudioValueRange& value);

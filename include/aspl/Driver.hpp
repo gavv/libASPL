@@ -8,6 +8,7 @@
 
 #include <aspl/Context.hpp>
 #include <aspl/Plugin.hpp>
+#include <aspl/Storage.hpp>
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
@@ -54,9 +55,10 @@ class Driver
 {
 public:
     //! Construct driver.
-    //! If context or plugin are not set, they are created automatically.
+    //! If context, plugin, or storage is not set, it is created automatically.
     explicit Driver(std::shared_ptr<Context> context = {},
-        std::shared_ptr<Plugin> plugin = {});
+        std::shared_ptr<Plugin> plugin = {},
+        std::shared_ptr<Storage> storage = {});
 
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;
@@ -64,10 +66,16 @@ public:
     ~Driver();
 
     //! Get context.
+    //! Context contains data shared among all driver objects.
     std::shared_ptr<const Context> GetContext() const;
 
     //! Get plugin.
+    //! Plugin is the root of driver's object tree.
     std::shared_ptr<Plugin> GetPlugin() const;
+
+    //! Get storage.
+    //! Storage provides API for persistent key-value database.
+    std::shared_ptr<Storage> GetStorage() const;
 
     //! Get plugin interface.
     //! Plugin interface is a table with function pointers which implement
@@ -103,6 +111,7 @@ private:
 
     const std::shared_ptr<Context> context_;
     const std::shared_ptr<Plugin> plugin_;
+    const std::shared_ptr<Storage> storage_;
 
     // Driver method table
     AudioServerPlugInDriverInterface driverInterface_;

@@ -9,9 +9,12 @@
 
 namespace aspl {
 
-Driver::Driver(std::shared_ptr<Context> context, std::shared_ptr<Plugin> plugin)
+Driver::Driver(std::shared_ptr<Context> context,
+    std::shared_ptr<Plugin> plugin,
+    std::shared_ptr<Storage> storage)
     : context_(context ? std::move(context) : std::make_shared<Context>())
     , plugin_(plugin ? std::move(plugin) : std::make_shared<Plugin>(context_))
+    , storage_(storage ? std::move(storage) : std::make_shared<Storage>(context_))
 {
     GetContext()->Tracer->Message("Driver::Driver()");
 
@@ -61,6 +64,11 @@ std::shared_ptr<const Context> Driver::GetContext() const
 std::shared_ptr<Plugin> Driver::GetPlugin() const
 {
     return plugin_;
+}
+
+std::shared_ptr<Storage> Driver::GetStorage() const
+{
+    return storage_;
 }
 
 const AudioServerPlugInDriverInterface& Driver::GetPluginInterface() const

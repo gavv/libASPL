@@ -126,6 +126,7 @@ list(APPEND SOURCE_LIST
   "src/Convert.cpp"
   "src/Dispatcher.cpp"
   "src/Driver.cpp"
+  "src/Storage.cpp"
   "src/Strings.cpp"
   "src/Tracer.cpp"
   "src/Uid.cpp"
@@ -225,6 +226,7 @@ if(BUILD_TESTING)
     "test/TestOperations.cpp"
     "test/TestProperties.cpp"
     "test/TestRegistration.cpp"
+    "test/TestStorage.cpp"
     )
 
   add_dependencies(${TEST_NAME}
