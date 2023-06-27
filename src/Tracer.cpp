@@ -16,6 +16,12 @@ namespace aspl {
 
 namespace {
 
+enum
+{
+    DepthSoftLimit = 10,
+    DepthHardLimit = 1000,
+};
+
 unsigned long GetThreadID()
 {
     UInt64 tid = 0;
@@ -63,7 +69,13 @@ void Tracer::OperationBegin(const Operation& op)
 
     auto& threadState = GetThreadLocalState();
 
-    threadState.DepthCounter++;
+    if (threadState.DepthCounter < DepthHardLimit) {
+        threadState.DepthCounter++;
+    } else {
+        Print(
+            "Tracer: detected unpaired OperationBegin/OperationEnd"
+            " or infinite recursion");
+    }
 
     if (threadState.IgnoreCounter != 0 &&
         threadState.DepthCounter >= threadState.IgnoreCounter) {
@@ -135,6 +147,10 @@ void Tracer::OperationEnd(const Operation& op, OSStatus status)
 
 std::string Tracer::FormatOperationBegin(const Operation& op, UInt32 depth)
 {
+    if (depth > DepthSoftLimit) {
+        depth = DepthSoftLimit;
+    }
+
     std::ostringstream ss;
 
     if (style_ == Style::Hierarchical) {
@@ -174,6 +190,10 @@ std::string Tracer::FormatOperationBegin(const Operation& op, UInt32 depth)
 
 std::string Tracer::FormatMessage(const char* message, UInt32 depth)
 {
+    if (depth > DepthSoftLimit) {
+        depth = DepthSoftLimit;
+    }
+
     std::ostringstream ss;
 
     if (style_ == Style::Hierarchical) {
@@ -191,6 +211,10 @@ std::string Tracer::FormatMessage(const char* message, UInt32 depth)
 
 std::string Tracer::FormatOperationEnd(const Operation& op, OSStatus status, UInt32 depth)
 {
+    if (depth > DepthSoftLimit) {
+        depth = DepthSoftLimit;
+    }
+
     std::ostringstream ss;
 
     if (style_ == Style::Hierarchical) {
