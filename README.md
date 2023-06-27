@@ -333,6 +333,29 @@ auto context = std::make_shared<aspl::Context>(tracer);
 // pass context to all objects
 ```
 
+### Persistent storage
+
+libASPL provides a convenient wrapper for CoreAudio Storage API.
+
+Since plugins are running inside a sandbox where filesystem is mostly unavailable, this API may be the most convenient way for storing plugin configuration that should persist across audio server restart and rebooting.
+
+Usage:
+
+```cpp
+OSStatus status = driver->GetStorage()->WriteString("key", "value");
+// ...
+auto [status, value] = driver->GetStorage()->ReadString("key");
+```
+
+You can also construct storage manually and pass it to driver:
+
+```cpp
+// ...
+auto storage = std::make_shared<aspl::Storage>(context);
+// ...
+auto driver = std::make_shared<aspl::Driver>(context, plugin, storage);
+```
+
 ## Object model
 
 Typical AudioServer Plug-In consists of the following components:
