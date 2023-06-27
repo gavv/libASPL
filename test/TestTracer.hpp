@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include <cstring>
+
 namespace {
 
 class TestTracer : public aspl::Tracer
@@ -15,11 +17,10 @@ public:
 protected:
     void Print(const char* message) override
     {
-    }
-
-    void Error(const char* message) override
-    {
-        FAIL() << message;
+        // Detect unpaired operations errors reported by Tracer.
+        if (strstr(message, "Tracer")) {
+            FAIL() << message;
+        }
     }
 };
 
