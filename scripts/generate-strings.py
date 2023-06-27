@@ -81,7 +81,7 @@ for m in re.finditer(r'(kAudio\S+Property\S+)\s*=\s*(\'\S+\')', defs):
         continue
 
     # skip error codes
-    if name.startswith('kAudioHardware'):
+    if name.endswith('Error'):
         continue
 
     # skip custom property types
@@ -115,7 +115,7 @@ for m in re.finditer(r'(kAudioServerPlugInIOOperation\S+)\s*=\s*(\'\S+\')', defs
     operation2code[name] = code
 
 # fill error2code
-for m in re.finditer(r'(kAudioHardware\S+)\s*=\s*(\'\S+\')', defs):
+for m in re.finditer(r'(kAudio\S+Error)\s*=\s*(\'\S+\')', defs):
     name, code = m.group(1), m.group(2)
     error2code[name] = code
 

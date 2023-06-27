@@ -2,7 +2,7 @@
 
 // Generator: generate-strings.py
 // Source: CoreAudio/AudioServerPlugIn.h
-// Timestamp: Mon Jun 26 14:04:30 2023 UTC
+// Timestamp: Tue Jun 27 09:20:54 2023 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -300,6 +300,10 @@ std::string StatusToString(OSStatus status)
     switch (status) {
     case kAudioHardwareNoError:
         return "OK";
+    case '!hog':
+        return "kAudioDevicePermissionsError";
+    case '!dat':
+        return "kAudioDeviceUnsupportedFormatError";
     case '!dev':
         return "kAudioHardwareBadDeviceError";
     case '!obj':
@@ -320,6 +324,8 @@ std::string StatusToString(OSStatus status)
         return "kAudioHardwareUnspecifiedError";
     case 'unop':
         return "kAudioHardwareUnsupportedOperationError";
+    case '!pth':
+        return "kAudio_BadFilePathError";
     default:
         return CodeToString(UInt32(status));
     }
