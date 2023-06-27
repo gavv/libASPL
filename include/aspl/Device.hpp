@@ -812,8 +812,8 @@ public:
         UInt64* outSeed);
 
     //! Asks device whether it want to perform the given phase of the IO cycle.
-    //! Makes decision based on whether the device has input and output streams,
-    //! and what is returned by DeviceParameters::EnableMixing.
+    //! In default implementation, makes decision based on whether the device has input
+    //! and output streams, and what is returned by DeviceParameters::EnableMixing.
     //! @note
     //!  Invoked by HAL on realtime thread.
     virtual OSStatus WillDoIOOperation(AudioObjectID objectID,
@@ -833,8 +833,8 @@ public:
         const AudioServerPlugInIOCycleInfo* ioCycleInfo);
 
     //! Perform an IO operation for a particular stream.
-    //! Based on I/O operation type, invokes corresponding method, for example
-    //! OnReadInput() or OnWriteMixedOutput().
+    //! In default implementation, invokes corresponding method of I/O handler based on
+    //! passed operation type, for example OnReadInput() or OnWriteMixedOutput().
     //! @note
     //!  Invoked by HAL on realtime thread.
     virtual OSStatus DoIOOperation(AudioObjectID objectID,

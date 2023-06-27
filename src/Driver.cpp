@@ -27,9 +27,9 @@ Driver::Driver(std::shared_ptr<Context> context,
         Driver::QueryInterface,
         Driver::AddRef,
         Driver::Release,
-        Driver::Initialize,
-        Driver::CreateDevice,
-        Driver::DestroyDevice,
+        Driver::InitializeJumper,
+        Driver::CreateDeviceJumper,
+        Driver::DestroyDeviceJumper,
 
         // Methods redirected to objects found in Context::Dispatcher
         Bridge::AddClient,
@@ -89,6 +89,34 @@ Driver* Driver::GetDriver(AudioServerPlugInDriverRef driverRef)
         reinterpret_cast<UInt8*>(driverInterface) - offsetof(Driver, driverInterface_));
 }
 
+void Driver::SetDriverHandler(std::shared_ptr<DriverRequestHandler> handler)
+{
+    driverHandler_.Set(handler);
+}
+
+OSStatus Driver::Initialize()
+{
+    const auto handler = driverHandler_.Get();
+
+    if (handler) {
+        return handler->OnInitialize();
+    }
+
+    return kAudioHardwareNoError;
+}
+
+OSStatus Driver::CreateDevice(CFDictionaryRef description,
+    const AudioServerPlugInClientInfo* clientInfo,
+    AudioObjectID* outDeviceObjectID)
+{
+    return kAudioHardwareUnsupportedOperationError;
+}
+
+OSStatus Driver::DestroyDevice(AudioObjectID objectID)
+{
+    return kAudioHardwareUnsupportedOperationError;
+}
+
 HRESULT Driver::QueryInterface(void* driverRef, REFIID iid, LPVOID* outInterface)
 {
     const auto driver =
@@ -143,40 +171,38 @@ ULONG Driver::Release(void* driverRef)
     return counter;
 }
 
-OSStatus Driver::Initialize(AudioServerPlugInDriverRef driverRef,
+OSStatus Driver::InitializeJumper(AudioServerPlugInDriverRef driverRef,
     AudioServerPlugInHostRef hostRef)
 {
     const auto driver = Driver::GetDriver(driverRef);
 
-    driver->context_->Host = hostRef;
-
     driver->GetContext()->Tracer->Message("Driver::Initialize()");
 
-    return kAudioHardwareNoError;
+    driver->context_->Host = hostRef;
+
+    return driver->Initialize();
 }
 
-OSStatus Driver::CreateDevice(AudioServerPlugInDriverRef driverRef,
+OSStatus Driver::CreateDeviceJumper(AudioServerPlugInDriverRef driverRef,
     CFDictionaryRef description,
     const AudioServerPlugInClientInfo* clientInfo,
     AudioObjectID* outDeviceObjectID)
 {
     const auto driver = Driver::GetDriver(driverRef);
 
-    driver->GetContext()->Tracer->Message(
-        "Driver::CreateDevice() status=kAudioHardwareUnsupportedOperationError");
+    driver->GetContext()->Tracer->Message("Driver::CreateDevice()");
 
-    return kAudioHardwareUnsupportedOperationError;
+    return driver->CreateDevice(description, clientInfo, outDeviceObjectID);
 }
 
-OSStatus Driver::DestroyDevice(AudioServerPlugInDriverRef driverRef,
+OSStatus Driver::DestroyDeviceJumper(AudioServerPlugInDriverRef driverRef,
     AudioObjectID objectID)
 {
     const auto driver = Driver::GetDriver(driverRef);
 
-    driver->GetContext()->Tracer->Message(
-        "Driver::DestroyDevice() status=kAudioHardwareUnsupportedOperationError");
+    driver->GetContext()->Tracer->Message("Driver::DestroyDevice()");
 
-    return kAudioHardwareUnsupportedOperationError;
+    return driver->DestroyDevice(objectID);
 }
 
 } // namespace aspl

@@ -35,6 +35,7 @@ set(LINKER_FLAGS "")
 list(APPEND COMPILER_FLAGS
   "-Wall"
   "-Wextra"
+  "-Wno-invalid-offsetof"
   "-Wno-unused-parameter"
 )
 

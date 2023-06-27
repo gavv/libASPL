@@ -13,6 +13,7 @@
 - [Types of setters](#types-of-setters)
 - [Customization](#customization)
 - [Thread and realtime safety](#thread-and-realtime-safety)
+- [Driver initialization](#driver-initialization)
 - [Sandboxing](#sandboxing)
 - [Missing features](#missing-features)
 - [Apple documentation](#apple-documentation)
@@ -304,6 +305,27 @@ stream->AttachMuteControl(muteControl);
 
 Furthermore, all `AddXXX()` methods have overloads that allow you to specify custom parameters or provide manually created object. The latter is useful if you want to use your own subclass.
 
+### Initialization callback
+
+Driver object is not fully functional until plugin returns from entry point and HAL performs asynchrnous driver initialization. If part of your plugin initialization requires functioning driver and so can not be done in entry point (e.g. it uses persistent storage), you can use DriverRequestHandler:
+
+```cpp
+class MyHandler : public aspl::DriverRequestHandler
+{
+public:
+    // Invoked when HAL performs asynchrnous initialization.
+    OSStatus OnInitialize() override
+    {
+        // do initialization stuff that requires functioning driver
+        return kAudioHardwareNoError;
+    }
+};
+
+auto handler = std::make_shared<MyHandler>();
+
+driver->SetDriverHandler(handler);
+```
+
 ### Tracing
 
 By default, the library traces all operations to syslog. To disable it, construct tracer with Noop mode:
@@ -436,6 +458,12 @@ Control and I/O requests:
 
 3. Finally, for more precise control of request handling, you can subclass Device and override its control and I/O methods directly (StartIO, StopIO, WillDoIOOperation, etc.).
 
+Driver requests:
+
+1. You can provide custom implementations of DriverRequestHandler. Driver will invoke its methods when serving requests from HAL.
+
+2. For more precise request handling, you can subclass Driver and override its protected methods directly.
+
 ## Thread and realtime safety
 
 An operation is thread-safe if it can be called from concurrent threads without a danger of a data race.
@@ -459,6 +487,14 @@ When overriding libASPL methods, you can either follow the same rules for simpli
 > Note that various standard library functions, which implicitly use global locks shared among threads, are typically not realtime-safe. Some examples are: everything that allocates or deallocates memory, including copy constructors of STL containers; stdio functions; atomic overloads for shared_ptr; etc. Basically, you need to carefully check each function you call.
 
 Internally, realtime safety is achieved by using atomics and double buffering combined with a couple of simple lock-free algorithms. There is a helper class aspl::DoubleBuffer, which implements a container with blocking setter and non-blocking lock-free getter. You can use it to implement the described approach in your own code.
+
+## Driver initialization
+
+Right after the Driver object is created, it is not fully initialized yet. The final initialization is performed by HAL asynchrnously, after returning from plugin entry point.
+
+Until asynchronous initialization is done, most driver services are not really functioning yet. You can create objects (devices, streams), but they won't actually appear on system until initialization. Persistent storage service is not available yet and trying to use it will produce errors.
+
+If part of your plugin initialization requires fully functioning driver, and so it can not be done at entry point time, you can move initialization code to DriverRequestHandler (see Quick start section). Alternatively, you can subclass Driver and override its Initialize() method.
 
 ## Sandboxing
 

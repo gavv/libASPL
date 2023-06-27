@@ -7,6 +7,8 @@
 #pragma once
 
 #include <aspl/Context.hpp>
+#include <aspl/DoubleBuffer.hpp>
+#include <aspl/DriverRequestHandler.hpp>
 #include <aspl/Plugin.hpp>
 #include <aspl/Storage.hpp>
 
@@ -33,8 +35,11 @@ namespace aspl {
 //! in Context::Dispatcher. Every object requires Context as constructor argument
 //! and automatically registers and unregisters itself in Dispatcher.
 //!
-//! By default driver creates its own Context and Plugin objects, but you can
-//! provide your own if desired.
+//! Driver also provides Storage object, which provides API for persistent storage
+//! associated with plugin, and managed by CoreAudio daemon.
+//!
+//! By default driver creates its own Context, Plugin, and Storage objects, but you
+//! can provide your own if desired.
 //!
 //! After constructing driver, you need to use GetReference() method to obtain
 //! the "driver reference" and return it from the plugin entry point, like:
@@ -51,6 +56,17 @@ namespace aspl {
 //! @endcode
 //!
 //! Don't forget do declare your entry point in Info.plist of the plugin.
+//!
+//! Right after the Driver object is created, it is not fully initialized yet. The
+//! final initialization is performed by HAL asynchrnously, after returning from
+//! plugin entry point.
+//!
+//! Until asynchronous initialization is done, most driver services are not really
+//! functioning yet: devices don't appear in system, persistent storage returns
+//! errors for all requests, etc.
+//!
+//! The user can be notified when the initialization is done by providing custom
+//! DriverRequestHandler, or by inheriting Driver and overriding appropriate method.
 class Driver
 {
 public:
@@ -63,7 +79,7 @@ public:
     Driver(const Driver&) = delete;
     Driver& operator=(const Driver&) = delete;
 
-    ~Driver();
+    virtual ~Driver();
 
     //! Get context.
     //! Context contains data shared among all driver objects.
@@ -89,6 +105,24 @@ public:
     //! Cast driver reference back to driver.
     static Driver* GetDriver(AudioServerPlugInDriverRef driverRef);
 
+    //! Set handler for requests from HAL to driver.
+    void SetDriverHandler(std::shared_ptr<DriverRequestHandler> handler);
+
+protected:
+    //! Initialize driver.
+    //! Default implementation invokes DriverRequestHandler::OnInitialize().
+    virtual OSStatus Initialize();
+
+    //! Create device.
+    //! Default implementation returns kAudioHardwareUnsupportedOperationError.
+    virtual OSStatus CreateDevice(CFDictionaryRef description,
+        const AudioServerPlugInClientInfo* clientInfo,
+        AudioObjectID* outDeviceObjectID);
+
+    //! Destroy device.
+    //! Default implementation returns kAudioHardwareUnsupportedOperationError.
+    virtual OSStatus DestroyDevice(AudioObjectID objectID);
+
 private:
     // COM methods
     static HRESULT QueryInterface(void* driverRef, REFIID iid, LPVOID* outInterface);
@@ -96,28 +130,30 @@ private:
     static ULONG AddRef(void* driverRef);
     static ULONG Release(void* driverRef);
 
-    // Driver initialization
-    static OSStatus Initialize(AudioServerPlugInDriverRef driverRef,
+    // Driver methods
+    static OSStatus InitializeJumper(AudioServerPlugInDriverRef driverRef,
         AudioServerPlugInHostRef hostRef);
 
-    // Device creation
-    static OSStatus CreateDevice(AudioServerPlugInDriverRef driverRef,
+    static OSStatus CreateDeviceJumper(AudioServerPlugInDriverRef driverRef,
         CFDictionaryRef description,
         const AudioServerPlugInClientInfo* clientInfo,
         AudioObjectID* outDeviceObjectID);
 
-    static OSStatus DestroyDevice(AudioServerPlugInDriverRef driverRef,
+    static OSStatus DestroyDeviceJumper(AudioServerPlugInDriverRef driverRef,
         AudioObjectID objectID);
 
     const std::shared_ptr<Context> context_;
     const std::shared_ptr<Plugin> plugin_;
     const std::shared_ptr<Storage> storage_;
 
-    // Driver method table
+    // User-provided handler
+    DoubleBuffer<std::shared_ptr<DriverRequestHandler>> driverHandler_;
+
+    // Method table
     AudioServerPlugInDriverInterface driverInterface_;
     AudioServerPlugInDriverInterface* driverInterfacePointer_;
 
-    // Driver reference counter
+    // Reference counter
     std::atomic<ULONG> refCounter_ = 0;
 };
 
