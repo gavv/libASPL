@@ -118,20 +118,17 @@ std::pair<T, bool> Storage::CopyFromStorage_(const char* type, std::string key) 
     status = host->CopyFromStorage(host, keyString, &valuePlist);
 
     GetContext()->Tracer->Message(
-        "Storage::CopyFromStorage() type=%s key=\"%s\" status=%s",
+        "Storage::CopyFromStorage() type=%s key=\"%s\" status=%s hasValue=%s",
         type,
         key.c_str(),
-        StatusToString(status).c_str());
+        StatusToString(status).c_str(),
+        valuePlist ? "yes" : "no");
 
     if (status != kAudioHardwareNoError) {
         goto end;
     }
 
     if (!valuePlist) {
-        GetContext()->Tracer->Message(
-            "Storage::CopyFromStorage() type=%s key=\"%s\" value not found",
-            type,
-            key.c_str());
         goto end;
     }
 
