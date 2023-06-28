@@ -20,76 +20,77 @@ std::shared_ptr<const Context> Storage::GetContext() const
     return context_;
 }
 
-std::pair<std::vector<UInt8>, OSStatus> Storage::ReadBytes(std::string key) const
+std::pair<std::vector<UInt8>, bool> Storage::ReadBytes(std::string key) const
 {
     return CopyFromStorage_<std::vector<UInt8>>("CFData", key);
 }
 
-std::pair<std::string, OSStatus> Storage::ReadString(std::string key) const
+std::pair<std::string, bool> Storage::ReadString(std::string key) const
 {
     return CopyFromStorage_<std::string>("CFString", key);
 }
 
-std::pair<bool, OSStatus> Storage::ReadBoolean(std::string key) const
+std::pair<bool, bool> Storage::ReadBoolean(std::string key) const
 {
     return CopyFromStorage_<bool>("CFBoolean", key);
 }
 
-std::pair<SInt64, OSStatus> Storage::ReadInt(std::string key) const
+std::pair<SInt64, bool> Storage::ReadInt(std::string key) const
 {
     return CopyFromStorage_<SInt64>("CFNumber", key);
 }
 
-std::pair<Float64, OSStatus> Storage::ReadFloat(std::string key) const
+std::pair<Float64, bool> Storage::ReadFloat(std::string key) const
 {
     return CopyFromStorage_<Float64>("CFNumber", key);
 }
 
-std::pair<CFPropertyListRef, OSStatus> Storage::ReadCustom(std::string key) const
+std::pair<CFPropertyListRef, bool> Storage::ReadCustom(std::string key) const
 {
     return CopyFromStorage_<CFPropertyListRef>("CFPropertyList", key);
 }
 
-OSStatus Storage::WriteBytes(std::string key, std::vector<UInt8> value)
+bool Storage::WriteBytes(std::string key, std::vector<UInt8> value)
 {
     return WriteToStorage_("CFData", key, value);
 }
 
-OSStatus Storage::WriteString(std::string key, std::string value)
+bool Storage::WriteString(std::string key, std::string value)
 {
     return WriteToStorage_("CFString", key, value);
 }
 
-OSStatus Storage::WriteBoolean(std::string key, bool value)
+bool Storage::WriteBoolean(std::string key, bool value)
 {
     return WriteToStorage_("CFBoolean", key, value);
 }
 
-OSStatus Storage::WriteInt(std::string key, SInt64 value)
+bool Storage::WriteInt(std::string key, SInt64 value)
 {
     return WriteToStorage_("CFNumber", key, value);
 }
 
-OSStatus Storage::WriteFloat(std::string key, Float64 value)
+bool Storage::WriteFloat(std::string key, Float64 value)
 {
     return WriteToStorage_("CFNumber", key, value);
 }
 
-OSStatus Storage::WriteCustom(std::string key, CFPropertyListRef value)
+bool Storage::WriteCustom(std::string key, CFPropertyListRef value)
 {
     return WriteToStorage_("CFPropertyList", key, value);
 }
 
-OSStatus Storage::Delete(std::string key)
+bool Storage::Delete(std::string key)
 {
     return DeleteFromStorage_(key);
 }
 
 template <class T>
-std::pair<T, OSStatus> Storage::CopyFromStorage_(const char* type, std::string key) const
+std::pair<T, bool> Storage::CopyFromStorage_(const char* type, std::string key) const
 {
-    OSStatus status = kAudioHardwareNoError;
+    bool success = false;
 
+    OSStatus status = kAudioHardwareNoError;
     AudioServerPlugInHostRef host = nullptr;
     CFStringRef keyString = nullptr;
     CFPropertyListRef valuePlist = nullptr;
@@ -101,17 +102,16 @@ std::pair<T, OSStatus> Storage::CopyFromStorage_(const char* type, std::string k
             "Storage::CopyFromStorage() type=%s key=\"%s\" can't encode key",
             type,
             key.c_str());
-        status = kAudioHardwareIllegalOperationError;
         goto end;
     }
 
     host = GetContext()->Host.load();
     if (!host) {
         GetContext()->Tracer->Message(
-            "Storage::CopyFromStorage() type=%s key=\"%s\" Context.Host is NULL",
+            "Storage::CopyFromStorage() type=%s key=\"%s\" Context.Host is NULL"
+            " (driver is not initialized yet)",
             type,
             key.c_str());
-        status = kAudioHardwareNotReadyError;
         goto end;
     }
 
@@ -127,18 +127,27 @@ std::pair<T, OSStatus> Storage::CopyFromStorage_(const char* type, std::string k
         goto end;
     }
 
+    if (!valuePlist) {
+        GetContext()->Tracer->Message(
+            "Storage::CopyFromStorage() type=%s key=\"%s\" value not found",
+            type,
+            key.c_str());
+        goto end;
+    }
+
     if constexpr (!std::is_same<T, CFPropertyListRef>::value) {
         if (!Convert::FromFoundation(valuePlist, value)) {
             GetContext()->Tracer->Message(
                 "Storage::CopyFromStorage() type=%s key=\"%s\" can't decode value",
                 type,
                 key.c_str());
-            status = kAudioHardwareIllegalOperationError;
             goto end;
         }
     } else {
         value = valuePlist;
     }
+
+    success = true;
 
 end:
     if (keyString) {
@@ -151,14 +160,15 @@ end:
         }
     }
 
-    return std::make_pair(value, status);
+    return std::make_pair(value, success);
 }
 
 template <class T>
-OSStatus Storage::WriteToStorage_(const char* type, std::string key, T value)
+bool Storage::WriteToStorage_(const char* type, std::string key, T value)
 {
-    OSStatus status = kAudioHardwareNoError;
+    bool success = false;
 
+    OSStatus status = kAudioHardwareNoError;
     AudioServerPlugInHostRef host = nullptr;
     CFStringRef keyString = nullptr;
     CFPropertyListRef valuePlist = nullptr;
@@ -169,7 +179,6 @@ OSStatus Storage::WriteToStorage_(const char* type, std::string key, T value)
             "Storage::WriteToStorage() type=%s key=\"%s\" can't encode key",
             type,
             key.c_str());
-        status = kAudioHardwareIllegalOperationError;
         goto end;
     }
 
@@ -180,7 +189,6 @@ OSStatus Storage::WriteToStorage_(const char* type, std::string key, T value)
                 "Storage::WriteToStorage() type=%s key=\"%s\" can't encode value",
                 type,
                 key.c_str());
-            status = kAudioHardwareIllegalOperationError;
             goto end;
         }
     } else {
@@ -190,10 +198,10 @@ OSStatus Storage::WriteToStorage_(const char* type, std::string key, T value)
     host = GetContext()->Host.load();
     if (!host) {
         GetContext()->Tracer->Message(
-            "Storage::WriteToStorage() type=%s key=\"%s\" Context.Host is NULL",
+            "Storage::WriteToStorage() type=%s key=\"%s\" Context.Host is NULL"
+            " (driver is not initialized yet)",
             type,
             key.c_str());
-        status = kAudioHardwareNotReadyError;
         goto end;
     }
 
@@ -205,6 +213,12 @@ OSStatus Storage::WriteToStorage_(const char* type, std::string key, T value)
         key.c_str(),
         StatusToString(status).c_str());
 
+    if (status != kAudioHardwareNoError) {
+        goto end;
+    }
+
+    success = true;
+
 end:
     if (keyString) {
         CFRelease(keyString);
@@ -216,13 +230,14 @@ end:
         }
     }
 
-    return status;
+    return success;
 }
 
-OSStatus Storage::DeleteFromStorage_(std::string key)
+bool Storage::DeleteFromStorage_(std::string key)
 {
-    OSStatus status = kAudioHardwareNoError;
+    bool success = false;
 
+    OSStatus status = kAudioHardwareNoError;
     AudioServerPlugInHostRef host = nullptr;
     CFStringRef keyString = nullptr;
 
@@ -230,15 +245,15 @@ OSStatus Storage::DeleteFromStorage_(std::string key)
     if (!keyString) {
         GetContext()->Tracer->Message(
             "Storage::DeleteFromStorage() key=\"%s\" can't encode key", key.c_str());
-        status = kAudioHardwareIllegalOperationError;
         goto end;
     }
 
     host = GetContext()->Host.load();
     if (!host) {
         GetContext()->Tracer->Message(
-            "Storage::DeleteFromStorage() key=\"%s\" Context.Host is NULL", key.c_str());
-        status = kAudioHardwareNotReadyError;
+            "Storage::DeleteFromStorage() key=\"%s\" Context.Host is NULL"
+            " (driver is not initialized yet)",
+            key.c_str());
         goto end;
     }
 
@@ -248,12 +263,18 @@ OSStatus Storage::DeleteFromStorage_(std::string key)
         key.c_str(),
         StatusToString(status).c_str());
 
+    if (status != kAudioHardwareNoError) {
+        goto end;
+    }
+
+    success = true;
+
 end:
     if (keyString) {
         CFRelease(keyString);
     }
 
-    return status;
+    return success;
 }
 
 } // namespace aspl

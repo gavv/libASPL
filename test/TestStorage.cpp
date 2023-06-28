@@ -13,6 +13,7 @@
 namespace {
 
 std::unordered_map<std::string, CFPropertyListRef> MockStorage;
+std::unordered_map<std::string, OSStatus> MockErrors;
 
 OSStatus MockStorageRead(AudioServerPlugInHostRef host,
     CFStringRef key,
@@ -21,8 +22,14 @@ OSStatus MockStorageRead(AudioServerPlugInHostRef host,
     std::string keyString;
     aspl::Convert::FromFoundation(key, keyString);
 
+    if (MockErrors.count(keyString)) {
+        *value = nullptr;
+        return MockErrors[keyString];
+    }
+
     if (!MockStorage.count(keyString)) {
-        return kAudioHardwareUnknownPropertyError;
+        *value = nullptr;
+        return kAudioHardwareNoError;
     }
 
     *value = CFPropertyListCreateDeepCopy(
@@ -38,6 +45,10 @@ OSStatus MockStorageWrite(AudioServerPlugInHostRef host,
     std::string keyString;
     aspl::Convert::FromFoundation(key, keyString);
 
+    if (MockErrors.count(keyString)) {
+        return MockErrors[keyString];
+    }
+
     MockStorage[keyString] = CFPropertyListCreateDeepCopy(
         kCFAllocatorDefault, value, kCFPropertyListImmutable);
 
@@ -48,6 +59,10 @@ OSStatus MockStorageDelete(AudioServerPlugInHostRef host, CFStringRef key)
 {
     std::string keyString;
     aspl::Convert::FromFoundation(key, keyString);
+
+    if (MockErrors.count(keyString)) {
+        return MockErrors[keyString];
+    }
 
     if (!MockStorage.count(keyString)) {
         return kAudioHardwareUnknownPropertyError;
@@ -60,6 +75,11 @@ OSStatus MockStorageDelete(AudioServerPlugInHostRef host, CFStringRef key)
     return kAudioHardwareNoError;
 }
 
+void MockStorageSetError(const std::string& key, OSStatus error)
+{
+    MockErrors[key] = error;
+}
+
 void MockStorageClear()
 {
     for (auto [_, value] : MockStorage) {
@@ -67,6 +87,7 @@ void MockStorageClear()
     }
 
     MockStorage.clear();
+    MockErrors.clear();
 }
 
 } // anonymous namespace
@@ -97,153 +118,196 @@ struct StorageTest : ::testing::Test
 TEST_F(StorageTest, ReadWriteDelete)
 {
     {
-        auto [value, status] = storage->ReadString("key1");
-        EXPECT_EQ(kAudioHardwareUnknownPropertyError, status);
+        auto [value, ok] = storage->ReadString("key1");
+        EXPECT_FALSE(ok);
         EXPECT_EQ("", value);
     }
 
     {
-        auto [value, status] = storage->ReadString("key2");
-        EXPECT_EQ(kAudioHardwareUnknownPropertyError, status);
+        auto [value, ok] = storage->ReadString("key2");
+        EXPECT_FALSE(ok);
         EXPECT_EQ("", value);
     }
 
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteString("key1", "value1"));
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteString("key2", "value2"));
+    ASSERT_TRUE(storage->WriteString("key1", "value1"));
+    ASSERT_TRUE(storage->WriteString("key2", "value2"));
 
     {
-        auto [value, status] = storage->ReadString("key1");
-        EXPECT_EQ(kAudioHardwareNoError, status);
+        auto [value, ok] = storage->ReadString("key1");
+        EXPECT_TRUE(ok);
         EXPECT_EQ("value1", value);
     }
 
     {
-        auto [value, status] = storage->ReadString("key2");
-        EXPECT_EQ(kAudioHardwareNoError, status);
+        auto [value, ok] = storage->ReadString("key2");
+        EXPECT_TRUE(ok);
         EXPECT_EQ("value2", value);
     }
 
-    ASSERT_EQ(kAudioHardwareNoError, storage->Delete("key1"));
+    ASSERT_TRUE(storage->Delete("key1"));
 
     {
-        auto [value, status] = storage->ReadString("key1");
-        EXPECT_EQ(kAudioHardwareUnknownPropertyError, status);
+        auto [value, ok] = storage->ReadString("key1");
+        EXPECT_FALSE(ok);
         EXPECT_EQ("", value);
     }
 
     {
-        auto [value, status] = storage->ReadString("key2");
-        EXPECT_EQ(kAudioHardwareNoError, status);
+        auto [value, ok] = storage->ReadString("key2");
+        EXPECT_TRUE(ok);
         EXPECT_EQ("value2", value);
     }
 
-    ASSERT_EQ(kAudioHardwareNoError, storage->Delete("key2"));
+    ASSERT_TRUE(storage->Delete("key2"));
 
     {
-        auto [value, status] = storage->ReadString("key1");
-        EXPECT_EQ(kAudioHardwareUnknownPropertyError, status);
+        auto [value, ok] = storage->ReadString("key1");
+        EXPECT_FALSE(ok);
         EXPECT_EQ("", value);
     }
 
     {
-        auto [value, status] = storage->ReadString("key2");
-        EXPECT_EQ(kAudioHardwareUnknownPropertyError, status);
+        auto [value, ok] = storage->ReadString("key2");
+        EXPECT_FALSE(ok);
         EXPECT_EQ("", value);
     }
+}
+
+TEST_F(StorageTest, ReadMultipleTimes)
+{
+    ASSERT_TRUE(storage->WriteString("key", "value"));
+
+    for (int i = 0; i < 100; i++) {
+        auto [value, ok] = storage->ReadString("key");
+        EXPECT_TRUE(ok);
+        EXPECT_EQ("value", value);
+    }
+}
+
+TEST_F(StorageTest, WriteMultipleTimes)
+{
+    for (int i = 0; i < 100; i++) {
+        ASSERT_TRUE(storage->WriteString("key", std::to_string(i)));
+    }
+
+    auto [value, ok] = storage->ReadString("key");
+    EXPECT_TRUE(ok);
+    EXPECT_EQ("99", value);
 }
 
 TEST_F(StorageTest, Bytes)
 {
-    std::vector<UInt8> value{1, 2, 3, 4, 5};
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteBytes("key", value));
+    {
+        std::vector<UInt8> value{1, 2, 3, 4, 5};
+        ASSERT_TRUE(storage->WriteBytes("key", value));
 
-    auto [returnedValue, status] = storage->ReadBytes("key");
-    EXPECT_EQ(kAudioHardwareNoError, status);
-    EXPECT_TRUE(returnedValue == value);
+        auto [returnedValue, ok] = storage->ReadBytes("key");
+        EXPECT_TRUE(ok);
+        EXPECT_TRUE(returnedValue == value);
+    }
+
+    {
+        std::vector<UInt8> value;
+        ASSERT_TRUE(storage->WriteBytes("key", value));
+
+        auto [returnedValue, ok] = storage->ReadBytes("key");
+        EXPECT_TRUE(ok);
+        EXPECT_TRUE(returnedValue.empty());
+    }
 }
 
 TEST_F(StorageTest, String)
 {
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteString("key", "value"));
+    {
+        ASSERT_TRUE(storage->WriteString("key", "value"));
 
-    auto [value, status] = storage->ReadString("key");
-    EXPECT_EQ(kAudioHardwareNoError, status);
-    EXPECT_EQ("value", value);
+        auto [value, ok] = storage->ReadString("key");
+        EXPECT_TRUE(ok);
+        EXPECT_EQ("value", value);
+    }
+
+    {
+        ASSERT_TRUE(storage->WriteString("key", ""));
+
+        auto [value, ok] = storage->ReadString("key");
+        EXPECT_TRUE(ok);
+        EXPECT_EQ("", value);
+    }
 }
 
 TEST_F(StorageTest, Boolean)
 {
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteBoolean("key", true));
+    ASSERT_TRUE(storage->WriteBoolean("key", true));
 
-    auto [value, status] = storage->ReadBoolean("key");
-    EXPECT_EQ(kAudioHardwareNoError, status);
+    auto [value, ok] = storage->ReadBoolean("key");
+    EXPECT_TRUE(ok);
     EXPECT_EQ(true, value);
 }
 
 TEST_F(StorageTest, Int)
 {
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteInt("key", 1234567890));
+    ASSERT_TRUE(storage->WriteInt("key", 1234567890));
 
-    auto [value, status] = storage->ReadInt("key");
-    EXPECT_EQ(kAudioHardwareNoError, status);
+    auto [value, ok] = storage->ReadInt("key");
+    EXPECT_TRUE(ok);
     EXPECT_EQ(1234567890, value);
 }
 
 TEST_F(StorageTest, Float)
 {
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteFloat("key", 12345678.12345678));
+    ASSERT_TRUE(storage->WriteFloat("key", 12345678.12345678));
 
-    auto [value, status] = storage->ReadFloat("key");
-    EXPECT_EQ(kAudioHardwareNoError, status);
+    auto [value, ok] = storage->ReadFloat("key");
+    EXPECT_TRUE(ok);
     EXPECT_EQ(12345678.12345678, value);
 }
 
 TEST_F(StorageTest, IntFloat)
 {
     { // int -> float (good)
-        ASSERT_EQ(kAudioHardwareNoError, storage->WriteInt("key1", 12345678));
+        ASSERT_TRUE(storage->WriteInt("key1", 12345678));
 
-        auto [value, status] = storage->ReadFloat("key1");
-        EXPECT_EQ(kAudioHardwareNoError, status);
+        auto [value, ok] = storage->ReadFloat("key1");
+        EXPECT_TRUE(ok);
         EXPECT_EQ(12345678.0, value);
     }
 
     { // float -> int (good)
-        ASSERT_EQ(kAudioHardwareNoError, storage->WriteFloat("key2", 12345678.0));
+        ASSERT_TRUE(storage->WriteFloat("key2", 12345678.0));
 
-        auto [value, status] = storage->ReadInt("key2");
-        EXPECT_EQ(kAudioHardwareNoError, status);
+        auto [value, ok] = storage->ReadInt("key2");
+        EXPECT_TRUE(ok);
         EXPECT_EQ(12345678, value);
     }
 
     { // int -> float (bad)
-        ASSERT_EQ(kAudioHardwareNoError, storage->WriteInt("key3", 9223372036854775807));
+        ASSERT_TRUE(storage->WriteInt("key3", 9223372036854775807));
 
         {
-            auto [value, status] = storage->ReadInt("key3");
-            EXPECT_EQ(kAudioHardwareNoError, status);
+            auto [value, ok] = storage->ReadInt("key3");
+            EXPECT_TRUE(ok);
             EXPECT_EQ(9223372036854775807, value);
         }
 
         { // value can'be represented as float without loss
-            auto [value, status] = storage->ReadFloat("key3");
-            EXPECT_EQ(kAudioHardwareIllegalOperationError, status);
+            auto [value, ok] = storage->ReadFloat("key3");
+            EXPECT_FALSE(ok);
             EXPECT_EQ(0, value);
         }
     }
 
     { // float -> int (bad)
-        ASSERT_EQ(kAudioHardwareNoError, storage->WriteFloat("key4", 12345678.123));
+        ASSERT_TRUE(storage->WriteFloat("key4", 12345678.123));
 
         {
-            auto [value, status] = storage->ReadFloat("key4");
-            EXPECT_EQ(kAudioHardwareNoError, status);
+            auto [value, ok] = storage->ReadFloat("key4");
+            EXPECT_TRUE(ok);
             EXPECT_EQ(12345678.123, value);
         }
 
         { // value can'be represented as integer without loss
-            auto [value, status] = storage->ReadInt("key4");
-            EXPECT_EQ(kAudioHardwareIllegalOperationError, status);
+            auto [value, ok] = storage->ReadInt("key4");
+            EXPECT_FALSE(ok);
             EXPECT_EQ(0, value);
         }
     }
@@ -255,14 +319,14 @@ TEST_F(StorageTest, Custom)
         CFStringRef value = nullptr;
         aspl::Convert::ToFoundation(std::string("test"), value);
 
-        ASSERT_EQ(kAudioHardwareNoError, storage->WriteCustom("key", value));
+        ASSERT_TRUE(storage->WriteCustom("key", value));
 
         CFRelease(value);
     }
 
     {
-        auto [valuePlist, status] = storage->ReadCustom("key");
-        EXPECT_EQ(kAudioHardwareNoError, status);
+        auto [valuePlist, ok] = storage->ReadCustom("key");
+        EXPECT_TRUE(ok);
 
         std::string value;
         aspl::Convert::FromFoundation(valuePlist, value);
@@ -273,26 +337,35 @@ TEST_F(StorageTest, Custom)
     }
 }
 
+TEST_F(StorageTest, EmptyKey)
+{
+    ASSERT_TRUE(storage->WriteString("", "value"));
+
+    auto [value, ok] = storage->ReadString("");
+    EXPECT_TRUE(ok);
+    EXPECT_EQ("value", value);
+}
+
 TEST_F(StorageTest, ErrorNotFound)
 {
     {
-        auto [value, status] = storage->ReadString("key");
-        EXPECT_EQ(kAudioHardwareUnknownPropertyError, status);
+        auto [value, ok] = storage->ReadString("key");
+        EXPECT_FALSE(ok);
         EXPECT_EQ("", value);
     }
 
     {
-        auto status = storage->Delete("key");
-        EXPECT_EQ(kAudioHardwareUnknownPropertyError, status);
+        auto ok = storage->Delete("key");
+        EXPECT_FALSE(ok);
     }
 }
 
 TEST_F(StorageTest, ErrorWrongType)
 {
-    ASSERT_EQ(kAudioHardwareNoError, storage->WriteString("key", "123"));
+    ASSERT_TRUE(storage->WriteString("key", "123"));
 
-    auto [value, status] = storage->ReadInt("key");
-    EXPECT_EQ(kAudioHardwareIllegalOperationError, status);
+    auto [value, ok] = storage->ReadInt("key");
+    EXPECT_FALSE(ok);
     EXPECT_EQ(0, value);
 }
 
@@ -301,18 +374,70 @@ TEST_F(StorageTest, ErrorNoHost)
     context->Host = nullptr;
 
     {
-        auto status = storage->WriteString("key", "value");
-        EXPECT_EQ(kAudioHardwareNotReadyError, status);
+        auto ok = storage->WriteString("key", "value");
+        EXPECT_FALSE(ok);
     }
 
     {
-        auto [value, status] = storage->ReadString("key");
-        EXPECT_EQ(kAudioHardwareNotReadyError, status);
+        auto [value, ok] = storage->ReadString("key");
+        EXPECT_FALSE(ok);
         EXPECT_EQ("", value);
     }
 
     {
-        auto status = storage->Delete("key");
-        EXPECT_EQ(kAudioHardwareNotReadyError, status);
+        auto ok = storage->Delete("key");
+        EXPECT_FALSE(ok);
+    }
+}
+
+TEST_F(StorageTest, ErrorBackendRead)
+{
+    {
+        auto ok = storage->WriteString("key", "value");
+        EXPECT_TRUE(ok);
+    }
+
+    {
+        auto [value, ok] = storage->ReadString("key");
+        EXPECT_TRUE(ok);
+        EXPECT_EQ("value", value);
+    }
+
+    MockStorageSetError("key", kAudioHardwareUnspecifiedError);
+
+    {
+        auto [value, ok] = storage->ReadString("key");
+        EXPECT_FALSE(ok);
+        EXPECT_EQ("", value);
+    }
+}
+
+TEST_F(StorageTest, ErrorBackendWrite)
+{
+    {
+        auto ok = storage->WriteString("key", "value");
+        EXPECT_TRUE(ok);
+    }
+
+    MockStorageSetError("key", kAudioHardwareUnspecifiedError);
+
+    {
+        auto ok = storage->WriteString("key", "value");
+        EXPECT_FALSE(ok);
+    }
+}
+
+TEST_F(StorageTest, ErrorBackendDelete)
+{
+    {
+        auto ok = storage->WriteString("key", "value");
+        EXPECT_TRUE(ok);
+    }
+
+    MockStorageSetError("key", kAudioHardwareUnspecifiedError);
+
+    {
+        auto ok = storage->Delete("key");
+        EXPECT_FALSE(ok);
     }
 }

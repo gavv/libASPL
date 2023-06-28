@@ -72,7 +72,12 @@ bool Convert::FromFoundation(CFPropertyListRef value, std::vector<UInt8>& result
     const UInt8* bytes = CFDataGetBytePtr(dataValue);
     size_t numBytes = CFDataGetLength(dataValue);
 
-    result.assign(bytes, bytes + numBytes);
+    if (bytes && numBytes) {
+        result.assign(bytes, bytes + numBytes);
+    } else {
+        result.clear();
+    }
+
     return true;
 }
 

@@ -43,21 +43,21 @@ public:
     //!  Returns error if value does not exist or has wrong type.
     //! @note
     //!  Uses Context.Host.CopyFromStorage.
-    std::pair<std::vector<UInt8>, OSStatus> ReadBytes(std::string key) const;
+    std::pair<std::vector<UInt8>, bool> ReadBytes(std::string key) const;
 
     //! Read CFString value from storage and decode it into UTF-8 string.
     //! @remarks
     //!  Returns error if value does not exist or has wrong type.
     //! @note
     //!  Uses Context.Host.CopyFromStorage.
-    std::pair<std::string, OSStatus> ReadString(std::string key) const;
+    std::pair<std::string, bool> ReadString(std::string key) const;
 
     //! Read CFBoolean value from storage and decode it into bool.
     //! @remarks
     //!  Returns error if value does not exist or has wrong type.
     //! @note
     //!  Uses Context.Host.CopyFromStorage.
-    std::pair<bool, OSStatus> ReadBoolean(std::string key) const;
+    std::pair<bool, bool> ReadBoolean(std::string key) const;
 
     //! Read CFNumber value from storage and decode it into SInt64.
     //! @remarks
@@ -65,7 +65,7 @@ public:
     //!  or can not be represented as SInt64 without loss.
     //! @note
     //!  Uses Context.Host.CopyFromStorage.
-    std::pair<SInt64, OSStatus> ReadInt(std::string key) const;
+    std::pair<SInt64, bool> ReadInt(std::string key) const;
 
     //! Read CFNumber value from storage and decode it into Float64.
     //! @remarks
@@ -73,7 +73,7 @@ public:
     //!  or can not be represented as Float64 without loss.
     //! @note
     //!  Uses Context.Host.CopyFromStorage.
-    std::pair<Float64, OSStatus> ReadFloat(std::string key) const;
+    std::pair<Float64, bool> ReadFloat(std::string key) const;
 
     //! Read CFPropertyList value from storage and return it.
     //! @remarks
@@ -81,42 +81,42 @@ public:
     //!  Caller is responsible to release returned value.
     //! @note
     //!  Uses Context.Host.CopyFromStorage.
-    std::pair<CFPropertyListRef, OSStatus> ReadCustom(std::string key) const;
+    std::pair<CFPropertyListRef, bool> ReadCustom(std::string key) const;
 
     //! Encode byte array into CFData value and write it to storage.
     //! @remarks
     //!  Returns error if value can not be encoded or written.
     //! @note
     //!  Uses Context.Host.WriteToStorage.
-    OSStatus WriteBytes(std::string key, std::vector<UInt8> value);
+    bool WriteBytes(std::string key, std::vector<UInt8> value);
 
     //! Encode C++ string into CFString value and write it to storage.
     //! @remarks
     //!  Returns error if value can not be encoded or written.
     //! @note
     //!  Uses Context.Host.WriteToStorage.
-    OSStatus WriteString(std::string key, std::string value);
+    bool WriteString(std::string key, std::string value);
 
     //! Encode bool into CFBoolean value and write it to storage.
     //! @remarks
     //!  Returns error if value can not be encoded or written.
     //! @note
     //!  Uses Context.Host.WriteToStorage.
-    OSStatus WriteBoolean(std::string key, bool value);
+    bool WriteBoolean(std::string key, bool value);
 
     //! Encode SInt64 into CFNumber value and write it to storage.
     //! @remarks
     //!  Returns error if value can not be encoded or written.
     //! @note
     //!  Uses Context.Host.WriteToStorage.
-    OSStatus WriteInt(std::string key, SInt64 value);
+    bool WriteInt(std::string key, SInt64 value);
 
     //! Encode Float64 into CFNumber value and write it to storage.
     //! @remarks
     //!  Returns error if value can not be encoded or written.
     //! @note
     //!  Uses Context.Host.WriteToStorage.
-    OSStatus WriteFloat(std::string key, Float64 value);
+    bool WriteFloat(std::string key, Float64 value);
 
     //! Write CFPropertyList value to storage.
     //! @remarks
@@ -124,23 +124,23 @@ public:
     //!  Does not take ownership of the value.
     //! @note
     //!  Uses Context.Host.WriteToStorage.
-    OSStatus WriteCustom(std::string key, CFPropertyListRef value);
+    bool WriteCustom(std::string key, CFPropertyListRef value);
 
     //! Delete value from storage.
     //! @remarks
     //!  Returns error if value does not exist or can not be deleted.
     //! @note
     //!  Uses Context.Host.DeleteFromStorage.
-    OSStatus Delete(std::string key);
+    bool Delete(std::string key);
 
 private:
     template <class T>
-    std::pair<T, OSStatus> CopyFromStorage_(const char* type, std::string key) const;
+    std::pair<T, bool> CopyFromStorage_(const char* type, std::string key) const;
 
     template <class T>
-    OSStatus WriteToStorage_(const char* type, std::string key, T value);
+    bool WriteToStorage_(const char* type, std::string key, T value);
 
-    OSStatus DeleteFromStorage_(std::string key);
+    bool DeleteFromStorage_(std::string key);
 
     const std::shared_ptr<Context> context_;
 };

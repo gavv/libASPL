@@ -366,7 +366,10 @@ Usage:
 ```cpp
 OSStatus status = driver->GetStorage()->WriteString("key", "value");
 // ...
-auto [status, value] = driver->GetStorage()->ReadString("key");
+auto [str, ok] = driver->GetStorage()->ReadString("key");
+if (ok) {
+    // ...
+}
 ```
 
 You can also construct storage manually and pass it to driver:
