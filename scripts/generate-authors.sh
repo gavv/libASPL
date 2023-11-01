@@ -34,6 +34,14 @@ function find_email() {
     then
         echo "${github_email}"
     fi
+
+    local reflog_email="$(git reflog --pretty=format:"%an <%ae>" | sort -u | \
+        grep -vF users.noreply.github.com | grep -F "$1" | sed -re 's,.*<(.*)>,\1,')"
+
+    if [[ "${reflog_email}" != "" ]]
+    then
+        echo "${reflog_email}"
+    fi
 }
 
 function add_if_new() {
@@ -60,36 +68,40 @@ function add_if_new() {
         fi
     fi
 
-    local print_name="$(find_name "${github_login}")"
-    if [ -z "${print_name}" ]
+    local full_name="$(find_name "${github_login}")"
+    if [ -z "${full_name}" ]
     then
-        print_name="${commit_name}"
+        full_name="${commit_name}"
     fi
-    print_name="$(echo "${print_name}" | sed -re 's/\S+/\u&/g')"
+    full_name="$(echo "${full_name}" | sed -re 's/\S+/\u&/g')"
 
-    local print_addr=""
+    local address=""
     if echo "${commit_email}" | grep -q users.noreply.github.com
     then
         if [[ ! -z "${github_login}" ]]
         then
-            print_addr="$(find_email "${github_login}")"
+            address="$(find_email "${github_login}")"
         fi
     else
-        print_addr="${commit_email}"
+        address="${commit_email}"
     fi
-    if [[ -z "${print_addr}" && ! -z "${github_login}" ]]
+    if [[ -z "${address}" && ! -z "${github_login}" ]]
     then
-        print_addr="https://github.com/${github_login}"
+        address="https://github.com/${github_login}"
     fi
 
-    if [ -z "${print_addr}" ]
+    local result="${full_name}"
+    if [ ! -z "${github_login}" ]
     then
-        echo "adding ${print_name}" 1>&2
-        echo "${print_name}"
-    else
-        echo "adding ${print_name} <${print_addr}>" 1>&2
-        echo "${print_name} <${print_addr}>"
+        result="${result} /${github_login}/"
     fi
+    if [ ! -z "${address}" ]
+    then
+        result="${result} (${address})"
+    fi
+
+    echo "adding ${result}" 1>&2
+    echo "* ${result}"
 }
 
 function add_contributors() {
@@ -114,7 +126,7 @@ function add_contributors() {
     done
 }
 
-result_file="AUTHORS"
+result_file="AUTHORS.md"
 temp_file="$(mktemp)"
 
 cat "${result_file}" > "${temp_file}"
@@ -122,3 +134,5 @@ add_contributors "${temp_file}"
 
 cat "${temp_file}" > "${result_file}"
 rm "${temp_file}"
+
+echo "Updated ${result_file}"

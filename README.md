@@ -3,8 +3,8 @@
 <!-- toc -->
 
 - [Synopsis](#synopsis)
-- [Status](#status)
 - [Instructions](#instructions)
+- [Status](#status)
 - [Versioning](#versioning)
 - [API reference](#api-reference)
 - [Example drivers](#example-drivers)
@@ -42,12 +42,6 @@ The library acts as a thin shim between Audio Server and your code and takes car
 
 * As a bonus, the library performs verbose tracing of everything that happens with your driver. The output and the format of the trace can be customized.
 
-## Status
-
-This library is used in commercial and open-source applications and can be considered production-ready.
-
-You can find a real-world usage example here: [Roc Virtual Audio Device for macOS](https://github.com/roc-streaming/roc-vad).
-
 ## Instructions
 
 Install recent CMake:
@@ -80,11 +74,19 @@ make -j4
 make install
 ```
 
+## Status
+
+This library is used in commercial and open-source applications and can be considered production-ready.
+
+You can find a real-world usage example here: [Roc Virtual Audio Device for macOS](https://github.com/roc-streaming/roc-vad).
+
 ## Versioning
 
 The library uses [semantic versioning](https://semver.org/).
 
 Only source-level compatibility is maintained. There is no binary compatibility even between minor releases. In other words, if you update the library, you should recompile your code with the new version.
+
+Changelog file can be found here: [changelog](CHANGES.md).
 
 ## API reference
 
@@ -630,7 +632,7 @@ Contributions are welcome!
 
 ## Authors
 
-See [here](AUTHORS).
+See [here](AUTHORS.md).
 
 ## License
 
