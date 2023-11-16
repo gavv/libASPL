@@ -269,7 +269,7 @@ add_custom_command(
   DEPENDS ${LIB_TARGET}
   OUTPUT ${PROJECT_SOURCE_DIR}/compile_commands.json
   COMMAND ${CMAKE_COMMAND} -E copy
-    ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
+    ${CMAKE_BINARY_DIR}/compile_commands.json
     ${PROJECT_SOURCE_DIR}/compile_commands.json
   )
 add_custom_target(compile_commands ALL
