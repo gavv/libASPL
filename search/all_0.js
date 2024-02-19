@@ -1,0 +1,14 @@
+var searchData=
+[
+  ['abortconfigurationchange_0',['AbortConfigurationChange',['../classaspl_1_1_device.html#ac79c8261450d9b0d872d85ebece72536',1,'aspl::Device']]],
+  ['addclient_1',['AddClient',['../classaspl_1_1_device.html#a57b534c8f32ec0fd8139c8a26f23a681',1,'aspl::Device']]],
+  ['adddevice_2',['AddDevice',['../classaspl_1_1_plugin.html#a28d7df1e9918fde62a57c85d9d8ad2d2',1,'aspl::Plugin']]],
+  ['addmutecontrolasync_3',['AddMuteControlAsync',['../classaspl_1_1_device.html#af17b50459e033341adb0d4293b53f28f',1,'aspl::Device::AddMuteControlAsync(AudioObjectPropertyScope scope)'],['../classaspl_1_1_device.html#a26fbd63e9cc91dcff48ac0193057f10c',1,'aspl::Device::AddMuteControlAsync(const MuteControlParameters &amp;params)'],['../classaspl_1_1_device.html#a9a59ce1de6a62e72a8131590acc33c8a',1,'aspl::Device::AddMuteControlAsync(std::shared_ptr&lt; MuteControl &gt; control)']]],
+  ['addownedobject_4',['AddOwnedObject',['../classaspl_1_1_object.html#abb51aa4a29b2ea38f7bfdd5947226da2',1,'aspl::Object']]],
+  ['addstreamasync_5',['AddStreamAsync',['../classaspl_1_1_device.html#aefc0e0732a6db0eae70bcafe46798a56',1,'aspl::Device::AddStreamAsync(Direction dir)'],['../classaspl_1_1_device.html#a5234834eb70755e1965f038cded36c12',1,'aspl::Device::AddStreamAsync(const StreamParameters &amp;params)'],['../classaspl_1_1_device.html#aaa7211249ec7607c8bb7a8423e465ae2',1,'aspl::Device::AddStreamAsync(std::shared_ptr&lt; Stream &gt; stream)']]],
+  ['addstreamwithcontrolsasync_6',['AddStreamWithControlsAsync',['../classaspl_1_1_device.html#a83d52d91367aee6757b34c896521dc37',1,'aspl::Device::AddStreamWithControlsAsync(Direction dir)'],['../classaspl_1_1_device.html#a3b09e4d445a0fcc4f658a95b130e2565',1,'aspl::Device::AddStreamWithControlsAsync(const StreamParameters &amp;params)']]],
+  ['addvolumecontrolasync_7',['AddVolumeControlAsync',['../classaspl_1_1_device.html#af58314a2efae7c0291604185b411eea5',1,'aspl::Device::AddVolumeControlAsync(AudioObjectPropertyScope scope)'],['../classaspl_1_1_device.html#ac64bb48fc681add0c6afa86add39b33b',1,'aspl::Device::AddVolumeControlAsync(const VolumeControlParameters &amp;params)'],['../classaspl_1_1_device.html#a41a6434b85b34a7b46ec14cc72642084',1,'aspl::Device::AddVolumeControlAsync(std::shared_ptr&lt; VolumeControl &gt; control)']]],
+  ['applyprocessing_8',['ApplyProcessing',['../classaspl_1_1_mute_control.html#a4ff6a79934e2cd4f0bf8e91e5487b2a7',1,'aspl::MuteControl::ApplyProcessing()'],['../classaspl_1_1_stream.html#a28cbc9be59540d32a56913e72f9569cd',1,'aspl::Stream::ApplyProcessing()'],['../classaspl_1_1_volume_control.html#afb6273001119cb928712453fe7649b56',1,'aspl::VolumeControl::ApplyProcessing()']]],
+  ['attachmutecontrol_9',['AttachMuteControl',['../classaspl_1_1_stream.html#aae7db6576eb4ceabc4b248b6638ce2d3',1,'aspl::Stream']]],
+  ['attachvolumecontrol_10',['AttachVolumeControl',['../classaspl_1_1_stream.html#a15ac54804f85b7a183de4b92960c73e3',1,'aspl::Stream']]]
+];
