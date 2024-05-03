@@ -1,6 +1,9 @@
 /build
 /html
-GNUmakefile
+.cache
 compile_commands.json
 .unisonignore
-*.org
+.ignore
+.justfile
+.dir-locals.el
+TODO.org
