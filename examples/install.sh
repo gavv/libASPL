@@ -44,7 +44,8 @@ case "${mode}" in
         done
 
         msg "Restarting audio server"
-        cmd launchctl kickstart -k system/com.apple.audio.coreaudiod
+        cmd launchctl kickstart -k system/com.apple.audio.coreaudiod \
+            || cmd killall -9 coreaudiod
         ;;
 
     uninstall)
