@@ -49,6 +49,7 @@ install:
 clean:
 	rm -rf build
 	rm -rf html
+	rm -f compile_commands.json
 
 clobber: clean
 	rm -f src/*.g.cpp
