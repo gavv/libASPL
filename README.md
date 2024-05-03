@@ -309,7 +309,7 @@ Furthermore, all `AddXXX()` methods have overloads that allow you to specify cus
 
 ### Initialization callback
 
-Driver object is not fully functional until plugin returns from entry point and HAL performs asynchrnous driver initialization. If part of your plugin initialization requires functioning driver and so can not be done in entry point (e.g. it uses persistent storage), you can use DriverRequestHandler:
+Driver object is not fully functional until plugin returns from entry point and HAL performs asynchronous driver initialization. If part of your plugin initialization requires functioning driver and so can not be done in entry point (e.g. it uses persistent storage), you can use DriverRequestHandler:
 
 ```cpp
 class MyHandler : public aspl::DriverRequestHandler

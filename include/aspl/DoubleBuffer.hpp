@@ -248,7 +248,7 @@ public:
 
         // Calculate next index.
         // Maximum signed value overflows to zero.
-        // Negative indicies are reserved to indiciate invalidated buffers.
+        // Negative indices are reserved to indicate invalidated buffers.
         const auto newIndex =
             oldIndex < std::numeric_limits<BufferIndex>::max() ? oldIndex + 1 : 0;
 

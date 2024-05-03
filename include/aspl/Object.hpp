@@ -35,8 +35,8 @@ namespace aspl {
 //!  - **Identification.** Each object has a unique numeric identifier.
 //!    ID is unique only within the same Context.
 //!
-//!  - **Classification.** Each object belongs to one of the prefefined classes.
-//!    The class defines a set of the properties and propbably other
+//!  - **Classification.** Each object belongs to one of the predefined classes.
+//!    The class defines a set of the properties and probably other
 //!    operations which should be supported by object.
 //!
 //!  - **Ownership.** All objects of the plugin forms a tree hierarchy,
@@ -213,7 +213,7 @@ public:
 
     //! Register custom property with getter and optional setter.
     //!
-    //! This overload is for read-only properties (wihtout setter).
+    //! This overload is for read-only properties (without setter).
     //!
     //! GetterFunc should be convertible to std::function<ValueType()>, where
     //! value type should be either CFStringRef or CFPropertyListRef (because

@@ -25,7 +25,7 @@ struct ClientInfo
     //! The pid_t of the process that contains the client.
     pid_t ProcessID = 0;
 
-    //! Client endianess.
+    //! Client endianness.
     //! Indicating whether or not the client has the same endianness as the server.
     bool IsNativeEndian = false;
 
@@ -36,14 +36,14 @@ struct ClientInfo
 
 //! Device client.
 //!
-//! Represents connection between an app and device. Typically an ap has at most
+//! Represents connection between an app and device. Typically an app has at most
 //! one client, but this is not a requirement.
 //!
 //! Devices asks RequestHandler to create Client object when a new client comes
 //! to the devices, and asks to remove it when the client leaves.
 //!
 //! You may subclass Client if you need to keep additional per-client state. To
-//! incorporate your owne client class, you'll need to set custom RequestHandler.
+//! incorporate your own client class, you'll need to set custom RequestHandler.
 class Client
 {
 public:
@@ -63,7 +63,7 @@ public:
     //! The pid_t of the process that contains the client.
     pid_t GetProcessID() const;
 
-    //! Client endianess.
+    //! Client endianness.
     //! Indicating whether or not the client has the same endianness as the server.
     bool GetIsNativeEndian() const;
 

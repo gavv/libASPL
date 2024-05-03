@@ -54,7 +54,7 @@ struct StreamParameters
         .mBytesPerPacket = 4,
     };
 
-    //! Additonal presentation latency the stream has.
+    //! Additional presentation latency the stream has.
     //! Used by default implementation of Stream::GetLatency().
     UInt32 Latency = 0;
 };
@@ -117,7 +117,7 @@ public:
     virtual UInt32 GetTerminalType() const;
 
     //! Absolute channel number for the first channel in the stream.
-    //! For exmaple, if a device has two output streams with two channels each, then
+    //! For example, if a device has two output streams with two channels each, then
     //! the starting channel number for the first stream is 1 and thus starting
     //! channel number for the second stream is 3.
     //! By default returns StreamParameters::StartingChannel.
@@ -133,7 +133,7 @@ public:
     //! Return value is based on GetPhysicalFormat().
     Float64 GetSampleRate() const;
 
-    //! Get any additonal presentation latency the stream has.
+    //! Get any additional presentation latency the stream has.
     //! This latency is added to the device latency.
     //! By default returns value last set with SetLatencyAsync().
     //! Initial value is StreamParameters::Latency.
@@ -258,7 +258,7 @@ public:
 
     //! @}
 
-    //! @name Property dispath
+    //! @name Property dispatch
     //! @{
 
     //! Get class ID.

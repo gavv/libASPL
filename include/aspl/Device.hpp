@@ -117,7 +117,7 @@ struct DeviceParameters
     //! - When false, Device will invoke IORequestHandler::OnProcessClientOutput()
     //!   and IORequestHandler::WriteClientOutput().
     //!   It will be repeatedly called with the output from each client.
-    //!   IORequestHandler is resposible for mixing in this case.
+    //!   IORequestHandler is responsible for mixing in this case.
     bool EnableMixing = true;
 
     //! If true, realtime calls are logged to tracer.
@@ -230,7 +230,7 @@ public:
     //!  Backs @c kAudioDevicePropertyIcon property.
     virtual std::string GetIconURL() const;
 
-    //! Get bundler ID of configuration application.
+    //! Get bundle ID of configuration application.
     //! The returned app should provides a GUI for configuring the device.
     //! By default returns DeviceParameters::ConfigurationApplicationBundleID.
     //! @note
@@ -310,7 +310,7 @@ public:
     //!  Backs @c kAudioDevicePropertySafetyOffset property.
     virtual UInt32 GetSafetyOffset() const;
 
-    //! Asynchronously set sefety offset.
+    //! Asynchronously set safety offset.
     //! Requests HAL to asynchronously invoke SetSafetyOffsetImpl().
     OSStatus SetSafetyOffsetAsync(UInt32 offset);
 
@@ -361,7 +361,7 @@ public:
     //!  Backs @c kAudioDevicePropertyAvailableNominalSampleRates property.
     virtual std::vector<AudioValueRange> GetAvailableSampleRates() const;
 
-    //! Asynchrounously set list of supported nominal sample rates.
+    //! Asynchronously set list of supported nominal sample rates.
     //! See comments for GetAvailableSampleRates().
     //! Requests HAL to asynchronously invoke SetAvailableSampleRatesImpl().
     OSStatus SetAvailableSampleRatesAsync(std::vector<AudioValueRange> rates);
@@ -492,7 +492,7 @@ public:
     //! Initial value is true.
     //! @remarks
     //!  It is not uncommon for a device to be dead but still momentarily
-    //!  availble in the device list.
+    //!  available in the device list.
     //! @note
     //!  Backs @c kAudioDevicePropertyDeviceIsAlive property.
     virtual bool GetIsAlive() const;
@@ -911,7 +911,7 @@ public:
 
     //! @}
 
-    //! @name Property dispath
+    //! @name Property dispatch
     //! @{
 
     //! Get class ID.
@@ -1036,7 +1036,7 @@ protected:
     //! Invoked by SetIsAlive().
     virtual OSStatus SetIsAliveImpl(bool isAlive);
 
-    //! Mark or unmark  device as hidden.
+    //! Mark or unmark device as hidden.
     //! By default just changes the value returned by GetIsHidden().
     //! Invoked by SetIsHidden().
     virtual OSStatus SetIsHiddenImpl(bool isHidden);

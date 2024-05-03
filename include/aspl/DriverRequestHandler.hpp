@@ -21,7 +21,7 @@ public:
 
     virtual ~DriverRequestHandler() = default;
 
-    //! Invoked during asynchrnous driver initialization.
+    //! Invoked during asynchronous driver initialization.
     virtual OSStatus OnInitialize()
     {
         return kAudioHardwareNoError;

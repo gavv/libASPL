@@ -79,7 +79,7 @@ public:
     //!  Backs @c kAudioPlugInPropertyDeviceList property.
     virtual std::vector<AudioObjectID> GetDeviceIDs() const;
 
-    //! Get deive with given UID.
+    //! Get device with given UID.
     //! Returns nullptr if there is no such device.
     //! @note
     //!  Backs @c kAudioPlugInPropertyTranslateUIDToDevice property.
@@ -93,7 +93,7 @@ public:
     //! Get number of devices added.
     UInt32 GetDeviceCount() const;
 
-    //! Get deive with given zero-based index.
+    //! Get device with given zero-based index.
     //! Returns nullptr if there are less than idx+1 devices.
     std::shared_ptr<Device> GetDeviceByIndex(UInt32 idx) const;
 

@@ -59,7 +59,7 @@ namespace aspl {
 //! Don't forget do declare your entry point in Info.plist of the plugin.
 //!
 //! Right after the Driver object is created, it is not fully initialized yet. The
-//! final initialization is performed by HAL asynchrnously, after returning from
+//! final initialization is performed by HAL asynchronously, after returning from
 //! plugin entry point.
 //!
 //! Until asynchronous initialization is done, most driver services are not really

@@ -29,7 +29,7 @@ struct MuteControlParameters
 //! Stores a boolean state, indicating whether something is muted or not.
 //!
 //! Mute control does not affect I/O by its own. It just stores the mute flag
-//! and provides ApplyProcessing() method which zeroises privided samples if
+//! and provides ApplyProcessing() method which zeroises provided samples if
 //! the mute flag is set.
 //!
 //! You can attach MuteControl to the Stream using Stream::AttachMuteControl()
@@ -89,7 +89,7 @@ public:
 
     //! @}
 
-    //! @name Property dispath
+    //! @name Property dispatch
     //! @{
 
     //! Get class ID.
