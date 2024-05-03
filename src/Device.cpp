@@ -419,11 +419,12 @@ std::shared_ptr<Stream> Device::GetStreamByID(AudioObjectID streamID) const
 
     const auto& streamByID = readLock.GetReference();
 
-    if (!streamByID.count(streamID)) {
+    auto iter = streamByID.find(streamID);
+    if (iter == streamByID.end()) {
         return {};
     }
 
-    return streamByID.at(streamID);
+    return iter->second;
 }
 
 std::shared_ptr<Stream> Device::AddStreamWithControlsAsync(Direction dir)
@@ -1059,11 +1060,12 @@ std::shared_ptr<Client> Device::GetClientByID(UInt32 clientID) const
 
     const auto& clientByID = readLock.GetReference();
 
-    if (!clientByID.count(clientID)) {
+    auto iter = clientByID.find(clientID);
+    if (iter == clientByID.end()) {
         return {};
     }
 
-    return clientByID.at(clientID);
+    return iter->second;
 }
 
 OSStatus Device::StartIO(AudioObjectID objectID, UInt32 clientID)
