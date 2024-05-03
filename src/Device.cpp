@@ -1078,9 +1078,9 @@ OSStatus Device::StartIO(AudioObjectID objectID, UInt32 clientID)
 
     GetContext()->Tracer->OperationBegin(op);
 
-    OSStatus status = kAudioHardwareNoError;
-
     const bool isStarting = (startCount_ == 0);
+
+    OSStatus status = kAudioHardwareNoError;
 
     if (objectID != GetID()) {
         GetContext()->Tracer->Message("object not found");
@@ -1090,15 +1090,12 @@ OSStatus Device::StartIO(AudioObjectID objectID, UInt32 clientID)
 
     if (isStarting) {
         GetContext()->Tracer->Message("starting io: clientID=%u", unsigned(clientID));
+    }
 
-        status = GetControlHandler()->OnStartIO();
+    status = StartIOImpl(clientID, startCount_);
 
-        if (status != kAudioHardwareNoError) {
-            goto end;
-        }
-
-        anchorHostTime_ = mach_absolute_time();
-        periodCounter_ = 0;
+    if (status != kAudioHardwareNoError) {
+        goto end;
     }
 
     startCount_++;
@@ -1113,6 +1110,25 @@ end:
     return status;
 }
 
+OSStatus Device::StartIOImpl(UInt32 clientID, UInt32 startCount)
+{
+    OSStatus status = kAudioHardwareNoError;
+
+    if (startCount == 0) {
+        status = GetControlHandler()->OnStartIO();
+
+        if (status != kAudioHardwareNoError) {
+            goto end;
+        }
+
+        anchorHostTime_ = mach_absolute_time();
+        periodCounter_ = 0;
+    }
+
+end:
+    return status;
+}
+
 OSStatus Device::StopIO(AudioObjectID objectID, UInt32 clientID)
 {
     std::lock_guard ioLock(ioMutex_);
@@ -1123,9 +1139,9 @@ OSStatus Device::StopIO(AudioObjectID objectID, UInt32 clientID)
 
     GetContext()->Tracer->OperationBegin(op);
 
-    OSStatus status = kAudioHardwareNoError;
-
     const bool isStopping = (startCount_ == 1);
+
+    OSStatus status = kAudioHardwareNoError;
 
     if (objectID != GetID()) {
         GetContext()->Tracer->Message("object not found");
@@ -1135,8 +1151,12 @@ OSStatus Device::StopIO(AudioObjectID objectID, UInt32 clientID)
 
     if (isStopping) {
         GetContext()->Tracer->Message("stopping io: clientID=%u", unsigned(clientID));
+    }
 
-        GetControlHandler()->OnStopIO();
+    status = StopIOImpl(clientID, startCount_ - 1);
+
+    if (status != kAudioHardwareNoError) {
+        goto end;
     }
 
     startCount_--;
@@ -1149,6 +1169,15 @@ end:
     GetContext()->Tracer->OperationEnd(op, status);
 
     return status;
+}
+
+OSStatus Device::StopIOImpl(UInt32 clientID, UInt32 startCount)
+{
+    if (startCount == 0) {
+        GetControlHandler()->OnStopIO();
+    }
+
+    return kAudioHardwareNoError;
 }
 
 void Device::SetIOHandler(std::shared_ptr<IORequestHandler> handler)
@@ -1204,54 +1233,21 @@ OSStatus Device::GetZeroTimeStamp(AudioObjectID objectID,
         goto end;
     }
 
-    if (const Float64 sampleRate = GetNominalSampleRate();
-        sampleRate != lastSampleRate_) {
-        struct mach_timebase_info timeBase;
-        mach_timebase_info(&timeBase);
+    status = GetZeroTimeStampImpl(clientID, outSampleTime, outHostTime, outSeed);
 
-        Float64 hostClockFrequency = Float64(timeBase.denom) / timeBase.numer;
-        hostClockFrequency *= 1000000000.0;
-
-        hostTicksPerFrame_ = hostClockFrequency / sampleRate;
-        lastSampleRate_ = sampleRate;
+    if (status != kAudioHardwareNoError) {
+        goto end;
     }
 
-    {
-        const UInt64 currentHostTime = mach_absolute_time();
-
-        const Float64 framesPerPeriod = GetZeroTimeStampPeriod();
-        const Float64 hostTicksPerPeriod = hostTicksPerFrame_ * framesPerPeriod;
-
-        {
-            const UInt64 nextPeriodHostTime =
-                anchorHostTime_ +
-                UInt64(Float64(periodCounter_ + 1) * hostTicksPerPeriod);
-
-            if (currentHostTime >= nextPeriodHostTime) {
-                periodCounter_++;
-            }
-        }
-
-        currentPeriodTimestamp_ = periodCounter_ * framesPerPeriod;
-        currentPeriodHostTime_ =
-            anchorHostTime_ + UInt64(Float64(periodCounter_) * hostTicksPerPeriod);
-
-        *outSampleTime = currentPeriodTimestamp_;
-        *outHostTime = currentPeriodHostTime_;
-        *outSeed = 1;
-
-        if (params_.EnableRealtimeTracing) {
-            GetContext()->Tracer->Message(
-                "returning"
-                " ZeroTs=%f"
-                " ZeroHostTime=%lu"
-                " AnchorHostTime=%lu"
-                " PeriodCounter=%lu",
-                currentPeriodTimestamp_,
-                static_cast<unsigned long>(currentPeriodHostTime_),
-                static_cast<unsigned long>(anchorHostTime_),
-                static_cast<unsigned long>(periodCounter_));
-        }
+    if (params_.EnableRealtimeTracing) {
+        GetContext()->Tracer->Message(
+            "returning"
+            " outSampleTime=%f"
+            " outHostTime=%lu"
+            " outSeed=%lu",
+            *outSampleTime,
+            static_cast<unsigned long>(*outHostTime),
+            static_cast<unsigned long>(*outSeed));
     }
 
 end:
@@ -1260,6 +1256,49 @@ end:
     }
 
     return status;
+}
+
+OSStatus Device::GetZeroTimeStampImpl(UInt32 clientID,
+    Float64* outSampleTime,
+    UInt64* outHostTime,
+    UInt64* outSeed)
+{
+    if (const Float64 newSampleRate = GetNominalSampleRate();
+        newSampleRate != lastSampleRate_) {
+        // Handle sample rate change.
+        struct mach_timebase_info timeBase;
+        mach_timebase_info(&timeBase);
+
+        Float64 hostClockFrequency = Float64(timeBase.denom) / timeBase.numer;
+        hostClockFrequency *= 1000000000.0;
+
+        hostTicksPerFrame_ = hostClockFrequency / newSampleRate;
+        lastSampleRate_ = newSampleRate;
+    }
+
+    const UInt64 currentHostTime = mach_absolute_time();
+
+    const Float64 framesPerPeriod = GetZeroTimeStampPeriod();
+    const Float64 hostTicksPerPeriod = hostTicksPerFrame_ * framesPerPeriod;
+
+    {
+        const UInt64 nextPeriodHostTime =
+            anchorHostTime_ + UInt64(Float64(periodCounter_ + 1) * hostTicksPerPeriod);
+
+        if (currentHostTime >= nextPeriodHostTime) {
+            periodCounter_++;
+        }
+    }
+
+    currentPeriodTimestamp_ = periodCounter_ * framesPerPeriod;
+    currentPeriodHostTime_ =
+        anchorHostTime_ + UInt64(Float64(periodCounter_) * hostTicksPerPeriod);
+
+    *outSampleTime = currentPeriodTimestamp_;
+    *outHostTime = currentPeriodHostTime_;
+    *outSeed = 1;
+
+    return kAudioHardwareNoError;
 }
 
 OSStatus Device::WillDoIOOperation(AudioObjectID objectID,
@@ -1289,6 +1328,32 @@ OSStatus Device::WillDoIOOperation(AudioObjectID objectID,
     *outWillDo = false;
     *outWillDoInPlace = false;
 
+    status = WillDoIOOperationImpl(clientID, operationID, outWillDo, outWillDoInPlace);
+
+    if (status != kAudioHardwareNoError) {
+        goto end;
+    }
+
+    if (params_.EnableRealtimeTracing) {
+        GetContext()->Tracer->Message("%s WillDo=%d WillDoInPlace=%d",
+            OperationIDToString(operationID).c_str(),
+            int(*outWillDo),
+            int(*outWillDoInPlace));
+    }
+
+end:
+    if (params_.EnableRealtimeTracing) {
+        GetContext()->Tracer->OperationEnd(op, status);
+    }
+
+    return status;
+}
+
+OSStatus Device::WillDoIOOperationImpl(UInt32 clientID,
+    UInt32 operationID,
+    Boolean* outWillDo,
+    Boolean* outWillDoInPlace)
+{
     switch (operationID) {
     case kAudioServerPlugInIOOperationReadInput:
     case kAudioServerPlugInIOOperationProcessInput:
@@ -1315,21 +1380,9 @@ OSStatus Device::WillDoIOOperation(AudioObjectID objectID,
 
     default:
         break;
-    };
-
-    if (params_.EnableRealtimeTracing) {
-        GetContext()->Tracer->Message("%s WillDo=%d WillDoInPlace=%d",
-            OperationIDToString(operationID).c_str(),
-            int(*outWillDo),
-            int(*outWillDoInPlace));
     }
 
-end:
-    if (params_.EnableRealtimeTracing) {
-        GetContext()->Tracer->OperationEnd(op, status);
-    }
-
-    return status;
+    return kAudioHardwareNoError;
 }
 
 OSStatus Device::BeginIOOperation(AudioObjectID objectID,
@@ -1344,10 +1397,24 @@ OSStatus Device::BeginIOOperation(AudioObjectID objectID,
         GetContext()->Tracer->Message("Device::BeginIOOperation()");
     }
 
+    OSStatus status = kAudioHardwareNoError;
+
     if (objectID != GetID()) {
-        return kAudioHardwareBadObjectError;
+        status = kAudioHardwareBadObjectError;
+        goto end;
     }
 
+    status = BeginIOOperationImpl(clientID, operationID, ioFrameCount, ioCycleInfo);
+
+end:
+    return status;
+}
+
+OSStatus Device::BeginIOOperationImpl(UInt32 clientID,
+    UInt32 operationID,
+    UInt32 ioFrameCount,
+    const AudioServerPlugInIOCycleInfo* ioCycleInfo)
+{
     return kAudioHardwareNoError;
 }
 
@@ -1361,9 +1428,6 @@ OSStatus Device::DoIOOperation(AudioObjectID objectID,
     void* ioSecondaryBuffer)
 {
     std::lock_guard ioLock(ioMutex_);
-
-    std::shared_ptr<Client> client;
-    std::shared_ptr<Stream> stream;
 
     Tracer::Operation op;
     op.Name = "Device::DoIOOperation()";
@@ -1391,103 +1455,13 @@ OSStatus Device::DoIOOperation(AudioObjectID objectID,
         goto end;
     }
 
-    {
-        auto readLock = clientByID_.GetReadLock();
-
-        const auto& clientByID = readLock.GetReference();
-
-        if (auto iter = clientByID.find(clientID); iter != clientByID.end()) {
-            client = iter->second;
-        } else {
-            if (params_.EnableRealtimeTracing) {
-                GetContext()->Tracer->Message("client not found");
-            }
-        }
-    }
-
-    {
-        auto readLock = streamByID_.GetReadLock();
-
-        const auto& streamByID = readLock.GetReference();
-
-        if (auto iter = streamByID.find(streamID); iter != streamByID.end()) {
-            stream = iter->second;
-        } else {
-            if (params_.EnableRealtimeTracing) {
-                GetContext()->Tracer->Message("stream not found");
-            }
-        }
-    }
-
-    if (!stream) {
-        return kAudioHardwareIllegalOperationError;
-    }
-
-    {
-        const auto ioBytesCount = stream->ConvertFramesToBytes(ioFrameCount);
-        const auto ioChannelCount = stream->GetChannelCount();
-
-        const auto ioHandler = GetIOHandler();
-
-        switch (operationID) {
-        case kAudioServerPlugInIOOperationReadInput:
-            ioHandler->OnReadClientInput(client,
-                stream,
-                currentPeriodTimestamp_,
-                ioCycleInfo->mInputTime.mSampleTime,
-                ioMainBuffer,
-                ioBytesCount);
-            break;
-
-        case kAudioServerPlugInIOOperationProcessInput:
-            ioHandler->OnProcessClientInput(client,
-                stream,
-                currentPeriodTimestamp_,
-                ioCycleInfo->mInputTime.mSampleTime,
-                static_cast<Float32*>(ioMainBuffer),
-                ioFrameCount,
-                ioChannelCount);
-            break;
-
-        case kAudioServerPlugInIOOperationMixOutput:
-            ioHandler->OnProcessClientOutput(client,
-                stream,
-                currentPeriodTimestamp_,
-                ioCycleInfo->mOutputTime.mSampleTime,
-                static_cast<Float32*>(ioMainBuffer),
-                ioFrameCount,
-                ioChannelCount);
-
-            ioHandler->OnWriteClientOutput(client,
-                stream,
-                currentPeriodTimestamp_,
-                ioCycleInfo->mOutputTime.mSampleTime,
-                static_cast<const Float32*>(ioMainBuffer),
-                ioFrameCount,
-                ioChannelCount);
-            break;
-
-        case kAudioServerPlugInIOOperationProcessMix:
-            ioHandler->OnProcessMixedOutput(stream,
-                currentPeriodTimestamp_,
-                ioCycleInfo->mOutputTime.mSampleTime,
-                static_cast<Float32*>(ioMainBuffer),
-                ioFrameCount,
-                ioChannelCount);
-            break;
-
-        case kAudioServerPlugInIOOperationWriteMix:
-            ioHandler->OnWriteMixedOutput(stream,
-                currentPeriodTimestamp_,
-                ioCycleInfo->mOutputTime.mSampleTime,
-                ioMainBuffer,
-                ioBytesCount);
-            break;
-
-        default:
-            break;
-        };
-    }
+    status = DoIOOperationImpl(streamID,
+        clientID,
+        operationID,
+        ioFrameCount,
+        ioCycleInfo,
+        ioMainBuffer,
+        ioSecondaryBuffer);
 
 end:
     if (params_.EnableRealtimeTracing) {
@@ -1495,6 +1469,88 @@ end:
     }
 
     return status;
+}
+
+OSStatus Device::DoIOOperationImpl(AudioObjectID streamID,
+    UInt32 clientID,
+    UInt32 operationID,
+    UInt32 ioFrameCount,
+    const AudioServerPlugInIOCycleInfo* ioCycleInfo,
+    void* ioMainBuffer,
+    void* ioSecondaryBuffer)
+{
+    auto client = GetClientByID(clientID);
+    auto stream = GetStreamByID(streamID);
+
+    if (!stream) {
+        return kAudioHardwareIllegalOperationError;
+    }
+
+    const auto ioBytesCount = stream->ConvertFramesToBytes(ioFrameCount);
+    const auto ioChannelCount = stream->GetChannelCount();
+
+    const auto ioHandler = GetIOHandler();
+
+    switch (operationID) {
+    case kAudioServerPlugInIOOperationReadInput:
+        ioHandler->OnReadClientInput(client,
+            stream,
+            currentPeriodTimestamp_,
+            ioCycleInfo->mInputTime.mSampleTime,
+            ioMainBuffer,
+            ioBytesCount);
+        break;
+
+    case kAudioServerPlugInIOOperationProcessInput:
+        ioHandler->OnProcessClientInput(client,
+            stream,
+            currentPeriodTimestamp_,
+            ioCycleInfo->mInputTime.mSampleTime,
+            static_cast<Float32*>(ioMainBuffer),
+            ioFrameCount,
+            ioChannelCount);
+        break;
+
+    case kAudioServerPlugInIOOperationMixOutput:
+        ioHandler->OnProcessClientOutput(client,
+            stream,
+            currentPeriodTimestamp_,
+            ioCycleInfo->mOutputTime.mSampleTime,
+            static_cast<Float32*>(ioMainBuffer),
+            ioFrameCount,
+            ioChannelCount);
+
+        ioHandler->OnWriteClientOutput(client,
+            stream,
+            currentPeriodTimestamp_,
+            ioCycleInfo->mOutputTime.mSampleTime,
+            static_cast<const Float32*>(ioMainBuffer),
+            ioFrameCount,
+            ioChannelCount);
+        break;
+
+    case kAudioServerPlugInIOOperationProcessMix:
+        ioHandler->OnProcessMixedOutput(stream,
+            currentPeriodTimestamp_,
+            ioCycleInfo->mOutputTime.mSampleTime,
+            static_cast<Float32*>(ioMainBuffer),
+            ioFrameCount,
+            ioChannelCount);
+        break;
+
+    case kAudioServerPlugInIOOperationWriteMix:
+        ioHandler->OnWriteMixedOutput(stream,
+            currentPeriodTimestamp_,
+            ioCycleInfo->mOutputTime.mSampleTime,
+            ioMainBuffer,
+            ioBytesCount);
+        break;
+
+    default:
+        break;
+    }
+
+    return kAudioHardwareNoError;
 }
 
 OSStatus Device::EndIOOperation(AudioObjectID objectID,
@@ -1509,10 +1565,24 @@ OSStatus Device::EndIOOperation(AudioObjectID objectID,
         GetContext()->Tracer->Message("Device::EndIOOperation()");
     }
 
+    OSStatus status = kAudioHardwareNoError;
+
     if (objectID != GetID()) {
-        return kAudioHardwareBadObjectError;
+        status = kAudioHardwareBadObjectError;
+        goto end;
     }
 
+    status = EndIOOperationImpl(clientID, operationID, ioFrameCount, ioCycleInfo);
+
+end:
+    return status;
+}
+
+OSStatus Device::EndIOOperationImpl(UInt32 clientID,
+    UInt32 operationID,
+    UInt32 ioFrameCount,
+    const AudioServerPlugInIOCycleInfo* ioCycleInfo)
+{
     return kAudioHardwareNoError;
 }
 

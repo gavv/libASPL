@@ -780,15 +780,29 @@ public:
     std::shared_ptr<Client> GetClientByID(UInt32 clientID) const;
 
     //! Tell the device to start I/O.
-    //! Invokes OnStartIO() and updates GetIsRunning().
+    //! Invokes ControlRequestHandler::OnStartIO() and updates GetIsRunning().
     //! GetIsRunning() will return true until at least one client is doing I/O.
+    //! @note
+    //!  Calls StartIOImpl(), which you can override if needed.
+    //!  You can also replace I/O handling entirely by overriding top-level methods:
+    //!  StartIO(), StopIO(), GetZeroTimeStamp(), WillDoIOOperation(),
+    //!  BeginIOOperation(), DoIOOperation(), EndIOOperation().
+    //!  If you override top-level (non-Impl) methods, you likely need to override
+    //!  all of them together and implement your own locking.
     //! @note
     //!  Invoked by HAL on non-realtime thread.
     virtual OSStatus StartIO(AudioObjectID objectID, UInt32 clientID);
 
     //! Tell the device to stop I/O.
-    //! Invokes OnStopIO() and updates GetIsRunning().
+    //! Invokes ControlRequestHandler::OnStopIO() and updates GetIsRunning().
     //! GetIsRunning() will return true until at least one client is doing I/O.
+    //! @note
+    //!  Calls StopIOImpl(), which you can override if needed.
+    //!  You can also replace I/O handling entirely by overriding top-level methods:
+    //!  StartIO(), StopIO(), GetZeroTimeStamp(), WillDoIOOperation(),
+    //!  BeginIOOperation(), DoIOOperation(), EndIOOperation().
+    //!  If you override top-level (non-Impl) methods, you likely need to override
+    //!  all of them together and implement your own locking.
     //! @note
     //!  Invoked by HAL on non-realtime thread.
     virtual OSStatus StopIO(AudioObjectID objectID, UInt32 clientID);
@@ -827,6 +841,9 @@ public:
     //!  often modeled using a ring buffer where the zero time stamp is updated when
     //!  wrapping around the ring buffer.
     //! @note
+    //!  Calls GetZeroTimeStampImpl(), which you can override if needed.
+    //!  See also comments for StartIO() and StopIO().
+    //! @note
     //!  Invoked by HAL on realtime thread.
     virtual OSStatus GetZeroTimeStamp(AudioObjectID objectID,
         UInt32 clientID,
@@ -838,6 +855,9 @@ public:
     //! In default implementation, makes decision based on whether the device has input
     //! and output streams, and what is returned by DeviceParameters::EnableMixing.
     //! @note
+    //!  Calls WillDoIOOperationImpl(), which you can override if needed.
+    //!  See also comments for StartIO() and StopIO().
+    //! @note
     //!  Invoked by HAL on realtime thread.
     virtual OSStatus WillDoIOOperation(AudioObjectID objectID,
         UInt32 clientID,
@@ -847,6 +867,9 @@ public:
 
     //! Called before performing I/O operation.
     //! By default does nothing.
+    //! @note
+    //!  Calls BeginIOOperationImpl(), which you can override if needed.
+    //!  See also comments for StartIO() and StopIO().
     //! @note
     //!  Invoked by HAL on realtime thread.
     virtual OSStatus BeginIOOperation(AudioObjectID objectID,
@@ -858,6 +881,9 @@ public:
     //! Perform an IO operation for a particular stream.
     //! In default implementation, invokes corresponding method of I/O handler based on
     //! passed operation type, for example OnReadInput() or OnWriteMixedOutput().
+    //! @note
+    //!  Calls DoIOOperationImpl(), which you can override if needed.
+    //!  See also comments for StartIO() and StopIO().
     //! @note
     //!  Invoked by HAL on realtime thread.
     virtual OSStatus DoIOOperation(AudioObjectID objectID,
@@ -871,6 +897,9 @@ public:
 
     //! Called after performing I/O operation.
     //! By default does nothing.
+    //! @note
+    //!  Calls EndIOOperationImpl(), which you can override if needed.
+    //!  See also comments for StartIO() and StopIO().
     //! @note
     //!  Invoked by HAL on realtime thread.
     virtual OSStatus EndIOOperation(AudioObjectID objectID,
@@ -1060,6 +1089,99 @@ protected:
     //! By default just changes the value returned by GetCanBeDefaultSystemDevice().
     //! Invoked by SetCanBeDefaultSystemDevice().
     virtual OSStatus SetCanBeDefaultSystemDeviceImpl(bool value);
+
+    //! @}
+
+    //! @name I/O implementation
+    //! @{
+
+    //! Prepare device to start I/O.
+    //! Invoked by StartIO().
+    //! @remarks
+    //!  StartIOImpl() is responsible for preparing to serve I/O requests.
+    //!  Default implementation invokes ControlRequestHandler::OnStartIO() and
+    //!  resets anchor timestamp and period counters, which are then used by
+    //!  GetZeroTimeStampImpl().
+    //! @note
+    //!  startCount is incremented each time when StartIO() is called, and
+    //!  decremented when StopIO() is called. Zero startCount means that
+    //!  the device is switching from non-running to running state, and
+    //!  often only this case needs handling in StartIOImpl().
+    //! @note
+    //!  StartIOImpl() gets startCount before it's incremented.
+    //! @note
+    //!  For most uses cases, it is enough to provide ControlRequestHandler
+    //!  and there is no need to override this method.
+    virtual OSStatus StartIOImpl(UInt32 clientID, UInt32 startCount);
+
+    //! Prepare device to finish I/O.
+    //! Invoked by StopIO().
+    //! @remarks
+    //!  StopIOImpl() is responsible for cleanup after serving I/O requests.
+    //!  Default implementation just invokes ControlRequestHandler::OnStopIO().
+    //! @note
+    //!  startCount is incremented each time when StartIO() is called, and
+    //!  decremented when StopIO() is called. Zero startCount means that
+    //!  the device is switching from running to non-running state, and
+    //!  often only this case needs handling in StopIOImpl().
+    //! @note
+    //!  StopIOImpl() gets startCount after it's decremented.
+    //! @note
+    //!  For most uses cases, it is enough to provide ControlRequestHandler
+    //!  and there is no need to override this method.
+    virtual OSStatus StopIOImpl(UInt32 clientID, UInt32 startCount);
+
+    //! Get the current zero timestamp for the device.
+    //! Invoked by GetZeroTimeStamp().
+    //! @remarks
+    //!  In default implementation, the zero time stamp and host time are increased
+    //!  every GetZeroTimeStampPeriod() frames. Default implementation also handles
+    //!  sample rate changes by checking GetNominalSampleRate().
+    virtual OSStatus GetZeroTimeStampImpl(UInt32 clientID,
+        Float64* outSampleTime,
+        UInt64* outHostTime,
+        UInt64* outSeed);
+
+    //! Asks device whether it want to perform the given phase of the IO cycle.
+    //! Invoked by WillDoIOOperation().
+    //! @remarks
+    //!  In default implementation, makes decision based on whether the device has input
+    //!  and output streams, and what is returned by DeviceParameters::EnableMixing.
+    virtual OSStatus WillDoIOOperationImpl(UInt32 clientID,
+        UInt32 operationID,
+        Boolean* outWillDo,
+        Boolean* outWillDoInPlace);
+
+    //! Called before performing I/O operation.
+    //! Invoked by BeginIOOperation().
+    //! @remarks
+    //!   Default implementation does nothing.
+    virtual OSStatus BeginIOOperationImpl(UInt32 clientID,
+        UInt32 operationID,
+        UInt32 ioBufferFrameSize,
+        const AudioServerPlugInIOCycleInfo* ioCycleInfo);
+
+    //! Perform an IO operation for a particular stream.
+    //! Invoked by DoIOOperation().
+    //! @remarks
+    //!  In default implementation, invokes corresponding method of I/O handler based on
+    //!  passed operation type, for example OnReadInput() or OnWriteMixedOutput().
+    virtual OSStatus DoIOOperationImpl(AudioObjectID streamID,
+        UInt32 clientID,
+        UInt32 operationID,
+        UInt32 ioBufferFrameSize,
+        const AudioServerPlugInIOCycleInfo* ioCycleInfo,
+        void* ioMainBuffer,
+        void* ioSecondaryBuffer);
+
+    //! Called after performing I/O operation.
+    //! Invoked by EndIOOperation().
+    //! @remarks
+    //!   Default implementation does nothing.
+    virtual OSStatus EndIOOperationImpl(UInt32 clientID,
+        UInt32 operationID,
+        UInt32 ioBufferFrameSize,
+        const AudioServerPlugInIOCycleInfo* ioCycleInfo);
 
     //! @}
 

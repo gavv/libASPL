@@ -461,7 +461,9 @@ Control and I/O requests:
 
 2. You can also provide custom implementation of Client if you want to associate some state with every client connected to device. See ControlRequestHandler for details.
 
-3. Finally, for more precise control of request handling, you can subclass Device and override its control and I/O methods directly (StartIO, StopIO, WillDoIOOperation, etc.).
+3. For more precise control of request handling, you can subclass Device and override some of its control and I/O methods directly. (StartIOImpl, StopIOImpl, WillDoIOOperationImpl, etc.).
+
+4. You can also replace Device I/O handling entirely with your own logic by overriding top-level I/O methods (StartIO, StopIO, WillDoIOOperation, etc. - ones without "Impl" suffix). In this case you typically need to override all of the methods together, because of their coupling.
 
 Driver requests:
 
