@@ -755,6 +755,11 @@ public:
     //! or Device is destroyed.
     void SetControlHandler(ControlRequestHandler* handler);
 
+    //! Get pointer to configured control handler.
+    //! Never returns null, if there is no handler, a no-op handler is used.
+    //! For details about life-time, see SetControlHandler().
+    ControlRequestHandler* GetControlHandler() const;
+
     //! Called before new client start I/O with the device.
     //! Updates client map and invokes OnAddClient().
     virtual OSStatus AddClient(AudioObjectID objectID,
@@ -806,6 +811,11 @@ public:
     //! is responsible for keeping handler object alive until it's reset
     //! or Device is destroyed.
     void SetIOHandler(IORequestHandler* handler);
+
+    //! Get pointer to configured I/O handler.
+    //! Never returns null, if there is no handler, a no-op handler is used.
+    //! For details about life-time, see SetIOHandler().
+    IORequestHandler* GetIOHandler() const;
 
     //! Get the current zero time stamp for the device.
     //! In default implementation, the zero time stamp and host time are increased
@@ -1108,7 +1118,8 @@ private:
 
     DoubleBuffer<std::unordered_map<UInt32, std::shared_ptr<Client>>> clientByID_;
 
-    std::variant<std::shared_ptr<ControlRequestHandler>, ControlRequestHandler*>
+    DoubleBuffer<
+        std::variant<std::shared_ptr<ControlRequestHandler>, ControlRequestHandler*>>
         controlHandler_;
     DoubleBuffer<std::variant<std::shared_ptr<IORequestHandler>, IORequestHandler*>>
         ioHandler_;

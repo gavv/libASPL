@@ -885,10 +885,10 @@ void Device::SetControlHandler(std::shared_ptr<ControlRequestHandler> handler)
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        controlHandler_ = std::move(handler);
+        controlHandler_.Set(std::move(handler));
     } else {
         // no-op handler
-        controlHandler_ = std::make_shared<ControlRequestHandler>();
+        controlHandler_.Set(std::make_shared<ControlRequestHandler>());
     }
 }
 
@@ -897,11 +897,16 @@ void Device::SetControlHandler(ControlRequestHandler* handler)
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        controlHandler_ = handler;
+        controlHandler_.Set(handler);
     } else {
         // no-op handler
-        controlHandler_ = std::make_shared<ControlRequestHandler>();
+        controlHandler_.Set(std::make_shared<ControlRequestHandler>());
     }
+}
+
+ControlRequestHandler* Device::GetControlHandler() const
+{
+    return GetVariantPtr(controlHandler_.Get());
 }
 
 OSStatus Device::AddClient(AudioObjectID objectID,
@@ -945,7 +950,7 @@ OSStatus Device::AddClient(AudioObjectID objectID,
         clientInfo.BundleID.c_str());
 
     {
-        auto client = GetVariantPtr(controlHandler_)->OnAddClient(clientInfo);
+        auto client = GetControlHandler()->OnAddClient(clientInfo);
         if (!client) {
             GetContext()->Tracer->Message("control handler failed");
             status = kAudioHardwareUnspecifiedError;
@@ -1015,7 +1020,7 @@ OSStatus Device::RemoveClient(AudioObjectID objectID,
         clientByID.erase(clientInfo.ClientID);
         clientByID_.Set(std::move(clientByID));
 
-        GetVariantPtr(controlHandler_)->OnRemoveClient(std::move(client));
+        GetControlHandler()->OnRemoveClient(std::move(client));
     }
 
 end:
@@ -1084,7 +1089,7 @@ OSStatus Device::StartIO(AudioObjectID objectID, UInt32 clientID)
     if (isStarting) {
         GetContext()->Tracer->Message("starting io: clientID=%u", unsigned(clientID));
 
-        status = GetVariantPtr(controlHandler_)->OnStartIO();
+        status = GetControlHandler()->OnStartIO();
 
         if (status != kAudioHardwareNoError) {
             goto end;
@@ -1129,7 +1134,7 @@ OSStatus Device::StopIO(AudioObjectID objectID, UInt32 clientID)
     if (isStopping) {
         GetContext()->Tracer->Message("stopping io: clientID=%u", unsigned(clientID));
 
-        GetVariantPtr(controlHandler_)->OnStopIO();
+        GetControlHandler()->OnStopIO();
     }
 
     startCount_--;
@@ -1166,6 +1171,11 @@ void Device::SetIOHandler(IORequestHandler* handler)
         // no-op handler
         ioHandler_.Set(std::make_shared<IORequestHandler>());
     }
+}
+
+IORequestHandler* Device::GetIOHandler() const
+{
+    return GetVariantPtr(ioHandler_.Get());
 }
 
 OSStatus Device::GetZeroTimeStamp(AudioObjectID objectID,
@@ -1415,8 +1425,7 @@ OSStatus Device::DoIOOperation(AudioObjectID objectID,
         const auto ioBytesCount = stream->ConvertFramesToBytes(ioFrameCount);
         const auto ioChannelCount = stream->GetChannelCount();
 
-        const auto ioHandlerVariant = ioHandler_.Get();
-        const auto ioHandler = GetVariantPtr(ioHandlerVariant);
+        const auto ioHandler = GetIOHandler();
 
         switch (operationID) {
         case kAudioServerPlugInIOOperationReadInput:
