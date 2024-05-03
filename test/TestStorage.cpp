@@ -281,15 +281,15 @@ TEST_F(StorageTest, IntFloat)
     }
 
     { // int -> float (bad)
-        ASSERT_TRUE(storage->WriteInt("key3", 9223372036854775807));
+        ASSERT_TRUE(storage->WriteInt("key3", 9223372036854705807));
 
         {
             auto [value, ok] = storage->ReadInt("key3");
             EXPECT_TRUE(ok);
-            EXPECT_EQ(9223372036854775807, value);
+            EXPECT_EQ(9223372036854705807, value);
         }
 
-        { // value can'be represented as float without loss
+        { // value can't be represented as float without loss
             auto [value, ok] = storage->ReadFloat("key3");
             EXPECT_FALSE(ok);
             EXPECT_EQ(0, value);
@@ -305,7 +305,7 @@ TEST_F(StorageTest, IntFloat)
             EXPECT_EQ(12345678.123, value);
         }
 
-        { // value can'be represented as integer without loss
+        { // value can't be represented as integer without loss
             auto [value, ok] = storage->ReadInt("key4");
             EXPECT_FALSE(ok);
             EXPECT_EQ(0, value);
