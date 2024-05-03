@@ -1,4 +1,4 @@
-# libASPL [![Build](https://github.com/gavv/libASPL/workflows/build/badge.svg)](https://github.com/gavv/libASPL/actions) [![Doxygen](https://img.shields.io/badge/docs-doxygen-blue)](https://gavv.github.io/libASPL/) [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+# libASPL [![Build](https://github.com/gavv/libASPL/workflows/build/badge.svg)](https://github.com/gavv/libASPL/actions) [![Doxygen](https://img.shields.io/badge/docs-doxygen-blue)](https://gavv.net/libASPL/) [![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
 
 <!-- toc -->
 
@@ -90,7 +90,7 @@ Changelog file can be found here: [changelog](CHANGES.md).
 
 ## API reference
 
-Doxygen-generated documentation is [available here](https://gavv.github.io/libASPL/).
+Doxygen-generated documentation is [available here](https://gavv.net/libASPL/).
 
 ## Example drivers
 
@@ -366,7 +366,7 @@ Since plugins are running inside a sandbox where filesystem is mostly unavailabl
 Usage:
 
 ```cpp
-OSStatus status = driver->GetStorage()->WriteString("key", "value");
+auto ok = driver->GetStorage()->WriteString("key", "value");
 // ...
 auto [str, ok] = driver->GetStorage()->ReadString("key");
 if (ok) {
