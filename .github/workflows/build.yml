@@ -20,14 +20,14 @@ jobs:
   build:
     strategy:
       matrix:
-        macos: [latest, 13, 12, 11]
+        macos: [latest, 14, 13, 12]
 
     runs-on: macos-${{ matrix.macos }}
     name: macos-${{ matrix.macos }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -55,7 +55,7 @@ jobs:
         run: brew install doxygen graphviz
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
