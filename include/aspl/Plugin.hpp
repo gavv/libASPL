@@ -101,6 +101,9 @@ public:
     //! Returns nullptr if there is no such device.
     std::shared_ptr<Device> GetDeviceByID(AudioObjectID deviceID) const;
 
+    //! Check if device is already added.
+    bool HasDevice(std::shared_ptr<Device> device) const;
+
     //! Add device to the plugin.
     //! Adds device to the owned object list.
     void AddDevice(std::shared_ptr<Device> device);

@@ -78,6 +78,15 @@ std::shared_ptr<Device> Plugin::GetDeviceByID(AudioObjectID deviceID) const
     return deviceByID.at(deviceID);
 }
 
+bool Plugin::HasDevice(std::shared_ptr<Device> device) const
+{
+    auto readLock = deviceByID_.GetReadLock();
+
+    const auto& deviceByID = readLock.GetReference();
+
+    return deviceByID.count(device->GetID());
+}
+
 void Plugin::AddDevice(std::shared_ptr<Device> device)
 {
     std::lock_guard writeLock(writeMutex_);
