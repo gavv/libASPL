@@ -88,6 +88,27 @@ void Plugin::AddDevice(std::shared_ptr<Device> device)
 
     GetContext()->Tracer->OperationBegin(op);
 
+    if (auto devOwner = device->GetOwnerID(); devOwner != kAudioObjectUnknown) {
+        if (devOwner == GetID()) {
+            // Protection from adding same device twice.
+            GetContext()->Tracer->Message(
+                "Plugin::AddDevice() device already added"
+                " devID=%lu pluginID=%lu",
+                static_cast<unsigned long>(device->GetID()),
+                static_cast<unsigned long>(GetID()));
+        } else {
+            // This is likely a bug in user code. Only Plugin can be
+            // Device owner, and there is only one plugin.
+            GetContext()->Tracer->Message(
+                "Plugin::AddDevice() unexpected device owner"
+                " devID=%lu devOwnerID=%lu pluginID=%lu",
+                static_cast<unsigned long>(device->GetID()),
+                static_cast<unsigned long>(device->GetOwnerID()),
+                static_cast<unsigned long>(GetID()));
+        }
+        goto end;
+    }
+
     {
         auto devices = devices_.Get();
 
@@ -117,6 +138,7 @@ void Plugin::AddDevice(std::shared_ptr<Device> device)
     NotifyPropertiesChanged(
         {kAudioObjectPropertyOwnedObjects, kAudioPlugInPropertyDeviceList});
 
+end:
     GetContext()->Tracer->OperationEnd(op, kAudioHardwareNoError);
 }
 
@@ -129,6 +151,16 @@ void Plugin::RemoveDevice(std::shared_ptr<Device> device)
     op.ObjectID = GetID();
 
     GetContext()->Tracer->OperationBegin(op);
+
+    if (device->GetOwnerID() == kAudioObjectUnknown) {
+        // Protection from removing same device twice.
+        GetContext()->Tracer->Message(
+            "Plugin::RemoveDevice() device already removed"
+            " devID=%lu pluginID=%lu",
+            static_cast<unsigned long>(device->GetID()),
+            static_cast<unsigned long>(GetID()));
+        goto end;
+    }
 
     {
         auto devices = devices_.Get();
@@ -163,6 +195,7 @@ void Plugin::RemoveDevice(std::shared_ptr<Device> device)
     NotifyPropertiesChanged(
         {kAudioObjectPropertyOwnedObjects, kAudioPlugInPropertyDeviceList});
 
+end:
     GetContext()->Tracer->OperationEnd(op, kAudioHardwareNoError);
 }
 
