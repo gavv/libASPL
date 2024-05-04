@@ -5,6 +5,7 @@
 * Support granular overriding of device I/O operations ([gh-7][gh-7], [90e83][90e83])
 * Add Device::GetControlHandler() and GetIOHandler() ([db0af][db0af])
 * Add protection from adding/removing same device multiple times ([ed832][ed832])
+* Add Plugin::HasDevice() ([dca6f][dca6f])
 * Fix case when AddStreamAsync() or other configuration change is done before calling AddDevice() ([2f2ad][2f2ad])
 * Fix race when device configuration change happen concurrently with AddDevice()/RemoveDevice() ([2f2ad][2f2ad])
 * Fix building as a standalone project ([gh-6][gh-6])
@@ -24,6 +25,7 @@
 [90e83]: https://github.com/gavv/libASPL/commit/90e83424fd1174ef62e342726938b91520390db4
 [2f2ad]: https://github.com/gavv/libASPL/commit/2f2ad68cabd0438281397e6cb02aa0ec247dc071
 [ed832]: https://github.com/gavv/libASPL/commit/ed8328d8cdcae25ef85c72a233fe9e2f45fed333
+[dca6f]: https://github.com/gavv/libASPL/commit/dca6f729bded554bdfd1a2071383054d10e90c81
 
 ## [v3.0.0][v3.0.0] - 20 Sep 2023
 
