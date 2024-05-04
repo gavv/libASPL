@@ -1,5 +1,30 @@
 # Changelog
 
+## [v3.1.0][v3.1.0] - 04 May 2024
+
+* Support granular overriding of device I/O operations ([gh-7][gh-7], [90e83][90e83])
+* Add Device::GetControlHandler() and GetIOHandler() ([db0af][db0af])
+* Add protection from adding/removing same device multiple times ([ed832][ed832])
+* Fix case when AddStreamAsync() or other configuration change is done before calling AddDevice() ([2f2ad][2f2ad])
+* Fix race when device configuration change happen concurrently with AddDevice()/RemoveDevice() ([2f2ad][2f2ad])
+* Fix building as a standalone project ([gh-6][gh-6])
+* Fix `launchctl kickstart` in examples ([gh-8][gh-8])
+* Fix tests on M1 ([b6920][b6920])
+* Improve CI (bump macOS versions, add ARM64 runner)
+* Improve documentation
+
+[v3.1.0]: https://github.com/gavv/libASPL/releases/tag/v3.1.0
+
+[gh-6]: https://github.com/gavv/libASPL/pull/6
+[gh-7]: https://github.com/gavv/libASPL/issues/7
+[gh-8]: https://github.com/gavv/libASPL/issues/8
+
+[b6920]: https://github.com/gavv/libASPL/commit/b6920f3e49f061d94c98d632f3f8f21f0a20adc5
+[db0af]: https://github.com/gavv/libASPL/commit/db0afc8ecc9c983e460621bd2f2cda145bf9050c
+[90e83]: https://github.com/gavv/libASPL/commit/90e83424fd1174ef62e342726938b91520390db4
+[2f2ad]: https://github.com/gavv/libASPL/commit/2f2ad68cabd0438281397e6cb02aa0ec247dc071
+[ed832]: https://github.com/gavv/libASPL/commit/ed8328d8cdcae25ef85c72a233fe9e2f45fed333
+
 ## [v3.0.0][v3.0.0] - 20 Sep 2023
 
 * **Breaking change:** rework sample rate handling ([af501][af501])
