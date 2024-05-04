@@ -1,7 +1,12 @@
 #! /bin/bash
+#
+# This script builds a nice list of contributors, as in old good days.
+# If you want to change your appearance in generated file, feel free to send a PR!
+#
 
 function find_login() {
-    local github_login="$(curl -s "https://api.github.com/search/users?q=$1" \
+    local github_login="$(curl -s --get "https://api.github.com/search/users" \
+        --data-urlencode "q=$1" \
         | jq -r '.items[0].login' 2>/dev/null)"
 
     if [[ "${github_login}" != "" ]] && [[ "${github_login}" != "null" ]]
@@ -10,6 +15,8 @@ function find_login() {
     fi
 }
 
+# If the user has full name in their public github profile, use it.
+# Otherwise we'll fallback to whatever we have in git.
 function find_name() {
     local github_name="$(curl -s "https://api.github.com/users/$1" \
         | jq -r .name 2>/dev/null \
@@ -21,7 +28,20 @@ function find_name() {
     fi
 }
 
+# Github preserves git committer email if PR was merged using rebase-merge, but
+# spoils it if it was merged using squash-merge, which is annoying! If the
+# user originally provided a real email in their public git commits, we'll use
+# it, otherwise we'll fall back to whatever we have in git after merging PR.
 function find_email() {
+    local reflog_email="$(git reflog --pretty=format:"%an <%ae>" | sort -u | \
+        grep -vF users.noreply.github.com | grep -F "$1" | sed -re 's,.*<(.*)>,\1,')"
+
+    if [[ "${reflog_email}" != "" ]]
+    then
+        echo "${reflog_email}"
+        return
+    fi
+
     local github_email="$(curl -s "https://api.github.com/users/$1/events/public" \
         | jq -r \
     '((.[].payload.commits | select(. != null))[].author | select(.name == "'$1'")).email' \
@@ -34,16 +54,9 @@ function find_email() {
     then
         echo "${github_email}"
     fi
-
-    local reflog_email="$(git reflog --pretty=format:"%an <%ae>" | sort -u | \
-        grep -vF users.noreply.github.com | grep -F "$1" | sed -re 's,.*<(.*)>,\1,')"
-
-    if [[ "${reflog_email}" != "" ]]
-    then
-        echo "${reflog_email}"
-    fi
 }
 
+# Add contributor if not already added.
 function add_if_new() {
     local file="$1"
 
@@ -66,6 +79,11 @@ function add_if_new() {
         then
             github_login="$(echo "${commit_email}" | sed -re 's,^([0-9]+\+)?([^@]+).*$,\2,')"
         fi
+    fi
+
+    if grep -qiF "/${github_login}/" "${file}"
+    then
+        return
     fi
 
     local full_name="$(find_name "${github_login}")"
@@ -104,6 +122,7 @@ function add_if_new() {
     echo "* ${result}"
 }
 
+# Find all new contributors and append to the file.
 function add_contributors() {
     out_file="$1"
     repo_dir="$(pwd)"
@@ -135,4 +154,4 @@ add_contributors "${temp_file}"
 cat "${temp_file}" > "${result_file}"
 rm "${temp_file}"
 
-echo "Updated ${result_file}"
+echo "updated ${result_file}"
