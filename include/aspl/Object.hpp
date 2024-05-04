@@ -106,6 +106,14 @@ public:
     //!  Backs @c kAudioObjectPropertyOwner property.
     AudioObjectID GetOwnerID() const;
 
+    //! Check if the object is part of the hierarchy.
+    //! Returns true if GetOwnerID() is not equal to kAudioObjectUnknown.
+    //! @remarks
+    //!  By default, object does not have an owner. Until the object is
+    //!  attached to an owner, it is not part of the plugin object
+    //!  hierarchy and is not visible to HAL.
+    bool HasOwner() const;
+
     //! Get owned objects.
     //! Returns the list of objects to which this object is the owner.
     //! @remarks

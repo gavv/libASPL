@@ -921,14 +921,31 @@ public:
     //!  some time later HAL invokes PerformConfigurationChange(), which runs the
     //!  function. HAL may also invoke AbortConfigurationChange() instead.
     //! @note
-    //!  If Context::Host is null, this method assumes that the plugin is not yet
-    //!  initialized and published to HAL, and in this case it just executes the
-    //!  function immediately.
+    //!  There are three cases when this method decides that it's safe to invoke the
+    //!  function immediately ("in-place") instead of enqueueing it:
+    //!   - If Context::Host is null, the method assumes that the entire plugin is not
+    //!     yet initialized and published to HAL, and thus HAL doesn't use Device.
+    //!   - If Device::HasOwner() is false, the method assumes that the device itself
+    //!     is not added to the plugin hierarchy yet, and thus HAL doesn't use Device.
+    //!   - If the method is invoked from PerformConfigurationChange(), it assumes
+    //!     that we're already at the point where it's safe to change configuration.
+    virtual void RequestConfigurationChange(std::function<void()> func = {});
+
+    //! Request device to change its owner.
+    //! @remarks
+    //!  This method is called by Device owner (Plugin object) when device is added
+    //!  or removed to the plugin (and so becomes published or unpublished from HAL).
+    //!  This method implements thread-safe changing of the ownership and handles
+    //!  possible races with RequestConfigurationChange().
+    //!  It is needed because RequestConfigurationChange() mechanism is tightly
+    //!  coupled with the ownership state and should be taken into account when
+    //!  ownership changes.
     //! @note
-    //!  If invoked from PerformConfigurationChange(), assumes that we're already
-    //!  at the point where it's safe to change configuration and executes the
-    //!  function immediately.
-    void RequestConfigurationChange(std::function<void()> func = {});
+    //!  Normally @p owner is always a pointer to Plugin, and @p shouldHaveOwnership
+    //!  is true when adding device and false when removing.
+    //!  This method is expected to do all necessary housekeeping and invoke
+    //!  owner->AddOwnedObject(this) or owner->RemoveOwnedObject(this).
+    virtual void RequestOwnershipChange(Object* owner, bool shouldHaveOwnership);
 
     //! Called by the Host to allow the device to perform a configuration change
     //! that had been previously requested via a call to the Host method,
@@ -1246,7 +1263,7 @@ private:
     DoubleBuffer<std::variant<std::shared_ptr<IORequestHandler>, IORequestHandler*>>
         ioHandler_;
 
-    std::unordered_map<UInt64, std::function<void()>> pendingConfigurationRequests_;
+    std::map<UInt64, std::function<void()>> pendingConfigurationRequests_;
     UInt64 lastConfigurationRequestID_ = 0;
     UInt64 insideConfigurationHandler_ = 0;
 

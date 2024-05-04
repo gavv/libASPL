@@ -77,6 +77,11 @@ AudioObjectID Object::GetOwnerID() const
     return ownerObjectID_;
 }
 
+bool Object::HasOwner() const
+{
+    return ownerObjectID_ != kAudioObjectUnknown;
+}
+
 std::vector<AudioObjectID> Object::GetOwnedObjectIDs(AudioObjectPropertyScope scope,
     AudioClassID classID) const
 {

@@ -88,8 +88,6 @@ void Plugin::AddDevice(std::shared_ptr<Device> device)
 
     GetContext()->Tracer->OperationBegin(op);
 
-    AddOwnedObject(device);
-
     {
         auto devices = devices_.Get();
 
@@ -113,6 +111,8 @@ void Plugin::AddDevice(std::shared_ptr<Device> device)
 
         deviceByUID_.Set(std::move(deviceByUID));
     }
+
+    device->RequestOwnershipChange(this, true);
 
     NotifyPropertiesChanged(
         {kAudioObjectPropertyOwnedObjects, kAudioPlugInPropertyDeviceList});
@@ -158,7 +158,7 @@ void Plugin::RemoveDevice(std::shared_ptr<Device> device)
         deviceByUID_.Set(std::move(deviceByUID));
     }
 
-    RemoveOwnedObject(device->GetID());
+    device->RequestOwnershipChange(this, false);
 
     NotifyPropertiesChanged(
         {kAudioObjectPropertyOwnedObjects, kAudioPlugInPropertyDeviceList});

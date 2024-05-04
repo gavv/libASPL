@@ -164,7 +164,7 @@ public:
     //! @}
 
 private:
-    mutable std::mutex writeMutex_;
+    mutable std::recursive_mutex writeMutex_;
 
     const PluginParameters params_;
 

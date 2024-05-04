@@ -1592,7 +1592,11 @@ void Device::RequestConfigurationChange(std::function<void()> func)
 
     auto host = GetContext()->Host.load();
 
-    if (host && !insideConfigurationHandler_) {
+    // Note: RequestConfigurationChange(), RequestOwnershipChange(), and
+    // PerformConfigurationChange() calls are serialized via a mutex.
+    // RequestOwnershipChange() changes HasOwner(), and PerformConfigurationChange()
+    // changes insideConfigurationHandler_.
+    if (host && HasOwner() && !insideConfigurationHandler_) {
         const auto reqID = lastConfigurationRequestID_++;
 
         GetContext()->Tracer->Message(
@@ -1607,6 +1611,68 @@ void Device::RequestConfigurationChange(std::function<void()> func)
             "Device::RequestConfigurationChange() applying change in-place");
 
         func();
+    }
+}
+
+void Device::RequestOwnershipChange(Object* owner, bool shouldHaveOwnership)
+{
+    std::lock_guard writeLock(writeMutex_);
+
+    if (shouldHaveOwnership) {
+        if (HasOwner()) {
+            // Device owner is always either empty or Plugin object.
+            // If we already have an owner, we assume that it's
+            // already set to the same object and do nothing.
+            return;
+        }
+
+        GetContext()->Tracer->Message(
+            "Device::RequestOwnershipChange() attaching owner devID=%lu ownerID=%lu",
+            static_cast<unsigned long>(GetID()),
+            static_cast<unsigned long>(owner->GetID()));
+
+        // Device becomes visible to HAL.
+        // HasOwner() now will return true.
+        // RequestConfigurationChange() will enqueue changes instead of applying in-place.
+        owner->AddOwnedObject(shared_from_this());
+    } else {
+        if (!HasOwner()) {
+            // If we already don't have an owner, do nothing.
+            return;
+        }
+
+        GetContext()->Tracer->Message(
+            "Device::RequestOwnershipChange() detaching owner devID=%lu ownerID=%lu",
+            static_cast<unsigned long>(GetID()),
+            static_cast<unsigned long>(owner->GetID()));
+
+        // Device disappears HAL.
+        // HasOwner() now will return false.
+        // RequestConfigurationChange() will apply changes in-place.
+        owner->RemoveOwnedObject(GetID());
+
+        if (!pendingConfigurationRequests_.empty()) {
+            // If there are any enqueued changes, apply them now since it's not
+            // guaranteed now that HAL will ever handle them. But HAL *will* try
+            // to apply (some of) them, PerformConfigurationChange() will just
+            // ignore those requests because we've removed them from map here.
+            GetContext()->Tracer->Message(
+                "Device::RequestOwnershipChange()"
+                " applying pending configuration changes in-place"
+                " devID=%lu  numChanges=%lu",
+                static_cast<unsigned long>(GetID()),
+                static_cast<unsigned long>(pendingConfigurationRequests_.size()));
+
+            // Iterate ordered map from lower to higher request IDs.
+            while (!pendingConfigurationRequests_.empty()) {
+                auto it = pendingConfigurationRequests_.begin();
+
+                const auto& func = it->second;
+                func();
+
+                pendingConfigurationRequests_.erase(it);
+            }
+        }
     }
 }
 
@@ -1630,7 +1696,7 @@ OSStatus Device::PerformConfigurationChange(AudioObjectID objectID,
         func();
     } else {
         GetContext()->Tracer->Message(
-            "Device::PerformConfigurationChange() request func is null reqID=%lu",
+            "Device::PerformConfigurationChange() ignoring null change request reqID=%lu",
             static_cast<unsigned long>(reqID));
     }
 
