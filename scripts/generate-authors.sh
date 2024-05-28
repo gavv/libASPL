@@ -1,8 +1,10 @@
 #! /bin/bash
 #
-# This script builds a nice list of contributors, as in old good days.
+# This script builds a nice list of contributors (full name, github login, email).
 # If you want to change your appearance in generated file, feel free to send a PR!
 #
+
+set -euo pipefail
 
 function find_login() {
     local github_login="$(curl -s --get "https://api.github.com/search/users" \
@@ -111,7 +113,7 @@ function add_if_new() {
     local result="${full_name}"
     if [ ! -z "${github_login}" ]
     then
-        result="${result} /${github_login}/"
+        result="${result} \`${github_login}\`"
     fi
     if [ ! -z "${address}" ]
     then
