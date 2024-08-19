@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['canbedefault_0',['CanBeDefault',['../structaspl_1_1_device_parameters.html#afb885cea57ac87f0fad8411d09a9c743',1,'aspl::DeviceParameters']]],
+  ['canbedefaultforsystemsounds_1',['CanBeDefaultForSystemSounds',['../structaspl_1_1_device_parameters.html#ac23805c48b0b7a687dee7a66674aa9ae',1,'aspl::DeviceParameters']]],
+  ['channelcount_2',['ChannelCount',['../structaspl_1_1_device_parameters.html#ac75fc0bba07e8a58cd595e9bbfa7bbb9',1,'aspl::DeviceParameters']]],
+  ['client_3',['Client',['../classaspl_1_1_client.html',1,'aspl::Client'],['../classaspl_1_1_client.html#a7d85137811554dcde52a82342ba8b199',1,'aspl::Client::Client()']]],
+  ['client_2ehpp_4',['Client.hpp',['../_client_8hpp.html',1,'']]],
+  ['clientid_5',['ClientID',['../structaspl_1_1_client_info.html#a1e62da84f5ab871c56fcaaa6d86d5c21',1,'aspl::ClientInfo']]],
+  ['clientinfo_6',['ClientInfo',['../structaspl_1_1_client_info.html',1,'aspl']]],
+  ['clientpid_7',['ClientPID',['../structaspl_1_1_tracer_1_1_operation.html#af1450654536a94cc363c394900c3e930',1,'aspl::Tracer::Operation']]],
+  ['clockalgorithm_8',['ClockAlgorithm',['../structaspl_1_1_device_parameters.html#aaf75aad88da79237aa76176e9cf64a50',1,'aspl::DeviceParameters']]],
+  ['clockdomain_9',['ClockDomain',['../structaspl_1_1_device_parameters.html#a62a8a5ebb60551cb8e7f9d609e498bda',1,'aspl::DeviceParameters']]],
+  ['clockisstable_10',['ClockIsStable',['../structaspl_1_1_device_parameters.html#adb6ab4f4e5efeea56745054fe4b31bc1',1,'aspl::DeviceParameters']]],
+  ['compat_2ehpp_11',['Compat.hpp',['../_compat_8hpp.html',1,'']]],
+  ['configurationapplicationbundleid_12',['ConfigurationApplicationBundleID',['../structaspl_1_1_device_parameters.html#a8f2e7ff969ad319218dbeef527cbc771',1,'aspl::DeviceParameters']]],
+  ['context_13',['Context',['../structaspl_1_1_context.html',1,'aspl::Context'],['../structaspl_1_1_context.html#a60107c7a2efb70132d21e87e3ac2014b',1,'aspl::Context::Context()']]],
+  ['context_2ehpp_14',['Context.hpp',['../_context_8hpp.html',1,'']]],
+  ['controlrequesthandler_15',['ControlRequestHandler',['../classaspl_1_1_control_request_handler.html',1,'aspl']]],
+  ['controlrequesthandler_2ehpp_16',['ControlRequestHandler.hpp',['../_control_request_handler_8hpp.html',1,'']]],
+  ['convertbytestoframes_17',['ConvertBytesToFrames',['../classaspl_1_1_stream.html#a111814d680ca3cf5762a794a6102a5b7',1,'aspl::Stream']]],
+  ['convertdecibelstoscalar_18',['ConvertDecibelsToScalar',['../classaspl_1_1_volume_control.html#ae2a5d0eeea58315120c16b0bcfcd27f0',1,'aspl::VolumeControl']]],
+  ['convertframestobytes_19',['ConvertFramesToBytes',['../classaspl_1_1_stream.html#aa7ab1436b25290358ca61aff4c708d63',1,'aspl::Stream']]],
+  ['convertscalartodecibels_20',['ConvertScalarToDecibels',['../classaspl_1_1_volume_control.html#a1f172b20d8d59a82bccb257c96e63329',1,'aspl::VolumeControl']]],
+  ['createdevice_21',['CreateDevice',['../classaspl_1_1_driver.html#a35932e0ed960bbccea5cd08165bd588a',1,'aspl::Driver']]],
+  ['custom_22',['Custom',['../classaspl_1_1_tracer.html#a2a4a111f73cf2781a898a1e497466d18a90589c47f06eb971d548591f23c285af',1,'aspl::Tracer']]]
+];
