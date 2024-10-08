@@ -20,7 +20,7 @@ jobs:
   build:
     strategy:
       matrix:
-        macos: [latest, 14, 13, 12]
+        macos: [latest, 15, 14, 13]
 
     runs-on: macos-${{ matrix.macos }}
     name: macos-${{ matrix.macos }}
