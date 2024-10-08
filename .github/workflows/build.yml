@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: Install tools
-        run: brew install doxygen graphviz
+        run: brew install --formula doxygen graphviz
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,7 +66,7 @@ jobs:
         run: touch html/.nojekyll
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@v4.6.8
         with:
           branch: doxygen
           folder: html
