@@ -1,5 +1,14 @@
 # Changelog
 
+## [v3.1.1][v3.1.1] - 08 Oct 2024
+
+* Fix build on Xcode 16 ([gh-10][gh-10])
+* CI: add macOS 15, remove macOS 12
+
+[v3.1.1]: https://github.com/gavv/libASPL/releases/tag/v3.1.1
+
+[gh-10]: https://github.com/gavv/libASPL/issues/10
+
 ## [v3.1.0][v3.1.0] - 04 May 2024
 
 * Support granular overriding of device I/O operations ([gh-7][gh-7], [90e83][90e83])
