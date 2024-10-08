@@ -23,22 +23,13 @@ template <typename Func>
 class method_return_type
 {
     template <typename Class, typename Return, typename... Args>
-    static auto return_of(Return (Class::*)(Args...))
-    {
-        return std::declval<Return>();
-    }
+    static Return return_of(Return (Class::*)(Args...));
 
     template <typename Class, typename Return, typename... Args>
-    static auto return_of(Return (Class::*)(Args...) const)
-    {
-        return std::declval<Return>();
-    }
+    static Return return_of(Return (Class::*)(Args...) const);
 
     template <typename Class, typename Return, typename... Args>
-    static auto return_of(Return (Class::*)(Args...) const volatile)
-    {
-        return std::declval<Return>();
-    }
+    static Return return_of(Return (Class::*)(Args...) const volatile);
 
 public:
     using type = std::remove_cv_t<
@@ -56,22 +47,14 @@ class method_argument_type
         typename std::tuple_element<ArgIndex, std::tuple<Args...>>::type;
 
     template <typename Class, typename Return, typename... Args>
-    static auto nth_argument_of(Return (Class::*)(Args...))
-    {
-        return std::declval<nth_argument_t<Args...>>();
-    }
+    static nth_argument_t<Args...> nth_argument_of(Return (Class::*)(Args...));
 
     template <typename Class, typename Return, typename... Args>
-    static auto nth_argument_of(Return (Class::*)(Args...) const)
-    {
-        return std::declval<nth_argument_t<Args...>>();
-    }
+    static nth_argument_t<Args...> nth_argument_of(Return (Class::*)(Args...) const);
 
     template <typename Class, typename Return, typename... Args>
-    static auto nth_argument_of(Return (Class::*)(Args...) const volatile)
-    {
-        return std::declval<nth_argument_t<Args...>>();
-    }
+    static nth_argument_t<Args...> nth_argument_of(
+        Return (Class::*)(Args...) const volatile);
 
 public:
     using type = std::remove_cv_t<
