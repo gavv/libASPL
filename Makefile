@@ -57,3 +57,7 @@ clobber: clean
 fmt:
 	find -type f -name '*.[ch]pp' -not -name '*.g.*' \
 		| xargs clang-format --verbose -i
+
+md:
+	markdown-toc --maxdepth 2 --bullets=- -i README.md
+	md-authors --format classic --append AUTHORS.md

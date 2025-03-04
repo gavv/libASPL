@@ -591,7 +591,7 @@ Install tools for code generation (needed if you modify sources):
 
 ```
 brew install python3
-pip3 install jinja2
+pip3 install Jinja2
 ```
 
 Run release or debug build:
