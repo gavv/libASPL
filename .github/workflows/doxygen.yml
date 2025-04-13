@@ -1,0 +1,60 @@
+name: "doxygen"
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+jobs:
+  build:
+    outputs:
+      page-url: ${{ steps.upload.outputs.page_url }}
+
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install doxygen
+        run: |
+          brew install --formula doxygen graphviz
+
+      - name: Build code and html
+        run: |
+          make debug_build
+          touch html/.nojekyll
+
+      - if: |
+          github.repository_owner == 'gavv' && github.ref == 'refs/heads/main'
+        name: Upload html
+        id: upload
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: html/
+
+  deploy:
+    if: |
+      github.repository_owner == 'gavv' && github.ref == 'refs/heads/main'
+
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ needs.build.outputs.page-url }}
+    permissions:
+      pages: write
+      id-token: write
+
+    runs-on: macos-latest
+    steps:
+      - name: Deploy
+        uses: actions/deploy-pages@v4
