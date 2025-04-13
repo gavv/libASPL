@@ -2,7 +2,7 @@
 
 // Generator: generate-strings.py
 // Source: CoreAudio/AudioServerPlugIn.h
-// Timestamp: Tue Jun 27 09:20:54 2023 UTC
+// Timestamp: Sun Apr 13 14:12:49 2025 UTC
 
 // Copyright (c) libASPL authors
 // Licensed under MIT
@@ -346,6 +346,8 @@ std::string FormatIDToString(AudioFormatID fmtid2code)
         return "kAudioFormatAMR";
     case 'sawb':
         return "kAudioFormatAMR_WB";
+    case 'apac':
+        return "kAudioFormatAPAC";
     case 'ima4':
         return "kAudioFormatAppleIMA4";
     case 'alac':
