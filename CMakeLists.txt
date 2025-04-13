@@ -94,6 +94,13 @@ set(OBJECT_LIST
 add_custom_target("gen")
 
 foreach(CLASS IN LISTS OBJECT_LIST)
+  if(NOT EXISTS "${PROJECT_SOURCE_DIR}/src/${CLASS}.g.cpp")
+    # automatically generate after "make clobber"
+    set(BYPRODUCTS "${PROJECT_SOURCE_DIR}/src/${CLASS}.g.cpp")
+  else()
+    # don't automatically re-generate if already exists
+    set(BYPRODUCTS "")
+  endif()
   add_custom_command(
     TARGET "gen"
     COMMAND cd "${PROJECT_SOURCE_DIR}" &&
@@ -102,6 +109,8 @@ foreach(CLASS IN LISTS OBJECT_LIST)
         -o "src/${CLASS}.g.cpp"
     COMMENT
       "Generating src/${CLASS}.g.cpp"
+    BYPRODUCTS
+      "${BYPRODUCTS}"
     )
 
   list(APPEND SOURCE_LIST
@@ -110,6 +119,11 @@ foreach(CLASS IN LISTS OBJECT_LIST)
     )
 endforeach()
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/src/Bridge.g.cpp")
+  set(BYPRODUCTS "${PROJECT_SOURCE_DIR}/src/Bridge.g.cpp")
+else()
+  set(BYPRODUCTS "")
+endif()
 add_custom_command(
   TARGET "gen"
   COMMAND cd "${PROJECT_SOURCE_DIR}" &&
@@ -118,12 +132,19 @@ add_custom_command(
     -o "src/Bridge.g.cpp"
   COMMENT
     "Generating src/Bridge.g.cpp"
+  BYPRODUCTS
+    "${BYPRODUCTS}"
   )
 
 list(APPEND SOURCE_LIST
   "${PROJECT_SOURCE_DIR}/src/Bridge.g.cpp"
   )
 
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/src/Strings.g.cpp")
+  set(BYPRODUCTS "${PROJECT_SOURCE_DIR}/src/Strings.g.cpp")
+else()
+  set(BYPRODUCTS "")
+endif()
 add_custom_command(
   TARGET "gen"
   COMMAND cd "${PROJECT_SOURCE_DIR}" &&
@@ -133,6 +154,8 @@ add_custom_command(
     -o "src/Strings.g.cpp"
   COMMENT
     "Generating src/Strings.g.cpp"
+  BYPRODUCTS
+    "${BYPRODUCTS}"
   )
 
 list(APPEND SOURCE_LIST
