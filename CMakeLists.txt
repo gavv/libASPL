@@ -11,8 +11,25 @@ execute_process(
   )
 string(REGEX MATCH "v?([0-9.]+)" RESULT ${GIT_TAG})
 set(GIT_TAG "${CMAKE_MATCH_1}")
+if(NOT GIT_TAG STREQUAL "")
+  message(STATUS "Detected version tag from git: ${GIT_TAG}")
+else()
+  message(WARNING "Unable to detect version tag from git")
+endif()
 
-message(STATUS "Detected version from git: ${GIT_TAG}")
+if(CMAKE_OSX_SYSROOT STREQUAL "")
+  set(DEFAULT_XCODE_SYSROOT
+    "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+  )
+  if(EXISTS "${DEFAULT_XCODE_SYSROOT}")
+    set(CMAKE_OSX_SYSROOT "${DEFAULT_XCODE_SYSROOT}")
+  endif()
+endif()
+if(NOT CMAKE_OSX_SYSROOT STREQUAL "")
+  message(STATUS "Detected CMAKE_OSX_SYSROOT: ${CMAKE_OSX_SYSROOT}")
+else()
+  message(WARNING "Unable to detect CMAKE_OSX_SYSROOT")
+endif()
 
 set(PACKAGE_NAME libASPL)
 set(PACKAGE_VERSION ${GIT_TAG})
