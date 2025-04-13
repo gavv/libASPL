@@ -293,14 +293,22 @@ if(BUILD_TESTING)
 endif(BUILD_TESTING)
 
 if(BUILD_DOCUMENTATION)
-  find_package(Doxygen)
+  find_package(Doxygen REQUIRED)
 
   if(DOXYGEN_FOUND STREQUAL YES)
-    add_custom_target(doxygen ALL
-      DEPENDS ${LIB_TARGET}
+    add_custom_command(
       COMMENT "Generating HTML documentation"
-      COMMAND cd "${PROJECT_SOURCE_DIR}" && doxygen
+      DEPENDS ${LIB_TARGET}
+      OUTPUT
+        ${PROJECT_SOURCE_DIR}/html/index.html
+      COMMAND
+        cd ${PROJECT_SOURCE_DIR} &&
+        doxygen &&
+        touch html/index.html
       )
+    add_custom_target(doxygen ALL
+      DEPENDS ${PROJECT_SOURCE_DIR}/html/index.html
+    )
   endif()
 endif(BUILD_DOCUMENTATION)
 
