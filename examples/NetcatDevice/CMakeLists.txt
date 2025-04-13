@@ -1,5 +1,5 @@
 # THIS FILE IS GENERATED FROM TEMPLATE. DO NOT EDIT!
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.12.0)
 
 project(NetcatDevice CXX)
 
