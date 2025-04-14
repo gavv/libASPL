@@ -634,12 +634,12 @@ Contributions are welcome!
 
 ## Authors
 
-See [here](AUTHORS.md).
+You can find list of authors and contributors [here](AUTHORS.md). Feel free to send a pull request if you're missing from the list or want to change your appearance.
 
 ## License
 
 The library is licensed under [MIT](LICENSE).
 
-This library is mostly written from scratch, but is inspired by and borrows some pieces from "SimpleAudio" and "NullAudio" plugins from [newer](https://developer.apple.com/documentation/coreaudio/building_an_audio_server_plug-in_and_driver_extension) and [older](https://github.com/HelmutJ/CocoaSampleCode/tree/master/UserLandDriverReference) Apple documentation.
+This library is mostly written from scratch, but is inspired by and borrows some pieces from "SimpleAudio" plugin from [Apple documentation](https://developer.apple.com/documentation/coreaudio/building_an_audio_server_plug-in_and_driver_extension) and "NullAudio" plugin from legacy documentation (`UserLandDriverReference` from Cocoa Samples, currently not available online).
 
-Apple examples are licensed under ["MIT"](LICENSE.apple2020) and ["Apple MIT"](LICENSE.apple2012) licenses.
+Original Apple plugin samples are licensed under ["MIT"](LICENSE.apple2020) and ["Apple MIT"](LICENSE.apple2012) licenses.
