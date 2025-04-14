@@ -1,5 +1,21 @@
 # Changelog
 
+## [v3.1.2][v3.1.2] - 14 Apr 2025
+
+* Fix build when `CMAKE_OSX_SYSROOT` is not defined ([10040][10040])
+* Fix build when `make gen` is called after `make clobber` ([a632e][a632e])
+* Bump minimum cmake version to 3.12.0 ([42d35][42d35])
+* Regenerate error code mappings for recent macOS ([f2baa][f2baa])
+* Minor fixes in cmake and scripts
+* Minor improvements in CI
+
+[v3.1.2]: https://github.com/gavv/libASPL/releases/tag/v3.1.2
+
+[10040]: https://github.com/gavv/libASPL/commit/10040a7a3d01424763e57ddc400e613a2f17b318
+[a632e]: https://github.com/gavv/libASPL/commit/a632ef867534fd220d1983890177ea5325b1d98d
+[42d35]: https://github.com/gavv/libASPL/commit/42d35c6125f2f5cd3d2234261391571a29940b56
+[f2baa]: https://github.com/gavv/libASPL/commit/f2baaac037ae2e4154f9ffd72565633a085f9e23
+
 ## [v3.1.1][v3.1.1] - 08 Oct 2024
 
 * Fix build on Xcode 16 ([gh-10][gh-10])
