@@ -8,6 +8,52 @@
 
 namespace aspl {
 
+void Convert::Serialize(CFPropertyListRef value, std::vector<UInt8>& result)
+{
+    if (!value) {
+        result.clear();
+        return;
+    }
+
+    CFDataRef data = CFPropertyListCreateData(
+        kCFAllocatorDefault, value, kCFPropertyListBinaryFormat_v1_0, 0, nullptr);
+
+    if (!data) {
+        result.clear();
+        return;
+    }
+
+    const UInt8* bytes = CFDataGetBytePtr(data);
+    CFIndex length = CFDataGetLength(data);
+
+    result.assign(bytes, bytes + length);
+
+    CFRelease(data);
+}
+
+bool Convert::Deserialize(const std::vector<UInt8>& value, CFPropertyListRef& result)
+{
+    if (value.empty()) {
+        result = nullptr;
+        return false;
+    }
+
+    CFDataRef data = CFDataCreate(
+        kCFAllocatorDefault, value.data(), static_cast<CFIndex>(value.size()));
+
+    if (!data) {
+        result = nullptr;
+        return false;
+    }
+
+    result = CFPropertyListCreateWithData(
+        kCFAllocatorDefault, data, kCFPropertyListImmutable, nullptr, nullptr);
+
+    CFRelease(data);
+
+    return result != nullptr;
+}
+
 void Convert::ToFoundation(const std::string& value, CFStringRef& result)
 {
     result = CFStringCreateWithCString(

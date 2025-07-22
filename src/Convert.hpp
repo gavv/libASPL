@@ -52,6 +52,9 @@ public:
         return "...";
     }
 
+    static void Serialize(CFPropertyListRef value, std::vector<UInt8>& result);
+    static bool Deserialize(const std::vector<UInt8>& value, CFPropertyListRef& result);
+
     static void ToFoundation(const std::string& value, CFStringRef& result);
     static bool FromFoundation(CFStringRef value, std::string& result);
 

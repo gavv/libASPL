@@ -259,3 +259,155 @@ TEST(ConvertTest, ToFrom_CFPropertyList_CFNumber_Float64)
         CFRelease(negResult);
     }
 }
+
+TEST(ConvertTest, Serde_CFString)
+{
+    { // string serialization
+        CFStringRef originalString = CFStringCreateWithCString(
+            kCFAllocatorDefault, "Test serialization", kCFStringEncodingUTF8);
+        ASSERT_NE(originalString, nullptr);
+
+        std::vector<UInt8> serialized;
+        aspl::Convert::Serialize(originalString, serialized);
+        EXPECT_FALSE(serialized.empty());
+
+        CFPropertyListRef deserialized = nullptr;
+        EXPECT_TRUE(aspl::Convert::Deserialize(serialized, deserialized));
+        ASSERT_NE(deserialized, nullptr);
+        EXPECT_EQ(CFGetTypeID(deserialized), CFStringGetTypeID());
+
+        std::string originalStr, deserializedStr;
+        EXPECT_TRUE(aspl::Convert::FromFoundation(originalString, originalStr));
+        EXPECT_TRUE(aspl::Convert::FromFoundation(deserialized, deserializedStr));
+        EXPECT_EQ(originalStr, deserializedStr);
+
+        CFRelease(originalString);
+        CFRelease(deserialized);
+    }
+
+    { // empty data error
+        std::vector<UInt8> emptyData;
+        CFPropertyListRef emptyResult = nullptr;
+        EXPECT_FALSE(aspl::Convert::Deserialize(emptyData, emptyResult));
+        EXPECT_EQ(emptyResult, nullptr);
+    }
+
+    { // null input
+        std::vector<UInt8> nullSerialized;
+        aspl::Convert::Serialize(nullptr, nullSerialized);
+        EXPECT_TRUE(nullSerialized.empty());
+    }
+}
+
+TEST(ConvertTest, Serde_CFData)
+{
+    { // data serialization
+        std::vector<UInt8> originalData = {0x01, 0x02, 0x03, 0xFF};
+        CFDataRef originalCFData =
+            CFDataCreate(kCFAllocatorDefault, originalData.data(), originalData.size());
+        ASSERT_NE(originalCFData, nullptr);
+
+        std::vector<UInt8> serialized;
+        aspl::Convert::Serialize(originalCFData, serialized);
+        EXPECT_FALSE(serialized.empty());
+
+        CFPropertyListRef deserialized = nullptr;
+        EXPECT_TRUE(aspl::Convert::Deserialize(serialized, deserialized));
+        ASSERT_NE(deserialized, nullptr);
+        EXPECT_EQ(CFGetTypeID(deserialized), CFDataGetTypeID());
+
+        std::vector<UInt8> deserializedData;
+        EXPECT_TRUE(aspl::Convert::FromFoundation(deserialized, deserializedData));
+        EXPECT_EQ(originalData, deserializedData);
+
+        CFRelease(originalCFData);
+        CFRelease(deserialized);
+    }
+
+    { // empty data error
+        std::vector<UInt8> emptyData;
+        CFPropertyListRef emptyResult = nullptr;
+        EXPECT_FALSE(aspl::Convert::Deserialize(emptyData, emptyResult));
+        EXPECT_EQ(emptyResult, nullptr);
+    }
+
+    { // null input
+        std::vector<UInt8> nullSerialized;
+        aspl::Convert::Serialize(nullptr, nullSerialized);
+        EXPECT_TRUE(nullSerialized.empty());
+    }
+}
+
+TEST(ConvertTest, Serde_CFBoolean)
+{
+    { // boolean serialization
+        CFBooleanRef originalBool = kCFBooleanTrue;
+
+        std::vector<UInt8> serialized;
+        aspl::Convert::Serialize(originalBool, serialized);
+        EXPECT_FALSE(serialized.empty());
+
+        CFPropertyListRef deserialized = nullptr;
+        EXPECT_TRUE(aspl::Convert::Deserialize(serialized, deserialized));
+        ASSERT_NE(deserialized, nullptr);
+        EXPECT_EQ(CFGetTypeID(deserialized), CFBooleanGetTypeID());
+
+        bool deserializedBool;
+        EXPECT_TRUE(aspl::Convert::FromFoundation(deserialized, deserializedBool));
+        EXPECT_TRUE(deserializedBool);
+
+        CFRelease(deserialized);
+    }
+
+    { // empty data error
+        std::vector<UInt8> emptyData;
+        CFPropertyListRef emptyResult = nullptr;
+        EXPECT_FALSE(aspl::Convert::Deserialize(emptyData, emptyResult));
+        EXPECT_EQ(emptyResult, nullptr);
+    }
+
+    { // null input
+        std::vector<UInt8> nullSerialized;
+        aspl::Convert::Serialize(nullptr, nullSerialized);
+        EXPECT_TRUE(nullSerialized.empty());
+    }
+}
+
+TEST(ConvertTest, Serde_CFNumber)
+{
+    { // number serialization
+        SInt64 originalValue = 42;
+        CFNumberRef originalNumber =
+            CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt64Type, &originalValue);
+        ASSERT_NE(originalNumber, nullptr);
+
+        std::vector<UInt8> serialized;
+        aspl::Convert::Serialize(originalNumber, serialized);
+        EXPECT_FALSE(serialized.empty());
+
+        CFPropertyListRef deserialized = nullptr;
+        EXPECT_TRUE(aspl::Convert::Deserialize(serialized, deserialized));
+        ASSERT_NE(deserialized, nullptr);
+        EXPECT_EQ(CFGetTypeID(deserialized), CFNumberGetTypeID());
+
+        SInt64 deserializedValue;
+        EXPECT_TRUE(aspl::Convert::FromFoundation(deserialized, deserializedValue));
+        EXPECT_EQ(originalValue, deserializedValue);
+
+        CFRelease(originalNumber);
+        CFRelease(deserialized);
+    }
+
+    { // empty data error
+        std::vector<UInt8> emptyData;
+        CFPropertyListRef emptyResult = nullptr;
+        EXPECT_FALSE(aspl::Convert::Deserialize(emptyData, emptyResult));
+        EXPECT_EQ(emptyResult, nullptr);
+    }
+
+    { // null input
+        std::vector<UInt8> nullSerialized;
+        aspl::Convert::Serialize(nullptr, nullSerialized);
+        EXPECT_TRUE(nullSerialized.empty());
+    }
+}
