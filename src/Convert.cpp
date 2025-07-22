@@ -51,6 +51,11 @@ void Convert::ToFoundation(const std::string& value, CFURLRef& result)
 
 bool Convert::FromFoundation(CFURLRef value, std::string& result)
 {
+    if (!value) {
+        result = {};
+        return false;
+    }
+
     CFStringRef stringValue = CFURLGetString(value);
 
     return FromFoundation(stringValue, result);
