@@ -1646,14 +1646,14 @@ void Device::RequestOwnershipChange(Object* owner, bool shouldHaveOwnership)
             static_cast<unsigned long>(GetID()),
             static_cast<unsigned long>(owner->GetID()));
 
-        // Device disappears HAL.
+        // Device disappears from HAL.
         // HasOwner() now will return false.
         // RequestConfigurationChange() will apply changes in-place.
         owner->RemoveOwnedObject(GetID());
 
         if (!pendingConfigurationRequests_.empty()) {
             // If there are any enqueued changes, apply them now since it's not
-            // guaranteed now that HAL will ever handle them. But HAL *will* try
+            // guaranteed now that HAL will ever handle them. But if HAL *will* try
             // to apply (some of) them, PerformConfigurationChange() will just
             // ignore those requests because we've removed them from map here.
             GetContext()->Tracer->Message(

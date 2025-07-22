@@ -194,8 +194,9 @@ list(APPEND SOURCE_LIST
   "src/Strings.cpp"
   "src/Tracer.cpp"
   "src/Uid.cpp"
+  "src/VirtualHost.cpp"
   "src/VolumeCurve.cpp"
-  )
+)
 
 add_library(${LIB_TARGET} STATIC
   ${SOURCE_LIST}
@@ -296,6 +297,7 @@ if(BUILD_TESTING)
     "test/TestRegistration.cpp"
     "test/TestSemaphore.cpp"
     "test/TestStorage.cpp"
+    "test/TestVirtualHost.cpp"
   )
 
   add_dependencies(${TEST_NAME}
