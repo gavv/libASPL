@@ -1,9 +1,11 @@
-/build
-/html
+.aider.*
+.aider/
 .cache
-compile_commands.json
-.unisonignore
+.dir-locals.el
 .ignore
 .justfile
-.dir-locals.el
+.unisonignore
+/build
+/html
 TODO.org
+compile_commands.json
