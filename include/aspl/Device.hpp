@@ -8,12 +8,12 @@
 
 #include <aspl/Client.hpp>
 #include <aspl/ControlRequestHandler.hpp>
-#include <aspl/DoubleBuffer.hpp>
 #include <aspl/IORequestHandler.hpp>
 #include <aspl/MuteControl.hpp>
 #include <aspl/Object.hpp>
 #include <aspl/Stream.hpp>
 #include <aspl/VolumeControl.hpp>
+#include <aspl/util/DoubleBuffer.hpp>
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
@@ -1230,37 +1230,40 @@ private:
     // serializes writing to fields below
     mutable std::recursive_mutex writeMutex_;
 
-    DoubleBuffer<std::optional<std::vector<AudioValueRange>>> availableSampleRates_;
-    DoubleBuffer<std::array<UInt32, 2>> preferredChannelsForStereo_;
-    DoubleBuffer<std::optional<UInt32>> preferredChannelCount_;
-    DoubleBuffer<std::optional<std::vector<AudioChannelDescription>>> preferredChannels_;
-    DoubleBuffer<std::optional<std::vector<UInt8>>> preferredChannelLayout_;
+    util::DoubleBuffer<std::optional<std::vector<AudioValueRange>>> availableSampleRates_;
+    util::DoubleBuffer<std::array<UInt32, 2>> preferredChannelsForStereo_;
+    util::DoubleBuffer<std::optional<UInt32>> preferredChannelCount_;
+    util::DoubleBuffer<std::optional<std::vector<AudioChannelDescription>>>
+        preferredChannels_;
+    util::DoubleBuffer<std::optional<std::vector<UInt8>>> preferredChannelLayout_;
 
-    DoubleBuffer<std::unordered_map<Direction, std::vector<std::shared_ptr<Stream>>>>
+    util::DoubleBuffer<
+        std::unordered_map<Direction, std::vector<std::shared_ptr<Stream>>>>
         streams_;
 
-    DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<Stream>>> streamByID_;
+    util::DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<Stream>>>
+        streamByID_;
 
-    DoubleBuffer<std::unordered_map<AudioObjectPropertyScope,
+    util::DoubleBuffer<std::unordered_map<AudioObjectPropertyScope,
         std::vector<std::shared_ptr<VolumeControl>>>>
         volumeControls_;
 
-    DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<VolumeControl>>>
+    util::DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<VolumeControl>>>
         volumeControlByID_;
 
-    DoubleBuffer<std::unordered_map<AudioObjectPropertyScope,
+    util::DoubleBuffer<std::unordered_map<AudioObjectPropertyScope,
         std::vector<std::shared_ptr<MuteControl>>>>
         muteControls_;
 
-    DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<MuteControl>>>
+    util::DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<MuteControl>>>
         muteControlByID_;
 
-    DoubleBuffer<std::unordered_map<UInt32, std::shared_ptr<Client>>> clientByID_;
+    util::DoubleBuffer<std::unordered_map<UInt32, std::shared_ptr<Client>>> clientByID_;
 
-    DoubleBuffer<
+    util::DoubleBuffer<
         std::variant<std::shared_ptr<ControlRequestHandler>, ControlRequestHandler*>>
         controlHandler_;
-    DoubleBuffer<std::variant<std::shared_ptr<IORequestHandler>, IORequestHandler*>>
+    util::DoubleBuffer<std::variant<std::shared_ptr<IORequestHandler>, IORequestHandler*>>
         ioHandler_;
 
     std::map<UInt64, std::function<void()>> pendingConfigurationRequests_;

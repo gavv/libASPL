@@ -72,7 +72,7 @@ OSStatus Stream::SetLatencyImpl(UInt32 latency)
 
 AudioStreamBasicDescription Stream::GetPhysicalFormat() const
 {
-    return physicalFormat_.Get();
+    return physicalFormat_.ReadValue();
 }
 
 OSStatus Stream::CheckPhysicalFormat(const AudioStreamBasicDescription& format) const
@@ -97,14 +97,14 @@ OSStatus Stream::CheckPhysicalFormat(const AudioStreamBasicDescription& format) 
 
 OSStatus Stream::SetPhysicalFormatImpl(const AudioStreamBasicDescription& format)
 {
-    physicalFormat_.Set(format);
+    physicalFormat_.WriteValue(format);
 
     return kAudioHardwareNoError;
 }
 
 std::vector<AudioStreamRangedDescription> Stream::GetAvailablePhysicalFormats() const
 {
-    if (auto formats = availPhysicalFormats_.Get()) {
+    if (auto formats = availPhysicalFormats_.ReadValue()) {
         return *formats;
     }
 
@@ -119,14 +119,14 @@ std::vector<AudioStreamRangedDescription> Stream::GetAvailablePhysicalFormats() 
 OSStatus Stream::SetAvailablePhysicalFormatsImpl(
     std::vector<AudioStreamRangedDescription> formats)
 {
-    availPhysicalFormats_.Set(std::move(formats));
+    availPhysicalFormats_.WriteValue(std::move(formats));
 
     return kAudioHardwareNoError;
 }
 
 AudioStreamBasicDescription Stream::GetVirtualFormat() const
 {
-    return virtualFormat_.Get();
+    return virtualFormat_.ReadValue();
 }
 
 OSStatus Stream::CheckVirtualFormat(const AudioStreamBasicDescription& format) const
@@ -151,14 +151,14 @@ OSStatus Stream::CheckVirtualFormat(const AudioStreamBasicDescription& format) c
 
 OSStatus Stream::SetVirtualFormatImpl(const AudioStreamBasicDescription& format)
 {
-    virtualFormat_.Set(format);
+    virtualFormat_.WriteValue(format);
 
     return kAudioHardwareNoError;
 }
 
 std::vector<AudioStreamRangedDescription> Stream::GetAvailableVirtualFormats() const
 {
-    if (auto formats = availVirtualFormats_.Get()) {
+    if (auto formats = availVirtualFormats_.ReadValue()) {
         return *formats;
     }
 
@@ -173,7 +173,7 @@ std::vector<AudioStreamRangedDescription> Stream::GetAvailableVirtualFormats() c
 OSStatus Stream::SetAvailableVirtualFormatsImpl(
     std::vector<AudioStreamRangedDescription> formats)
 {
-    availVirtualFormats_.Set(std::move(formats));
+    availVirtualFormats_.WriteValue(std::move(formats));
 
     return kAudioHardwareNoError;
 }
@@ -198,23 +198,23 @@ UInt32 Stream::ConvertBytesToFrames(UInt32 numBytes) const
 
 void Stream::AttachVolumeControl(std::shared_ptr<VolumeControl> control)
 {
-    volumeControl_.Set(std::move(control));
+    volumeControl_.WriteValue(std::move(control));
 }
 
 void Stream::AttachMuteControl(std::shared_ptr<MuteControl> control)
 {
-    muteControl_.Set(std::move(control));
+    muteControl_.WriteValue(std::move(control));
 }
 
 void Stream::ApplyProcessing(Float32* frames,
     UInt32 frameCount,
     UInt32 channelCount) const
 {
-    if (auto control = volumeControl_.Get()) {
+    if (auto control = volumeControl_.ReadValue()) {
         control->ApplyProcessing(frames, frameCount, channelCount);
     }
 
-    if (auto control = muteControl_.Get()) {
+    if (auto control = muteControl_.ReadValue()) {
         control->ApplyProcessing(frames, frameCount, channelCount);
     }
 }

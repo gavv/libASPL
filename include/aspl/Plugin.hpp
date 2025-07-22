@@ -7,8 +7,8 @@
 #pragma once
 
 #include <aspl/Device.hpp>
-#include <aspl/DoubleBuffer.hpp>
 #include <aspl/Object.hpp>
+#include <aspl/util/DoubleBuffer.hpp>
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
@@ -171,9 +171,11 @@ private:
 
     const PluginParameters params_;
 
-    DoubleBuffer<std::vector<std::shared_ptr<Device>>> devices_;
-    DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<Device>>> deviceByID_;
-    DoubleBuffer<std::unordered_map<std::string, std::shared_ptr<Device>>> deviceByUID_;
+    util::DoubleBuffer<std::vector<std::shared_ptr<Device>>> devices_;
+    util::DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<Device>>>
+        deviceByID_;
+    util::DoubleBuffer<std::unordered_map<std::string, std::shared_ptr<Device>>>
+        deviceByUID_;
 };
 
 } // namespace aspl

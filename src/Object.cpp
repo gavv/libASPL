@@ -129,10 +129,10 @@ void Object::AddOwnedObject(std::shared_ptr<Object> object,
         return;
     }
 
-    auto ownedObjects = ownedObjects_.Get();
+    auto ownedObjects = ownedObjects_.ReadValue();
 
     ownedObjects[scope][object->GetID()] = object;
-    ownedObjects_.Set(std::move(ownedObjects));
+    ownedObjects_.WriteValue(std::move(ownedObjects));
 
     object->AttachOwner(*this);
 
@@ -149,7 +149,7 @@ void Object::RemoveOwnedObject(AudioObjectID objectID)
 {
     std::lock_guard writeLock(writeMutex_);
 
-    auto ownedObjects = ownedObjects_.Get();
+    auto ownedObjects = ownedObjects_.ReadValue();
 
     for (auto& [_, objectMap] : ownedObjects) {
         auto iter = objectMap.find(objectID);
@@ -170,7 +170,7 @@ void Object::RemoveOwnedObject(AudioObjectID objectID)
         object->DetachOwner();
         objectMap.erase(iter);
 
-        ownedObjects_.Set(std::move(ownedObjects));
+        ownedObjects_.WriteValue(std::move(ownedObjects));
 
         return;
     }
@@ -268,12 +268,12 @@ void Object::RegisterCustomProperty(AudioObjectPropertySelector selector,
 {
     std::lock_guard writeLock(writeMutex_);
 
-    auto customProps = customProps_.Get();
+    auto customProps = customProps_.ReadValue();
 
     customProps[selector] = CustomProperty::Create<CFStringRef>(
         kAudioServerPlugInCustomPropertyDataTypeCFString, getter, setter);
 
-    customProps_.Set(std::move(customProps));
+    customProps_.WriteValue(std::move(customProps));
 }
 
 void Object::RegisterCustomProperty(AudioObjectPropertySelector selector,
@@ -282,12 +282,12 @@ void Object::RegisterCustomProperty(AudioObjectPropertySelector selector,
 {
     std::lock_guard writeLock(writeMutex_);
 
-    auto customProps = customProps_.Get();
+    auto customProps = customProps_.ReadValue();
 
     customProps[selector] = CustomProperty::Create<CFPropertyListRef>(
         kAudioServerPlugInCustomPropertyDataTypeCFPropertyList, getter, setter);
 
-    customProps_.Set(std::move(customProps));
+    customProps_.WriteValue(std::move(customProps));
 }
 
 Boolean Object::HasPropertyFallback(AudioObjectID objectID,

@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include <aspl/DoubleBuffer.hpp>
 #include <aspl/Tracer.hpp>
+#include <aspl/util/DoubleBuffer.hpp>
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
@@ -103,7 +103,7 @@ private:
     // to happen in Object constructor. At that point, there is no shared_ptr
     // yet and shared_from_this() can't be used either. Thus, we delay
     // shared_from_this() call to the time when FindObject() is called.
-    DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<Registration>>>
+    util::DoubleBuffer<std::unordered_map<AudioObjectID, std::shared_ptr<Registration>>>
         registeredObjects_;
 
     // Serializes (de)registration operations and protects fields below.

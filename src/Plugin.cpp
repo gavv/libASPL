@@ -119,27 +119,27 @@ void Plugin::AddDevice(std::shared_ptr<Device> device)
     }
 
     {
-        auto devices = devices_.Get();
+        auto devices = devices_.ReadValue();
 
         devices.push_back(device);
-        devices_.Set(std::move(devices));
+        devices_.WriteValue(std::move(devices));
     }
 
     {
-        auto deviceByID = deviceByID_.Get();
+        auto deviceByID = deviceByID_.ReadValue();
 
         deviceByID[device->GetID()] = device;
-        deviceByID_.Set(std::move(deviceByID));
+        deviceByID_.WriteValue(std::move(deviceByID));
     }
 
     {
-        auto deviceByUID = deviceByUID_.Get();
+        auto deviceByUID = deviceByUID_.ReadValue();
 
         if (auto uid = device->GetDeviceUID(); !uid.empty()) {
             deviceByUID[uid] = device;
         }
 
-        deviceByUID_.Set(std::move(deviceByUID));
+        deviceByUID_.WriteValue(std::move(deviceByUID));
     }
 
     device->RequestOwnershipChange(this, true);
@@ -172,31 +172,31 @@ void Plugin::RemoveDevice(std::shared_ptr<Device> device)
     }
 
     {
-        auto devices = devices_.Get();
+        auto devices = devices_.ReadValue();
 
         if (auto pos = std::find(devices.begin(), devices.end(), device);
             pos != devices.end()) {
             devices.erase(pos);
         }
 
-        devices_.Set(std::move(devices));
+        devices_.WriteValue(std::move(devices));
     }
 
     {
-        auto deviceByID = deviceByID_.Get();
+        auto deviceByID = deviceByID_.ReadValue();
 
         deviceByID.erase(device->GetID());
-        deviceByID_.Set(std::move(deviceByID));
+        deviceByID_.WriteValue(std::move(deviceByID));
     }
 
     {
-        auto deviceByUID = deviceByUID_.Get();
+        auto deviceByUID = deviceByUID_.ReadValue();
 
         if (auto uid = device->GetDeviceUID(); !uid.empty()) {
             deviceByUID.erase(uid);
         }
 
-        deviceByUID_.Set(std::move(deviceByUID));
+        deviceByUID_.WriteValue(std::move(deviceByUID));
     }
 
     device->RequestOwnershipChange(this, false);

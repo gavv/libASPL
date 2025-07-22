@@ -167,7 +167,7 @@ OSStatus Device::SetNominalSampleRateImpl(Float64 rate)
 
 std::vector<AudioValueRange> Device::GetAvailableSampleRates() const
 {
-    if (auto rates = availableSampleRates_.Get()) {
+    if (auto rates = availableSampleRates_.ReadValue()) {
         return *rates;
     }
 
@@ -182,19 +182,19 @@ std::vector<AudioValueRange> Device::GetAvailableSampleRates() const
 
 OSStatus Device::SetAvailableSampleRatesImpl(std::vector<AudioValueRange> rates)
 {
-    availableSampleRates_.Set(std::move(rates));
+    availableSampleRates_.WriteValue(std::move(rates));
 
     return kAudioHardwareNoError;
 }
 
 std::array<UInt32, 2> Device::GetPreferredChannelsForStereo() const
 {
-    return preferredChannelsForStereo_.Get();
+    return preferredChannelsForStereo_.ReadValue();
 }
 
 OSStatus Device::SetPreferredChannelsForStereoImpl(std::array<UInt32, 2> channels)
 {
-    preferredChannelsForStereo_.Set(channels);
+    preferredChannelsForStereo_.WriteValue(channels);
 
     return kAudioHardwareNoError;
 }
@@ -202,17 +202,17 @@ OSStatus Device::SetPreferredChannelsForStereoImpl(std::array<UInt32, 2> channel
 UInt32 Device::GetPreferredChannelCount() const
 {
     // If SetPreferredChannelCount() was called, use that value.
-    if (auto channelCount = preferredChannelCount_.Get()) {
+    if (auto channelCount = preferredChannelCount_.ReadValue()) {
         return *channelCount;
     }
 
     // If SetPreferredChannelsAsync() was called, use that value.
-    if (auto chans = preferredChannels_.Get(); chans && !chans->empty()) {
+    if (auto chans = preferredChannels_.ReadValue(); chans && !chans->empty()) {
         return UInt32(chans->size());
     }
 
     // If SetPreferredChannelLayoutAsync() was called, use that value.
-    if (auto layoutBuffer = preferredChannelLayout_.Get();
+    if (auto layoutBuffer = preferredChannelLayout_.ReadValue();
         layoutBuffer && !layoutBuffer->empty()) {
         const AudioChannelLayout* layout =
             reinterpret_cast<AudioChannelLayout*>(layoutBuffer->data());
@@ -228,7 +228,7 @@ UInt32 Device::GetPreferredChannelCount() const
 
 OSStatus Device::SetPreferredChannelCountImpl(UInt32 channelCount)
 {
-    preferredChannelCount_.Set(channelCount);
+    preferredChannelCount_.WriteValue(channelCount);
 
     return kAudioHardwareNoError;
 }
@@ -236,12 +236,12 @@ OSStatus Device::SetPreferredChannelCountImpl(UInt32 channelCount)
 std::vector<AudioChannelDescription> Device::GetPreferredChannels() const
 {
     // If SetPreferredChannelsAsync() was called, use that value.
-    if (auto chans = preferredChannels_.Get()) {
+    if (auto chans = preferredChannels_.ReadValue()) {
         return *chans;
     }
 
     // If SetPreferredChannelLayoutAsync() was called, use that value.
-    if (auto layoutBuffer = preferredChannelLayout_.Get();
+    if (auto layoutBuffer = preferredChannelLayout_.ReadValue();
         layoutBuffer && !layoutBuffer->empty()) {
         const AudioChannelLayout* layout =
             reinterpret_cast<AudioChannelLayout*>(layoutBuffer->data());
@@ -268,7 +268,7 @@ std::vector<AudioChannelDescription> Device::GetPreferredChannels() const
 
 OSStatus Device::SetPreferredChannelsImpl(std::vector<AudioChannelDescription> channels)
 {
-    preferredChannels_.Set(std::move(channels));
+    preferredChannels_.WriteValue(std::move(channels));
 
     return kAudioHardwareNoError;
 }
@@ -276,7 +276,7 @@ OSStatus Device::SetPreferredChannelsImpl(std::vector<AudioChannelDescription> c
 std::vector<UInt8> Device::GetPreferredChannelLayout() const
 {
     // If SetPreferredChannelLayoutAsync() was called, use that value.
-    if (auto layoutBuffer = preferredChannelLayout_.Get()) {
+    if (auto layoutBuffer = preferredChannelLayout_.ReadValue()) {
         return *layoutBuffer;
     }
 
@@ -304,7 +304,7 @@ std::vector<UInt8> Device::GetPreferredChannelLayout() const
 
 OSStatus Device::SetPreferredChannelLayoutImpl(std::vector<UInt8> channelLayout)
 {
-    preferredChannelLayout_.Set(std::move(channelLayout));
+    preferredChannelLayout_.WriteValue(std::move(channelLayout));
 
     return kAudioHardwareNoError;
 }
@@ -522,17 +522,17 @@ void Device::AddStreamAsync(std::shared_ptr<Stream> stream)
         const auto dir = stream->GetDirection();
 
         {
-            auto streams = streams_.Get();
+            auto streams = streams_.ReadValue();
 
             streams[dir].push_back(stream);
-            streams_.Set(std::move(streams));
+            streams_.WriteValue(std::move(streams));
         }
 
         {
-            auto streamByID = streamByID_.Get();
+            auto streamByID = streamByID_.ReadValue();
 
             streamByID[stream->GetID()] = stream;
-            streamByID_.Set(std::move(streamByID));
+            streamByID_.WriteValue(std::move(streamByID));
         }
 
         RequestConfigurationChange([this, stream, dir]() {
@@ -567,20 +567,20 @@ void Device::RemoveStreamAsync(std::shared_ptr<Stream> stream)
         const auto dir = stream->GetDirection();
 
         {
-            auto streams = streams_.Get();
+            auto streams = streams_.ReadValue();
 
             streams[dir].erase(
                 std::remove(streams[dir].begin(), streams[dir].end(), stream),
                 streams[dir].end());
 
-            streams_.Set(std::move(streams));
+            streams_.WriteValue(std::move(streams));
         }
 
         {
-            auto streamByID = streamByID_.Get();
+            auto streamByID = streamByID_.ReadValue();
 
             streamByID.erase(stream->GetID());
-            streamByID_.Set(std::move(streamByID));
+            streamByID_.WriteValue(std::move(streamByID));
         }
 
         RequestConfigurationChange([this, stream, dir]() {
@@ -678,17 +678,17 @@ void Device::AddVolumeControlAsync(std::shared_ptr<VolumeControl> control)
         const auto scope = control->GetScope();
 
         {
-            auto controls = volumeControls_.Get();
+            auto controls = volumeControls_.ReadValue();
 
             controls[scope].push_back(control);
-            volumeControls_.Set(std::move(controls));
+            volumeControls_.WriteValue(std::move(controls));
         }
 
         {
-            auto controlByID = volumeControlByID_.Get();
+            auto controlByID = volumeControlByID_.ReadValue();
 
             controlByID[control->GetID()] = control;
-            volumeControlByID_.Set(std::move(controlByID));
+            volumeControlByID_.WriteValue(std::move(controlByID));
         }
 
         RequestConfigurationChange([this, control, scope]() {
@@ -715,20 +715,20 @@ void Device::RemoveVolumeControlAsync(std::shared_ptr<VolumeControl> control)
         const auto scope = control->GetScope();
 
         {
-            auto controls = volumeControls_.Get();
+            auto controls = volumeControls_.ReadValue();
 
             controls[scope].erase(
                 std::remove(controls[scope].begin(), controls[scope].end(), control),
                 controls[scope].end());
 
-            volumeControls_.Set(std::move(controls));
+            volumeControls_.WriteValue(std::move(controls));
         }
 
         {
-            auto controlByID = volumeControlByID_.Get();
+            auto controlByID = volumeControlByID_.ReadValue();
 
             controlByID.erase(control->GetID());
-            volumeControlByID_.Set(std::move(controlByID));
+            volumeControlByID_.WriteValue(std::move(controlByID));
         }
 
         RequestConfigurationChange([this, control]() {
@@ -818,17 +818,17 @@ void Device::AddMuteControlAsync(std::shared_ptr<MuteControl> control)
         const auto scope = control->GetScope();
 
         {
-            auto controls = muteControls_.Get();
+            auto controls = muteControls_.ReadValue();
 
             controls[scope].push_back(control);
-            muteControls_.Set(std::move(controls));
+            muteControls_.WriteValue(std::move(controls));
         }
 
         {
-            auto controlByID = muteControlByID_.Get();
+            auto controlByID = muteControlByID_.ReadValue();
 
             controlByID[control->GetID()] = control;
-            muteControlByID_.Set(std::move(controlByID));
+            muteControlByID_.WriteValue(std::move(controlByID));
         }
 
         RequestConfigurationChange([this, control, scope]() {
@@ -855,20 +855,20 @@ void Device::RemoveMuteControlAsync(std::shared_ptr<MuteControl> control)
         const auto scope = control->GetScope();
 
         {
-            auto controls = muteControls_.Get();
+            auto controls = muteControls_.ReadValue();
 
             controls[scope].erase(
                 std::remove(controls[scope].begin(), controls[scope].end(), control),
                 controls[scope].end());
 
-            muteControls_.Set(std::move(controls));
+            muteControls_.WriteValue(std::move(controls));
         }
 
         {
-            auto controlByID = muteControlByID_.Get();
+            auto controlByID = muteControlByID_.ReadValue();
 
             controlByID.erase(control->GetID());
-            muteControlByID_.Set(std::move(controlByID));
+            muteControlByID_.WriteValue(std::move(controlByID));
         }
 
         RequestConfigurationChange([this, control]() {
@@ -886,10 +886,10 @@ void Device::SetControlHandler(std::shared_ptr<ControlRequestHandler> handler)
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        controlHandler_.Set(std::move(handler));
+        controlHandler_.WriteValue(std::move(handler));
     } else {
         // no-op handler
-        controlHandler_.Set(std::make_shared<ControlRequestHandler>());
+        controlHandler_.WriteValue(std::make_shared<ControlRequestHandler>());
     }
 }
 
@@ -898,16 +898,16 @@ void Device::SetControlHandler(ControlRequestHandler* handler)
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        controlHandler_.Set(handler);
+        controlHandler_.WriteValue(handler);
     } else {
         // no-op handler
-        controlHandler_.Set(std::make_shared<ControlRequestHandler>());
+        controlHandler_.WriteValue(std::make_shared<ControlRequestHandler>());
     }
 }
 
 ControlRequestHandler* Device::GetControlHandler() const
 {
-    return GetVariantPtr(controlHandler_.Get());
+    return GetVariantPtr(controlHandler_.ReadValue());
 }
 
 OSStatus Device::AddClient(AudioObjectID objectID,
@@ -924,7 +924,7 @@ OSStatus Device::AddClient(AudioObjectID objectID,
     OSStatus status = kAudioHardwareNoError;
     ClientInfo clientInfo;
 
-    auto clientByID = clientByID_.Get();
+    auto clientByID = clientByID_.ReadValue();
 
     if (objectID != GetID()) {
         GetContext()->Tracer->Message("object not found");
@@ -959,7 +959,7 @@ OSStatus Device::AddClient(AudioObjectID objectID,
         }
 
         clientByID[clientInfo.ClientID] = client;
-        clientByID_.Set(std::move(clientByID));
+        clientByID_.WriteValue(std::move(clientByID));
     }
 
 end:
@@ -982,7 +982,7 @@ OSStatus Device::RemoveClient(AudioObjectID objectID,
     OSStatus status = kAudioHardwareNoError;
     ClientInfo clientInfo;
 
-    auto clientByID = clientByID_.Get();
+    auto clientByID = clientByID_.ReadValue();
 
     if (objectID != GetID()) {
         GetContext()->Tracer->Message("object not found");
@@ -1019,7 +1019,7 @@ OSStatus Device::RemoveClient(AudioObjectID objectID,
         auto client = clientByID.at(rawClientInfo->mClientID);
 
         clientByID.erase(clientInfo.ClientID);
-        clientByID_.Set(std::move(clientByID));
+        clientByID_.WriteValue(std::move(clientByID));
 
         GetControlHandler()->OnRemoveClient(std::move(client));
     }
@@ -1185,10 +1185,10 @@ void Device::SetIOHandler(std::shared_ptr<IORequestHandler> handler)
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        ioHandler_.Set(std::move(handler));
+        ioHandler_.WriteValue(std::move(handler));
     } else {
         // no-op handler
-        ioHandler_.Set(std::make_shared<IORequestHandler>());
+        ioHandler_.WriteValue(std::make_shared<IORequestHandler>());
     }
 }
 
@@ -1197,16 +1197,16 @@ void Device::SetIOHandler(IORequestHandler* handler)
     std::lock_guard writeLock(writeMutex_);
 
     if (handler) {
-        ioHandler_.Set(handler);
+        ioHandler_.WriteValue(handler);
     } else {
         // no-op handler
-        ioHandler_.Set(std::make_shared<IORequestHandler>());
+        ioHandler_.WriteValue(std::make_shared<IORequestHandler>());
     }
 }
 
 IORequestHandler* Device::GetIOHandler() const
 {
-    return GetVariantPtr(ioHandler_.Get());
+    return GetVariantPtr(ioHandler_.ReadValue());
 }
 
 OSStatus Device::GetZeroTimeStamp(AudioObjectID objectID,

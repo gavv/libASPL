@@ -92,17 +92,17 @@ Driver* Driver::GetDriver(AudioServerPlugInDriverRef driverRef)
 
 void Driver::SetDriverHandler(std::shared_ptr<DriverRequestHandler> handler)
 {
-    driverHandler_.Set(handler);
+    driverHandler_.WriteValue(handler);
 }
 
 void Driver::SetDriverHandler(DriverRequestHandler* handler)
 {
-    driverHandler_.Set(handler);
+    driverHandler_.WriteValue(handler);
 }
 
 OSStatus Driver::Initialize()
 {
-    const auto handlerVariant = driverHandler_.Get();
+    const auto handlerVariant = driverHandler_.ReadValue();
     const auto handler = GetVariantPtr(handlerVariant);
 
     if (handler) {

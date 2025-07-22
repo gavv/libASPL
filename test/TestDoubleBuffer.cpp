@@ -1,7 +1,7 @@
 // Copyright (c) libASPL authors
 // Licensed under MIT
 
-#include "aspl/DoubleBuffer.hpp"
+#include "aspl/util/DoubleBuffer.hpp"
 
 #include <gtest/gtest.h>
 
@@ -31,49 +31,49 @@ struct DoubleBufferTest : testing::Test
 {
 };
 
-TEST_F(DoubleBufferTest, InitGet)
+TEST_F(DoubleBufferTest, InitRead)
 {
     {
-        aspl::DoubleBuffer<int> buf;
-        ASSERT_EQ(buf.Get(), 0);
+        aspl::util::DoubleBuffer<int> buf;
+        ASSERT_EQ(buf.ReadValue(), 0);
     }
     {
-        aspl::DoubleBuffer<int> buf(123);
-        ASSERT_EQ(buf.Get(), 123);
+        aspl::util::DoubleBuffer<int> buf(123);
+        ASSERT_EQ(buf.ReadValue(), 123);
     }
     {
-        aspl::DoubleBuffer<int> buf(123);
+        aspl::util::DoubleBuffer<int> buf(123);
         for (int i = 0; i < 10; i++) {
-            ASSERT_EQ(buf.Get(), 123);
+            ASSERT_EQ(buf.ReadValue(), 123);
         }
     }
 }
 
-TEST_F(DoubleBufferTest, SetGet)
+TEST_F(DoubleBufferTest, WriteRead)
 {
-    aspl::DoubleBuffer<int> buf(123);
+    aspl::util::DoubleBuffer<int> buf(123);
 
     for (int i = 0; i < 10; i++) {
-        ASSERT_EQ(buf.Get(), 123);
+        ASSERT_EQ(buf.ReadValue(), 123);
     }
 
-    buf.Set(456);
+    buf.WriteValue(456);
 
     for (int i = 0; i < 10; i++) {
-        ASSERT_EQ(buf.Get(), 456);
+        ASSERT_EQ(buf.ReadValue(), 456);
     }
 }
 
 TEST_F(DoubleBufferTest, ReadLock)
 {
-    aspl::DoubleBuffer<int> buf(123);
+    aspl::util::DoubleBuffer<int> buf(123);
 
     for (int i = 0; i < 10; i++) {
         auto rdLock = buf.GetReadLock();
         ASSERT_EQ(rdLock.GetReference(), 123);
     }
 
-    buf.Set(456);
+    buf.WriteValue(456);
 
     for (int i = 0; i < 10; i++) {
         auto rdLock = buf.GetReadLock();
@@ -83,13 +83,13 @@ TEST_F(DoubleBufferTest, ReadLock)
 
 TEST_F(DoubleBufferTest, Squash)
 {
-    aspl::DoubleBuffer<int> buf;
+    aspl::util::DoubleBuffer<int> buf;
 
     for (int i = 0; i < 10; i++) {
-        buf.Set(i);
+        buf.WriteValue(i);
     }
 
-    ASSERT_EQ(buf.Get(), 9);
+    ASSERT_EQ(buf.ReadValue(), 9);
 }
 
 TEST_F(DoubleBufferTest, Concurrent)
@@ -99,14 +99,14 @@ TEST_F(DoubleBufferTest, Concurrent)
         MaxVal = 10000
     };
 
-    aspl::DoubleBuffer<int> buf;
+    aspl::util::DoubleBuffer<int> buf;
 
     std::atomic<int> wrVal = 0;
     int rdVal = 0;
 
     auto writer = std::async(std::launch::async, [&]() {
         for (int i = 0; i < MaxVal; i++) {
-            buf.Set(++wrVal);
+            buf.WriteValue(++wrVal);
             RandomDelay(0.05f);
         }
     });
@@ -114,7 +114,7 @@ TEST_F(DoubleBufferTest, Concurrent)
     while (rdVal != MaxVal) {
         RandomDelay(0.2f);
 
-        const int newRdVal = buf.Get();
+        const int newRdVal = buf.ReadValue();
 
         ASSERT_GE(newRdVal, rdVal);
         ASSERT_LE(newRdVal, MaxVal);
@@ -134,14 +134,14 @@ TEST_F(DoubleBufferTest, Concurrent_ReadLock)
         MaxVal = 10000
     };
 
-    aspl::DoubleBuffer<int> buf;
+    aspl::util::DoubleBuffer<int> buf;
 
     std::atomic<int> wrVal = 0;
     int rdVal = 0;
 
     auto writer = std::async(std::launch::async, [&]() {
         for (int i = 0; i < MaxVal; i++) {
-            buf.Set(++wrVal);
+            buf.WriteValue(++wrVal);
             RandomDelay(0.05f);
         }
     });
@@ -174,14 +174,14 @@ TEST_F(DoubleBufferTest, Concurrent_NonTrivial)
     // DoubleBuffer has special handling for non-trivial objects - it makes sure
     // that Set() invokes destructor of the previous value. This test covers
     // races in corresponding piece of code.
-    aspl::DoubleBuffer<std::optional<int>> buf(0);
+    aspl::util::DoubleBuffer<std::optional<int>> buf(0);
 
     std::atomic<int> wrVal = 0;
     int rdVal = 0;
 
     auto writer = std::async(std::launch::async, [&]() {
         for (int i = 0; i < MaxVal; i++) {
-            buf.Set(++wrVal);
+            buf.WriteValue(++wrVal);
             RandomDelay(0.05f);
         }
     });
@@ -189,7 +189,7 @@ TEST_F(DoubleBufferTest, Concurrent_NonTrivial)
     while (rdVal != MaxVal) {
         RandomDelay(0.2f);
 
-        const auto newRdVal = buf.Get();
+        const auto newRdVal = buf.ReadValue();
 
         ASSERT_GE(*newRdVal, rdVal);
         ASSERT_LE(*newRdVal, MaxVal);

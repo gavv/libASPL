@@ -7,10 +7,10 @@
 #pragma once
 
 #include <aspl/Direction.hpp>
-#include <aspl/DoubleBuffer.hpp>
 #include <aspl/MuteControl.hpp>
 #include <aspl/Object.hpp>
 #include <aspl/VolumeControl.hpp>
+#include <aspl/util/DoubleBuffer.hpp>
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
@@ -376,17 +376,17 @@ private:
     std::atomic<bool> isActive_ = true;
     std::atomic<UInt32> latency_;
 
-    DoubleBuffer<AudioStreamBasicDescription> physicalFormat_;
-    DoubleBuffer<AudioStreamBasicDescription> virtualFormat_;
+    util::DoubleBuffer<AudioStreamBasicDescription> physicalFormat_;
+    util::DoubleBuffer<AudioStreamBasicDescription> virtualFormat_;
 
-    DoubleBuffer<std::optional<std::vector<AudioStreamRangedDescription>>>
+    util::DoubleBuffer<std::optional<std::vector<AudioStreamRangedDescription>>>
         availPhysicalFormats_;
 
-    DoubleBuffer<std::optional<std::vector<AudioStreamRangedDescription>>>
+    util::DoubleBuffer<std::optional<std::vector<AudioStreamRangedDescription>>>
         availVirtualFormats_;
 
-    DoubleBuffer<std::shared_ptr<VolumeControl>> volumeControl_;
-    DoubleBuffer<std::shared_ptr<MuteControl>> muteControl_;
+    util::DoubleBuffer<std::shared_ptr<VolumeControl>> volumeControl_;
+    util::DoubleBuffer<std::shared_ptr<MuteControl>> muteControl_;
 };
 
 } // namespace aspl

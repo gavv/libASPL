@@ -7,10 +7,10 @@
 #pragma once
 
 #include <aspl/Context.hpp>
-#include <aspl/DoubleBuffer.hpp>
 #include <aspl/DriverRequestHandler.hpp>
 #include <aspl/Plugin.hpp>
 #include <aspl/Storage.hpp>
+#include <aspl/util/DoubleBuffer.hpp>
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
@@ -169,7 +169,7 @@ private:
     const std::shared_ptr<Storage> storage_;
 
     // User-provided handler
-    DoubleBuffer<
+    util::DoubleBuffer<
         std::variant<std::shared_ptr<DriverRequestHandler>, DriverRequestHandler*>>
         driverHandler_;
 

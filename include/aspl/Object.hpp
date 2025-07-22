@@ -8,7 +8,7 @@
 
 #include <aspl/Compat.hpp>
 #include <aspl/Context.hpp>
-#include <aspl/DoubleBuffer.hpp>
+#include <aspl/util/DoubleBuffer.hpp>
 
 #include <CoreAudio/AudioServerPlugIn.h>
 
@@ -373,11 +373,12 @@ private:
     Object* ownerObject_ = nullptr;
     std::atomic<AudioObjectID> ownerObjectID_ = kAudioObjectUnknown;
 
-    DoubleBuffer<std::map<AudioObjectPropertyScope,
+    util::DoubleBuffer<std::map<AudioObjectPropertyScope,
         std::map<AudioObjectID, std::shared_ptr<Object>>>>
         ownedObjects_;
 
-    DoubleBuffer<std::map<AudioObjectPropertySelector, std::shared_ptr<CustomProperty>>>
+    util::DoubleBuffer<
+        std::map<AudioObjectPropertySelector, std::shared_ptr<CustomProperty>>>
         customProps_;
 };
 

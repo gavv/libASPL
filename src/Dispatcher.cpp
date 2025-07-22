@@ -86,7 +86,7 @@ AudioObjectID Dispatcher::RegisterObject(Object& object, AudioObjectID objectID)
         objectID = AllocateID();
     }
 
-    auto registeredObjects = registeredObjects_.Get();
+    auto registeredObjects = registeredObjects_.ReadValue();
 
     if (registeredObjects.count(objectID)) {
         if (tracer_) {
@@ -97,7 +97,7 @@ AudioObjectID Dispatcher::RegisterObject(Object& object, AudioObjectID objectID)
     }
 
     registeredObjects[objectID] = std::make_shared<Registration>(&object);
-    registeredObjects_.Set(std::move(registeredObjects));
+    registeredObjects_.WriteValue(std::move(registeredObjects));
 
     if (tracer_) {
         tracer_->Message("registered objectID=%u", unsigned(objectID));
@@ -123,7 +123,7 @@ void Dispatcher::UnregisterObject(AudioObjectID objectID)
         tracer_->OperationBegin(op);
     }
 
-    auto registeredObjects = registeredObjects_.Get();
+    auto registeredObjects = registeredObjects_.ReadValue();
 
     if (objectID == kAudioObjectUnknown) {
         if (tracer_) {
@@ -152,7 +152,7 @@ void Dispatcher::UnregisterObject(AudioObjectID objectID)
         // are working with an older version of the map and they can still obtain
         // the registration from it.
         registeredObjects.erase(objectID);
-        registeredObjects_.Set(std::move(registeredObjects));
+        registeredObjects_.WriteValue(std::move(registeredObjects));
 
         // Wait until all of them are either before checking the object for null,
         // or are finished. After this, we can be sure that the object is never
