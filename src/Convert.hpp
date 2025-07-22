@@ -14,6 +14,7 @@
 
 namespace aspl {
 
+// Utilities for converting between STL and CoreFoundation types.
 class Convert
 {
 public:
@@ -51,47 +52,6 @@ public:
         return "...";
     }
 
-    template <typename T,
-        typename = typename std::enable_if_t<std::is_trivially_copyable<T>::value, void>>
-    static void ToFoundation(const T& value, T& result)
-    {
-        result = value;
-    }
-
-    template <typename T,
-        typename = typename std::enable_if_t<std::is_trivially_copyable<T>::value, void>>
-    static bool FromFoundation(const T& value, T& result)
-    {
-        result = value;
-        return true;
-    }
-
-    template <typename T,
-        typename = typename std::enable_if_t<std::is_enum<T>::value, void>>
-    static void ToFoundation(T value, typename std::underlying_type_t<T>& result)
-    {
-        result = static_cast<typename std::underlying_type_t<T>>(value);
-    }
-
-    template <typename T,
-        typename = typename std::enable_if_t<std::is_enum<T>::value, void>>
-    static bool FromFoundation(typename std::underlying_type_t<T> value, T& result)
-    {
-        result = static_cast<T>(value);
-        return true;
-    }
-
-    static void ToFoundation(bool value, UInt32& result)
-    {
-        result = (value ? 1 : 0);
-    }
-
-    static bool FromFoundation(UInt32 value, bool& result)
-    {
-        result = (value != 0);
-        return true;
-    }
-
     static void ToFoundation(const std::string& value, CFStringRef& result);
     static bool FromFoundation(CFStringRef value, std::string& result);
 
@@ -112,6 +72,44 @@ public:
 
     static void ToFoundation(Float64 value, CFPropertyListRef& result);
     static bool FromFoundation(CFPropertyListRef value, Float64& result);
+
+    template <typename T,
+        typename = typename std::enable_if_t<std::is_trivially_copyable<T>::value, void>>
+    static void ToFoundation(const T& value, T& result)
+    {
+        result = value;
+    }
+    template <typename T,
+        typename = typename std::enable_if_t<std::is_trivially_copyable<T>::value, void>>
+    static bool FromFoundation(const T& value, T& result)
+    {
+        result = value;
+        return true;
+    }
+
+    template <typename T,
+        typename = typename std::enable_if_t<std::is_enum<T>::value, void>>
+    static void ToFoundation(T value, typename std::underlying_type_t<T>& result)
+    {
+        result = static_cast<typename std::underlying_type_t<T>>(value);
+    }
+    template <typename T,
+        typename = typename std::enable_if_t<std::is_enum<T>::value, void>>
+    static bool FromFoundation(typename std::underlying_type_t<T> value, T& result)
+    {
+        result = static_cast<T>(value);
+        return true;
+    }
+
+    static void ToFoundation(bool value, UInt32& result)
+    {
+        result = (value ? 1 : 0);
+    }
+    static bool FromFoundation(UInt32 value, bool& result)
+    {
+        result = (value != 0);
+        return true;
+    }
 
 private:
     static std::string FormatValue(const AudioValueRange& value);
