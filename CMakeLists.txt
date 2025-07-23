@@ -53,6 +53,7 @@ list(APPEND COMPILER_FLAGS
   "-Wall"
   "-Wextra"
   "-Wno-invalid-offsetof"
+  "-Wno-unused-const-variable"
   "-Wno-unused-parameter"
 )
 
@@ -167,6 +168,7 @@ list(APPEND SOURCE_LIST
   "src/Convert.cpp"
   "src/Dispatcher.cpp"
   "src/Driver.cpp"
+  "src/Semaphore.cpp"
   "src/Storage.cpp"
   "src/Strings.cpp"
   "src/Tracer.cpp"
@@ -265,9 +267,13 @@ if(BUILD_TESTING)
     "test/TestConstruction.cpp"
     "test/TestConvert.cpp"
     "test/TestDoubleBuffer.cpp"
+    "test/TestFreelist.cpp"
+    "test/TestMpscQueue.cpp"
+    "test/TestObjectPool.cpp"
     "test/TestOperations.cpp"
     "test/TestProperties.cpp"
     "test/TestRegistration.cpp"
+    "test/TestSemaphore.cpp"
     "test/TestStorage.cpp"
   )
 
