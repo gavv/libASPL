@@ -1,4 +1,7 @@
-#include <aspl/Tracer.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
+
+#include "aspl/Tracer.hpp"
 
 #include <gtest/gtest.h>
 
@@ -6,10 +9,10 @@
 
 namespace {
 
-class TestTracer : public aspl::Tracer
+class MockTracer : public aspl::Tracer
 {
 public:
-    TestTracer()
+    MockTracer()
         : aspl::Tracer(aspl::Tracer::Mode::Custom)
     {
     }

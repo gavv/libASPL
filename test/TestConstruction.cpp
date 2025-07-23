@@ -1,13 +1,18 @@
-#include <aspl/Device.hpp>
-#include <aspl/Plugin.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
 
-#include "TestTracer.hpp"
+#include "aspl/Device.hpp"
+#include "aspl/Plugin.hpp"
+
+#include "MockTracer.hpp"
 
 #include <gtest/gtest.h>
 
-struct ConstructionTest : ::testing::Test
+#include <memory>
+
+struct ConstructionTest : testing::Test
 {
-    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<MockTracer>();
     std::shared_ptr<aspl::Context> context = std::make_shared<aspl::Context>(tracer);
 };
 

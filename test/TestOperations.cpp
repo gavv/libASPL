@@ -1,11 +1,16 @@
-#include <aspl/Device.hpp>
-#include <aspl/Stream.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
+
+#include "aspl/Device.hpp"
+#include "aspl/Stream.hpp"
 
 #include "Compare.hpp"
-
-#include "TestTracer.hpp"
+#include "MockTracer.hpp"
 
 #include <gtest/gtest.h>
+
+#include <memory>
+#include <vector>
 
 namespace {
 
@@ -111,9 +116,9 @@ void ExpectVirtualRate(Float64 rate, std::shared_ptr<aspl::Stream> stream)
 
 } // anonymous namespace
 
-struct OperationsTest : ::testing::Test
+struct OperationsTest : testing::Test
 {
-    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<MockTracer>();
     std::shared_ptr<aspl::Context> context = std::make_shared<aspl::Context>(tracer);
 };
 

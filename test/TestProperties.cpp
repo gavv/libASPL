@@ -1,16 +1,19 @@
-#include <aspl/Compat.hpp>
-#include <aspl/Driver.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
+
+#include "aspl/Compat.hpp"
+#include "aspl/Driver.hpp"
 
 #include "Compare.hpp"
-
-#include "TestTracer.hpp"
+#include "MockTracer.hpp"
 
 #include <CoreAudio/AudioServerPlugIn.h>
 #include <CoreFoundation/CoreFoundation.h>
 
-#include <vector>
-
 #include <gtest/gtest.h>
+
+#include <string>
+#include <vector>
 
 namespace {
 
@@ -480,7 +483,7 @@ void ExpectVectorsEq(const Vector& a, const Vector& b)
 
 } // anonymous namespace
 
-struct PropertiesTest : ::testing::Test
+struct PropertiesTest : testing::Test
 {
     aspl::PluginParameters pluginParams;
     aspl::DeviceParameters devParams;
@@ -536,7 +539,7 @@ struct PropertiesTest : ::testing::Test
 
         muteControlParams.Scope = kAudioObjectPropertyScopeInput;
 
-        tracer = std::make_shared<TestTracer>();
+        tracer = std::make_shared<MockTracer>();
         context = std::make_shared<aspl::Context>(tracer);
 
         device = std::make_shared<TestDevice>(context, devParams);

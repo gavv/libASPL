@@ -1,6 +1,11 @@
-#include <aspl/Object.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
 
-#include "TestTracer.hpp"
+#include "aspl/Object.hpp"
+
+#include "MockTracer.hpp"
+
+#include <gtest/gtest.h>
 
 #include <algorithm>
 #include <deque>
@@ -8,13 +13,11 @@
 #include <set>
 #include <vector>
 
-#include <gtest/gtest.h>
-
-struct DispatcherTest : ::testing::Test
+struct DispatcherTest : testing::Test
 {
     static constexpr UInt32 TestHintMaxID = 50;
 
-    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<MockTracer>();
 
     std::shared_ptr<aspl::Dispatcher> dispatcher =
         std::make_shared<aspl::Dispatcher>(tracer, TestHintMaxID);

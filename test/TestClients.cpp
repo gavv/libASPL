@@ -1,15 +1,20 @@
-#include <aspl/Driver.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
 
-#include "TestTracer.hpp"
+#include "aspl/Driver.hpp"
+
+#include "MockTracer.hpp"
 
 #include <CoreAudio/AudioServerPlugIn.h>
 #include <CoreFoundation/CoreFoundation.h>
 
 #include <gtest/gtest.h>
 
-struct ClientsTest : ::testing::Test
+#include <memory>
+
+struct ClientsTest : testing::Test
 {
-    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<MockTracer>();
 
     std::shared_ptr<aspl::Context> context = std::make_shared<aspl::Context>(tracer);
 

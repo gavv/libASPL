@@ -1,12 +1,15 @@
-#include <aspl/DoubleBuffer.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
+
+#include "aspl/DoubleBuffer.hpp"
+
+#include <gtest/gtest.h>
 
 #include <atomic>
 #include <future>
 #include <optional>
 #include <random>
 #include <thread>
-
-#include <gtest/gtest.h>
 
 namespace {
 
@@ -24,7 +27,7 @@ void RandomDelay(float percent)
 
 } // anonymous namespace
 
-struct DoubleBufferTest : ::testing::Test
+struct DoubleBufferTest : testing::Test
 {
 };
 
@@ -124,7 +127,7 @@ TEST_F(DoubleBufferTest, Concurrent)
     writer.wait();
 }
 
-TEST_F(DoubleBufferTest, ConcurrentReadLock)
+TEST_F(DoubleBufferTest, Concurrent_ReadLock)
 {
     enum
     {
@@ -161,7 +164,7 @@ TEST_F(DoubleBufferTest, ConcurrentReadLock)
     writer.wait();
 }
 
-TEST_F(DoubleBufferTest, ConcurrentNonTrivial)
+TEST_F(DoubleBufferTest, Concurrent_NonTrivial)
 {
     enum
     {

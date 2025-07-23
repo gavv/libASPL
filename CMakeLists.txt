@@ -278,6 +278,7 @@ if(BUILD_TESTING)
   target_include_directories(${TEST_NAME} SYSTEM
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/test
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/googletest-src/googletest/include
     )
 

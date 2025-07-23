@@ -1,9 +1,11 @@
-#include <aspl/Context.hpp>
-#include <aspl/Storage.hpp>
+// Copyright (c) libASPL authors
+// Licensed under MIT
+
+#include "aspl/Context.hpp"
+#include "aspl/Storage.hpp"
 
 #include "Convert.hpp"
-
-#include "TestTracer.hpp"
+#include "MockTracer.hpp"
 
 #include <gtest/gtest.h>
 
@@ -92,11 +94,11 @@ void MockStorageClear()
 
 } // anonymous namespace
 
-struct StorageTest : ::testing::Test
+struct StorageTest : testing::Test
 {
     AudioServerPlugInHostInterface host = {};
 
-    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<TestTracer>();
+    std::shared_ptr<aspl::Tracer> tracer = std::make_shared<MockTracer>();
     std::shared_ptr<aspl::Context> context = std::make_shared<aspl::Context>(tracer);
     std::shared_ptr<aspl::Storage> storage = std::make_shared<aspl::Storage>(context);
 
@@ -346,7 +348,7 @@ TEST_F(StorageTest, EmptyKey)
     EXPECT_EQ("value", value);
 }
 
-TEST_F(StorageTest, ErrorNotFound)
+TEST_F(StorageTest, Error_NotFound)
 {
     {
         auto [value, ok] = storage->ReadString("key");
@@ -360,7 +362,7 @@ TEST_F(StorageTest, ErrorNotFound)
     }
 }
 
-TEST_F(StorageTest, ErrorWrongType)
+TEST_F(StorageTest, Error_WrongType)
 {
     ASSERT_TRUE(storage->WriteString("key", "123"));
 
@@ -369,7 +371,7 @@ TEST_F(StorageTest, ErrorWrongType)
     EXPECT_EQ(0, value);
 }
 
-TEST_F(StorageTest, ErrorNoHost)
+TEST_F(StorageTest, Error_NoHost)
 {
     context->Host = nullptr;
 
@@ -390,7 +392,7 @@ TEST_F(StorageTest, ErrorNoHost)
     }
 }
 
-TEST_F(StorageTest, ErrorBackendRead)
+TEST_F(StorageTest, Error_BackendRead)
 {
     {
         auto ok = storage->WriteString("key", "value");
@@ -412,7 +414,7 @@ TEST_F(StorageTest, ErrorBackendRead)
     }
 }
 
-TEST_F(StorageTest, ErrorBackendWrite)
+TEST_F(StorageTest, Error_BackendWrite)
 {
     {
         auto ok = storage->WriteString("key", "value");
@@ -427,7 +429,7 @@ TEST_F(StorageTest, ErrorBackendWrite)
     }
 }
 
-TEST_F(StorageTest, ErrorBackendDelete)
+TEST_F(StorageTest, Error_BackendDelete)
 {
     {
         auto ok = storage->WriteString("key", "value");
