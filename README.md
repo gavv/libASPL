@@ -640,6 +640,8 @@ You can find list of authors and contributors [here](AUTHORS.md). Feel free to s
 
 The library is licensed under [MIT](LICENSE).
 
-This library is mostly written from scratch, but is inspired by and borrows some pieces from "SimpleAudio" plugin from [Apple documentation](https://developer.apple.com/documentation/coreaudio/building_an_audio_server_plug-in_and_driver_extension) and "NullAudio" plugin from legacy documentation (`UserLandDriverReference` from Cocoa Samples, currently not available online).
+This library is mostly written from scratch, but is inspired by or borrows some pieces from some articles and SDK samples. The [NOTICE](NOTICE) file contains attributions and license information of incorporated sources:
 
-Original Apple plugin samples are licensed under ["MIT"](LICENSE.apple2020) and ["Apple MIT"](LICENSE.apple2012) licenses.
+- "SimpleAudio" plugin from Apple documentation (MIT License)
+- "NullAudio" plugin from legacy UserLandDriverReference Cocoa Sample (Apple MIT License)
+- CAS-based lock-free free list by Cameron Desrochers (Simplified BSD License)
