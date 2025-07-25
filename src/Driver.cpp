@@ -59,7 +59,12 @@ Driver::~Driver()
 
 std::shared_ptr<const Context> Driver::GetContext() const
 {
-    return plugin_->GetContext();
+    return context_;
+}
+
+std::shared_ptr<Context> Driver::GetMutableContext()
+{
+    return context_;
 }
 
 std::shared_ptr<Plugin> Driver::GetPlugin() const
@@ -84,7 +89,15 @@ AudioServerPlugInDriverRef Driver::GetReference()
 
 Driver* Driver::GetDriver(AudioServerPlugInDriverRef driverRef)
 {
+    if (!driverRef) {
+        return nullptr;
+    }
+
     AudioServerPlugInDriverInterface* driverInterface = *driverRef;
+
+    if (!driverInterface) {
+        return nullptr;
+    }
 
     return reinterpret_cast<Driver*>(
         reinterpret_cast<UInt8*>(driverInterface) - offsetof(Driver, driverInterface_));
@@ -100,8 +113,12 @@ void Driver::SetDriverHandler(DriverRequestHandler* handler)
     driverHandler_.WriteValue(handler);
 }
 
-OSStatus Driver::Initialize()
+OSStatus Driver::InitializeImpl(AudioServerPlugInHostRef hostRef)
 {
+    GetContext()->Tracer->Message("Driver::InitializeImpl() hostRef=%p", hostRef);
+
+    GetMutableContext()->Host = hostRef;
+
     const auto handlerVariant = driverHandler_.ReadValue();
     const auto handler = GetVariantPtr(handlerVariant);
 
@@ -113,15 +130,21 @@ OSStatus Driver::Initialize()
     return kAudioHardwareNoError;
 }
 
-OSStatus Driver::CreateDevice(CFDictionaryRef description,
+OSStatus Driver::CreateDeviceImpl(CFDictionaryRef description,
     const AudioServerPlugInClientInfo* clientInfo,
     AudioObjectID* outDeviceObjectID)
 {
+    GetContext()->Tracer->Message(
+        "Driver::CreateDeviceImpl() kAudioHardwareUnsupportedOperationError");
+
     return kAudioHardwareUnsupportedOperationError;
 }
 
-OSStatus Driver::DestroyDevice(AudioObjectID objectID)
+OSStatus Driver::DestroyDeviceImpl(AudioObjectID objectID)
 {
+    GetContext()->Tracer->Message(
+        "Driver::DestroyDeviceImpl() kAudioHardwareUnsupportedOperationError");
+
     return kAudioHardwareUnsupportedOperationError;
 }
 
@@ -158,6 +181,10 @@ ULONG Driver::AddRef(void* driverRef)
     const auto driver =
         Driver::GetDriver(reinterpret_cast<AudioServerPlugInDriverRef>(driverRef));
 
+    if (!driver) {
+        return 0;
+    }
+
     const auto counter = ++driver->refCounter_;
 
     driver->GetContext()->Tracer->Message(
@@ -171,6 +198,10 @@ ULONG Driver::Release(void* driverRef)
     const auto driver =
         Driver::GetDriver(reinterpret_cast<AudioServerPlugInDriverRef>(driverRef));
 
+    if (!driver) {
+        return 0;
+    }
+
     const auto counter = --driver->refCounter_;
 
     driver->GetContext()->Tracer->Message(
@@ -183,12 +214,33 @@ OSStatus Driver::InitializeJumper(AudioServerPlugInDriverRef driverRef,
     AudioServerPlugInHostRef hostRef)
 {
     const auto driver = Driver::GetDriver(driverRef);
+    if (!driver) {
+        return kAudioHardwareUnspecifiedError;
+    }
 
-    driver->GetContext()->Tracer->Message("Driver::Initialize()");
+    auto oldHost = driver->GetContext()->Host.load();
 
-    driver->context_->Host = hostRef;
+    const OSStatus status = driver->InitializeImpl(hostRef);
 
-    return driver->Initialize();
+    auto newHost = driver->GetContext()->Host.load();
+
+    // Some hints for troubleshooting initialization problems.
+    if (status == kAudioHardwareNoError) {
+        if (!newHost) {
+            // Probably badly implemented InitializeImpl().
+            driver->GetContext()->Tracer->Message(
+                "Driver::InitializeImpl() did not set Context::Host");
+        }
+        if (oldHost && oldHost != newHost) {
+            // Probably badly implemented plugin host.
+            driver->GetContext()->Tracer->Message(
+                "Driver::InitializeImpl() overwrote Context::Host from %p to %p",
+                oldHost,
+                newHost);
+        }
+    }
+
+    return status;
 }
 
 OSStatus Driver::CreateDeviceJumper(AudioServerPlugInDriverRef driverRef,
@@ -197,20 +249,22 @@ OSStatus Driver::CreateDeviceJumper(AudioServerPlugInDriverRef driverRef,
     AudioObjectID* outDeviceObjectID)
 {
     const auto driver = Driver::GetDriver(driverRef);
+    if (!driver) {
+        return kAudioHardwareUnspecifiedError;
+    }
 
-    driver->GetContext()->Tracer->Message("Driver::CreateDevice()");
-
-    return driver->CreateDevice(description, clientInfo, outDeviceObjectID);
+    return driver->CreateDeviceImpl(description, clientInfo, outDeviceObjectID);
 }
 
 OSStatus Driver::DestroyDeviceJumper(AudioServerPlugInDriverRef driverRef,
     AudioObjectID objectID)
 {
     const auto driver = Driver::GetDriver(driverRef);
+    if (!driver) {
+        return kAudioHardwareUnspecifiedError;
+    }
 
-    driver->GetContext()->Tracer->Message("Driver::DestroyDevice()");
-
-    return driver->DestroyDevice(objectID);
+    return driver->DestroyDeviceImpl(objectID);
 }
 
 } // namespace aspl

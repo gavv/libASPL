@@ -79,7 +79,7 @@ namespace aspl {
 //! errors for all requests, etc.
 //!
 //! The user can be notified when the initialization is done by providing custom
-//! DriverRequestHandler, or by inheriting Driver and overriding Initialize().
+//! DriverRequestHandler, or by inheriting Driver and overriding InitializeImpl().
 class Driver
 {
 public:
@@ -129,21 +129,26 @@ public:
     void SetDriverHandler(DriverRequestHandler* handler);
 
 protected:
+    //! Get mutable pointer to context.
+    //! Context contains data shared among all driver objects, so use with care.
+    std::shared_ptr<Context> GetMutableContext();
+
     //! Initialize driver.
-    //! Default implementation invokes DriverRequestHandler::OnInitialize().
+    //! Default implementation stores hostRef to Context and invokes
+    //! DriverRequestHandler::OnInitialize().
     //! Invoked when HAL asynchronously initializes driver, at some point after
     //! driver is loaded and created.
-    virtual OSStatus Initialize();
+    virtual OSStatus InitializeImpl(AudioServerPlugInHostRef hostRef);
 
     //! Create device.
     //! Default implementation returns kAudioHardwareUnsupportedOperationError.
-    virtual OSStatus CreateDevice(CFDictionaryRef description,
+    virtual OSStatus CreateDeviceImpl(CFDictionaryRef description,
         const AudioServerPlugInClientInfo* clientInfo,
         AudioObjectID* outDeviceObjectID);
 
     //! Destroy device.
     //! Default implementation returns kAudioHardwareUnsupportedOperationError.
-    virtual OSStatus DestroyDevice(AudioObjectID objectID);
+    virtual OSStatus DestroyDeviceImpl(AudioObjectID objectID);
 
 private:
     // COM methods
