@@ -383,6 +383,32 @@ auto storage = std::make_shared<aspl::Storage>(context);
 auto driver = std::make_shared<aspl::Driver>(context, plugin, storage);
 ```
 
+## Testing
+
+*TBD*
+
+### Virtual plugin host
+
+Features:
+
+- Event queue for property changes, device configuration requests, etc.
+- Optional virtual I/O timer to drive I/O requests in the same event loop
+- In-memory key-value storage for plugin
+- Single-threaded or multi-threaded use
+- Thread-safe and lock-free to allow real-time use
+
+Use cases:
+
+*TBD*
+
+### Virtual driver client
+
+*TBD*
+
+### Driver loader
+
+*TBD*
+
 ## Object model
 
 Typical AudioServer Plug-In consists of the following components:
