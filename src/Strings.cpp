@@ -3,6 +3,8 @@
 
 #include "Strings.hpp"
 
+#include <CoreFoundation/CFPlugInCOM.h>
+
 #include <sstream>
 
 namespace aspl {
@@ -20,6 +22,42 @@ std::string CodeToString(UInt32 value)
 #endif
 
     ss << " (0x" << std::hex << value << ")";
+
+    return ss.str();
+}
+
+std::string HresultToString(HRESULT hresult)
+{
+    std::stringstream ss;
+
+    switch (hresult) {
+    case S_OK:
+        ss << "S_OK";
+        break;
+    case E_NOINTERFACE:
+        ss << "E_NOINTERFACE";
+        break;
+    case E_POINTER:
+        ss << "E_POINTER";
+        break;
+    case E_INVALIDARG:
+        ss << "E_INVALIDARG";
+        break;
+    case E_OUTOFMEMORY:
+        ss << "E_OUTOFMEMORY";
+        break;
+    case E_UNEXPECTED:
+        ss << "E_UNEXPECTED";
+        break;
+    case E_FAIL:
+        ss << "E_FAIL";
+        break;
+    default:
+        ss << "<unknown error>";
+        break;
+    }
+
+    ss << " (0x" << std::hex << UInt32(hresult) << ")";
 
     return ss.str();
 }

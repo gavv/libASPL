@@ -4,6 +4,7 @@
 #pragma once
 
 #include <CoreAudio/AudioServerPlugIn.h>
+#include <CoreFoundation/CFPlugInCOM.h>
 
 #include <string>
 
@@ -22,5 +23,7 @@ std::string FormatIDToString(AudioFormatID formatID);
 std::string FormatFlagsToString(AudioFormatFlags formatFlags);
 
 std::string CodeToString(UInt32 value);
+
+std::string HresultToString(HRESULT hresult);
 
 } // namespace aspl
