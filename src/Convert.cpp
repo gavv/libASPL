@@ -118,7 +118,7 @@ bool Convert::FromFoundation(CFPropertyListRef value, std::vector<UInt8>& result
         return false;
     }
 
-    CFDataRef dataValue = (CFDataRef)value;
+    CFDataRef dataValue = reinterpret_cast<CFDataRef>(value);
 
     const UInt8* bytes = CFDataGetBytePtr(dataValue);
     size_t numBytes = CFDataGetLength(dataValue);
@@ -144,7 +144,7 @@ bool Convert::FromFoundation(CFPropertyListRef value, std::string& result)
         return false;
     }
 
-    CFStringRef stringValue = (CFStringRef)value;
+    CFStringRef stringValue = reinterpret_cast<CFStringRef>(value);
 
     return FromFoundation(stringValue, result);
 }
@@ -162,7 +162,7 @@ bool Convert::FromFoundation(CFPropertyListRef value, bool& result)
         return false;
     }
 
-    CFBooleanRef booleanValue = (CFBooleanRef)value;
+    CFBooleanRef booleanValue = reinterpret_cast<CFBooleanRef>(value);
 
     result = CFBooleanGetValue(booleanValue);
     return true;
@@ -179,7 +179,7 @@ bool Convert::FromFoundation(CFPropertyListRef value, SInt64& result)
         return false;
     }
 
-    CFNumberRef numberValue = (CFNumberRef)value;
+    CFNumberRef numberValue = reinterpret_cast<CFNumberRef>(value);
 
     if (!CFNumberGetValue(numberValue, kCFNumberSInt64Type, &result)) {
         result = 0;
@@ -200,7 +200,7 @@ bool Convert::FromFoundation(CFPropertyListRef value, Float64& result)
         return false;
     }
 
-    CFNumberRef numberValue = (CFNumberRef)value;
+    CFNumberRef numberValue = reinterpret_cast<CFNumberRef>(value);
 
     if (!CFNumberGetValue(numberValue, kCFNumberFloat64Type, &result)) {
         result = 0;

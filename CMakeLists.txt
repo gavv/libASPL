@@ -50,15 +50,36 @@ set(COMPILER_FLAGS "")
 set(LINKER_FLAGS "")
 
 list(APPEND COMPILER_FLAGS
+  # default
   "-Wall"
   "-Wextra"
+
+  # enable
+  "-Wformat-security"
+  "-Wformat=2"
+  "-Winit-self"
+  "-Wnon-virtual-dtor"
+  "-Wnull-dereference"
+  "-Wold-style-cast"
+  "-Woverlength-strings"
+  "-Woverloaded-virtual"
+  "-Wpointer-arith"
+  "-Wswitch-enum"
+  "-Wuninitialized"
+
+  # disable
   "-Wno-invalid-offsetof"
+  "-Wno-system-headers"
+  "-Wno-unused-but-set-variable"
   "-Wno-unused-const-variable"
+  "-Wno-unused-label"
   "-Wno-unused-parameter"
+  "-Wno-unused-variable"
 )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   list(APPEND COMPILER_FLAGS
+    "-Werror"
     "-ggdb"
     "-funwind-tables"
     "-fno-omit-frame-pointer"
@@ -70,11 +91,11 @@ option(ENABLE_SANITIZERS "enable clang sanitizer" OFF)
 if(ENABLE_SANITIZERS)
   list(APPEND COMPILER_FLAGS
     "-fsanitize=address"
-    )
+  )
 
   list(APPEND LINKER_FLAGS
     "-fsanitize=address"
-    )
+  )
 endif()
 
 string(REPLACE ";" " " COMPILER_FLAGS "${COMPILER_FLAGS}")

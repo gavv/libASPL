@@ -257,8 +257,6 @@ void Tracer::Print(const char* message)
 
 bool Tracer::ShouldIgnore(const Operation& operation)
 {
-    (void)operation;
-
     return false;
 }
 

@@ -46,7 +46,7 @@ TEST(ConvertTest, ToFrom_CFString)
     { // null input error
         std::string nullStringResult;
         EXPECT_FALSE(
-            aspl::Convert::FromFoundation((CFStringRef) nullptr, nullStringResult));
+            aspl::Convert::FromFoundation(CFStringRef(nullptr), nullStringResult));
     }
 }
 
@@ -68,7 +68,7 @@ TEST(ConvertTest, ToFrom_CFURL)
 
     { // null input error
         std::string nullResult;
-        EXPECT_FALSE(aspl::Convert::FromFoundation((CFURLRef) nullptr, nullResult));
+        EXPECT_FALSE(aspl::Convert::FromFoundation(CFURLRef(nullptr), nullResult));
     }
 }
 
