@@ -150,30 +150,39 @@ public:
 protected:
     //! Format operation begin message into string.
     //! Called by default implementation of OperationBegin().
-    virtual std::string FormatOperationBegin(const Operation& operation, UInt32 depth);
+    virtual void FormatOperationBeginImpl(char* buf,
+        size_t bufsz,
+        const Operation& operation,
+        UInt32 depth);
 
     //! Format message into string.
     //! Called by default implementation of Message().
-    virtual std::string FormatMessage(const char* message, UInt32 depth);
+    virtual void FormatMessageImpl(char* buf,
+        size_t bufsz,
+        const char* message,
+        UInt32 depth);
 
     //! Format operation end message into string.
     //! Called by default implementation of OperationEnd().
-    virtual std::string FormatOperationEnd(const Operation& operation,
+    virtual void FormatOperationEndImpl(char* buf,
+        size_t bufsz,
+        const Operation& operation,
         OSStatus status,
         UInt32 depth);
 
     //! Print message somewhere.
-    //! Default implementation sends message to syslog if mode is Mode::Syslog,
-    //! or does nothing if mode is Mode::Noop.
-    virtual void Print(const char* message);
+    //! Default implementation sends message to configure output (syslog, stderr).
+    virtual void PrintImpl(const char* message);
 
-    //! Check whether the operation should be excluded from tracing.
-    //! If this method returns true, the operation itself, as well as
+    //! Check whether the operation should be included into tracing.
+    //! If this method returns false, the operation itself, as well as
     //! all nested operations, are not printed.
-    //! Default implementation always returns false.
-    virtual bool ShouldIgnore(const Operation& operation);
+    //! Default implementation always returns true.
+    virtual bool FilterImpl(const Operation& operation);
 
 private:
+    static constexpr size_t MaxMessageLen = 1024;
+
     struct ThreadLocalState
     {
         UInt64 ThreadIndex = 0;
@@ -183,14 +192,15 @@ private:
 
         char BeginColor[16] = {0};
         char EndColor[8] = {0};
+
+        char MessageBuffer[MaxMessageLen] = {0};
+        char FormatBuffer[MaxMessageLen] = {0};
     };
 
     static void* CreateThreadLocalState(UInt32 style);
     static void DestroyThreadLocalState(void*);
 
     ThreadLocalState& GetThreadLocalState();
-
-    static constexpr size_t MaxMessageLen = 1024;
 
     const Output output_;
     const UInt32 style_;

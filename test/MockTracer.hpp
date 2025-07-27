@@ -23,10 +23,10 @@ public:
     }
 
 protected:
-    void Print(const char* message) override
+    void PrintImpl(const char* message) override
     {
         if (printEnabled_) {
-            Tracer::Print(message);
+            Tracer::PrintImpl(message);
         }
 
         // Detect unpaired operations errors reported by Tracer.

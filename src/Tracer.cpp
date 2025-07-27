@@ -26,6 +26,30 @@ enum
     DepthHardLimit = 1000,
 };
 
+void __attribute__((format(printf, 4, 5)))
+Appendf(char* buf, size_t bufsz, size_t* off, const char* format, ...)
+{
+    if (*off >= bufsz) {
+        return;
+    }
+
+    va_list args;
+    va_start(args, format);
+    size_t avail = bufsz - *off;
+    int written = vsnprintf(buf + *off, avail, format, args);
+    va_end(args);
+
+    if (written > 0) {
+        if (static_cast<size_t>(written) < avail) {
+            *off += static_cast<size_t>(written);
+        } else {
+            *off = bufsz - 1;
+        }
+    }
+
+    buf[*off] = '\0';
+}
+
 UInt64 GetThreadID()
 {
     UInt64 tid = 0;
@@ -41,19 +65,16 @@ UInt64 MakeThreadIndex()
     return threadCounter++;
 }
 
-void FormatThreadColor(UInt64 threadIndex, char* beginColor, char* endColor)
+UInt32 ChooseThreadColor(UInt64 threadIndex)
 {
     // clang-format off
-    static const unsigned colors[] = {
+    static const UInt32 colors[] = {
         39, 192, 49, 210, 27, 172, 46, 201, 99, 184,
         87, 213, 34, 230, 56, 154, 141, 37, 195, 147,
     };
     // clang-format on
 
-    unsigned colorCode = colors[threadIndex % std::size(colors)];
-
-    snprintf(beginColor, 16, "\033[38;5;%um", colorCode);
-    strcpy(endColor, "\033[0m");
+    return colors[threadIndex % std::size(colors)];
 }
 
 UInt32 DeduceDefaultStyle(Tracer::Output output)
@@ -88,7 +109,13 @@ void* Tracer::CreateThreadLocalState(UInt32 style)
     state->ThreadIndex = MakeThreadIndex();
 
     if (style & Style::Colored) {
-        FormatThreadColor(state->ThreadIndex, state->BeginColor, state->EndColor);
+        const auto color = ChooseThreadColor(state->ThreadIndex);
+
+        snprintf(state->BeginColor,
+            sizeof(state->BeginColor),
+            "\033[38;5;%um",
+            static_cast<unsigned>(color));
+        snprintf(state->EndColor, sizeof(state->EndColor), "\033[0m");
     }
 
     return state;
@@ -101,14 +128,14 @@ void Tracer::DestroyThreadLocalState(void* ptr)
 
 Tracer::ThreadLocalState& Tracer::GetThreadLocalState()
 {
-    void* ptr = pthread_getspecific(threadKey_);
+    void* state = pthread_getspecific(threadKey_);
 
-    if (!ptr) {
-        ptr = CreateThreadLocalState(style_);
-        pthread_setspecific(threadKey_, ptr);
+    if (!state) {
+        state = CreateThreadLocalState(style_);
+        pthread_setspecific(threadKey_, state);
     }
 
-    return *static_cast<ThreadLocalState*>(ptr);
+    return *static_cast<ThreadLocalState*>(state);
 }
 
 void Tracer::OperationBegin(const Operation& op)
@@ -122,7 +149,7 @@ void Tracer::OperationBegin(const Operation& op)
     if (threadState.DepthCounter < DepthHardLimit) {
         threadState.DepthCounter++;
     } else {
-        Print(
+        PrintImpl(
             "Tracer: detected unpaired OperationBegin/OperationEnd"
             " or infinite recursion");
     }
@@ -132,14 +159,17 @@ void Tracer::OperationBegin(const Operation& op)
         return;
     }
 
-    if (ShouldIgnore(op)) {
+    if (!FilterImpl(op)) {
         threadState.IgnoreCounter = threadState.DepthCounter;
         return;
     }
 
-    const auto str = FormatOperationBegin(op, threadState.DepthCounter);
+    FormatOperationBeginImpl(threadState.FormatBuffer,
+        sizeof(threadState.FormatBuffer),
+        op,
+        threadState.DepthCounter);
 
-    Print(str.c_str());
+    PrintImpl(threadState.FormatBuffer);
 }
 
 void Tracer::Message(const char* format, ...)
@@ -155,16 +185,17 @@ void Tracer::Message(const char* format, ...)
         return;
     }
 
-    char message[MaxMessageLen] = {};
-
     va_list args;
     va_start(args, format);
-    vsnprintf(message, sizeof(message), format, args);
+    vsnprintf(threadState.MessageBuffer, sizeof(threadState.MessageBuffer), format, args);
     va_end(args);
 
-    const auto str = FormatMessage(message, threadState.DepthCounter);
+    FormatMessageImpl(threadState.FormatBuffer,
+        sizeof(threadState.FormatBuffer),
+        threadState.MessageBuffer,
+        threadState.DepthCounter);
 
-    Print(str.c_str());
+    PrintImpl(threadState.FormatBuffer);
 }
 
 void Tracer::OperationEnd(const Operation& op, OSStatus status)
@@ -184,130 +215,143 @@ void Tracer::OperationEnd(const Operation& op, OSStatus status)
         return;
     }
 
-    const auto str = FormatOperationEnd(op, status, threadState.DepthCounter);
+    FormatOperationEndImpl(threadState.FormatBuffer,
+        sizeof(threadState.FormatBuffer),
+        op,
+        status,
+        threadState.DepthCounter);
 
-    Print(str.c_str());
+    PrintImpl(threadState.FormatBuffer);
 
     if (threadState.DepthCounter != 0) {
         threadState.DepthCounter--;
     } else {
-        Print("Tracer: detected unpaired OperationBegin/OperationEnd");
+        PrintImpl("Tracer: detected unpaired OperationBegin/OperationEnd");
     }
 }
 
-std::string Tracer::FormatOperationBegin(const Operation& op, UInt32 depth)
+void Tracer::FormatOperationBeginImpl(char* buf,
+    size_t bufsz,
+    const Operation& op,
+    UInt32 depth)
 {
     if (depth > DepthSoftLimit) {
         depth = DepthSoftLimit;
     }
 
-    std::ostringstream ss;
+    auto& threadState = GetThreadLocalState();
+    auto threadID = GetThreadID();
 
-    const auto& threadState = GetThreadLocalState();
-    const auto threadID = GetThreadID();
+    size_t off = 0;
 
-    ss << threadState.BeginColor << "T" << threadID << " ";
+    Appendf(buf, bufsz, &off, "%sT%llu ", threadState.BeginColor, threadID);
 
     if (style_ & Style::Hierarchical) {
-        ss << "|";
+        Appendf(buf, bufsz, &off, "|");
         for (UInt32 i = 0; i < depth; i++) {
-            ss << "-";
+            Appendf(buf, bufsz, &off, "-");
         }
-        ss << " ";
+        Appendf(buf, bufsz, &off, " ");
     }
 
-    ss << threadState.EndColor;
+    Appendf(buf, bufsz, &off, "%s", threadState.EndColor);
 
-    ss << op.Name << " begin";
+    Appendf(buf, bufsz, &off, "%s begin", op.Name);
 
     if (op.PropertyAddress) {
-        ss << " " << PropertySelectorToString(op.PropertyAddress->mSelector);
+        Appendf(buf,
+            bufsz,
+            &off,
+            " %s",
+            PropertySelectorToString(op.PropertyAddress->mSelector).c_str());
     }
 
     if (op.ClientPID != 0) {
-        ss << " clientPID=" << op.ClientPID;
+        Appendf(buf, bufsz, &off, " clientPID=%d", op.ClientPID);
     }
 
-    ss << " objectID=" << op.ObjectID;
+    Appendf(buf, bufsz, &off, " objectID=%u", op.ObjectID);
 
     if (op.PropertyAddress) {
-        ss << " scope=" << PropertyScopeToString(op.PropertyAddress->mScope);
+        Appendf(buf,
+            bufsz,
+            &off,
+            " scope=%s",
+            PropertyScopeToString(op.PropertyAddress->mScope).c_str());
     }
 
     if (op.InDataSize != 0 || op.InData != nullptr) {
-        ss << " inSize=" << op.InDataSize;
+        Appendf(buf, bufsz, &off, " inSize=%u", op.InDataSize);
     }
 
     if (op.QualifierDataSize != 0 || op.QualifierData != nullptr) {
-        ss << " qualSize=" << op.QualifierDataSize;
+        Appendf(buf, bufsz, &off, " qualSize=%u", op.QualifierDataSize);
     }
-
-    return ss.str();
 }
 
-std::string Tracer::FormatMessage(const char* message, UInt32 depth)
+void Tracer::FormatMessageImpl(char* buf, size_t bufsz, const char* message, UInt32 depth)
 {
     if (depth > DepthSoftLimit) {
         depth = DepthSoftLimit;
     }
 
-    std::ostringstream ss;
+    auto& threadState = GetThreadLocalState();
+    auto threadID = GetThreadID();
 
-    const auto& threadState = GetThreadLocalState();
-    const auto threadID = GetThreadID();
+    size_t off = 0;
 
-    ss << threadState.BeginColor << "T" << threadID << " ";
+    Appendf(buf, bufsz, &off, "%sT%llu ", threadState.BeginColor, threadID);
 
     if (style_ & Style::Hierarchical) {
-        ss << "|";
+        Appendf(buf, bufsz, &off, "|");
         for (UInt32 i = 0; i <= depth; i++) {
-            ss << "-";
+            Appendf(buf, bufsz, &off, "-");
         }
-        ss << " ";
+        Appendf(buf, bufsz, &off, " ");
     }
 
-    ss << threadState.EndColor;
+    Appendf(buf, bufsz, &off, "%s", threadState.EndColor);
 
-    ss << message;
-
-    return ss.str();
+    Appendf(buf, bufsz, &off, "%s", message);
 }
 
-std::string Tracer::FormatOperationEnd(const Operation& op, OSStatus status, UInt32 depth)
+void Tracer::FormatOperationEndImpl(char* buf,
+    size_t bufsz,
+    const Operation& op,
+    OSStatus status,
+    UInt32 depth)
 {
     if (depth > DepthSoftLimit) {
         depth = DepthSoftLimit;
     }
 
-    std::ostringstream ss;
+    auto& threadState = GetThreadLocalState();
+    auto threadID = GetThreadID();
 
-    const auto& threadState = GetThreadLocalState();
-    const auto threadID = GetThreadID();
+    size_t off = 0;
 
-    ss << threadState.BeginColor << "T" << threadID << " ";
+    Appendf(buf, bufsz, &off, "%sT%llu ", threadState.BeginColor, threadID);
 
     if (style_ & Style::Hierarchical) {
-        ss << "|";
+        Appendf(buf, bufsz, &off, "|");
         for (UInt32 i = 0; i < depth; i++) {
-            ss << "-";
+            Appendf(buf, bufsz, &off, "-");
         }
-        ss << " ";
+        Appendf(buf, bufsz, &off, " ");
     }
 
-    ss << threadState.EndColor;
+    Appendf(buf, bufsz, &off, "%s", threadState.EndColor);
 
-    ss << op.Name << " end";
+    Appendf(buf, bufsz, &off, "%s end", op.Name);
 
-    ss << " status=" << StatusToString(status);
+    Appendf(buf, bufsz, &off, " status=%s", StatusToString(status).c_str());
 
     if (status == kAudioHardwareNoError && op.OutDataSize != nullptr) {
-        ss << " outSize=" << *op.OutDataSize;
+        Appendf(buf, bufsz, &off, " outSize=%u", *op.OutDataSize);
     }
-
-    return ss.str();
 }
 
-void Tracer::Print(const char* message)
+void Tracer::PrintImpl(const char* message)
 {
     switch (output_) {
     case Output::Null:
@@ -326,9 +370,9 @@ void Tracer::Print(const char* message)
     }
 }
 
-bool Tracer::ShouldIgnore(const Operation& operation)
+bool Tracer::FilterImpl(const Operation& operation)
 {
-    return false;
+    return true;
 }
 
 } // namespace aspl
