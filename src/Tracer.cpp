@@ -5,9 +5,13 @@
 
 #include "Strings.hpp"
 
+#include <atomic>
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
+#include <functional>
 #include <sstream>
+#include <vector>
 
 #include <pthread.h>
 #include <syslog.h>
@@ -22,26 +26,72 @@ enum
     DepthHardLimit = 1000,
 };
 
-unsigned long GetThreadID()
+UInt64 GetThreadID()
 {
     UInt64 tid = 0;
     pthread_threadid_np(nullptr, &tid);
 
-    return static_cast<unsigned long>(tid);
+    return tid;
+}
+
+UInt64 MakeThreadIndex()
+{
+    static std::atomic<UInt64> threadCounter = 0;
+
+    return threadCounter++;
+}
+
+void FormatThreadColor(UInt64 threadIndex, char* beginColor, char* endColor)
+{
+    // clang-format off
+    static const unsigned colors[] = {
+        39, 192, 49, 210, 27, 172, 46, 201, 99, 184,
+        87, 213, 34, 230, 56, 154, 141, 37, 195, 147,
+    };
+    // clang-format on
+
+    unsigned colorCode = colors[threadIndex % std::size(colors)];
+
+    snprintf(beginColor, 16, "\033[38;5;%um", colorCode);
+    strcpy(endColor, "\033[0m");
+}
+
+UInt32 DeduceDefaultStyle(Tracer::Output output)
+{
+    UInt32 style = Tracer::Style::Hierarchical;
+
+    if (output == Tracer::Output::Stderr && isatty(STDERR_FILENO)) {
+        style |= Tracer::Style::Colored;
+    }
+
+    return style;
 }
 
 } // namespace
 
-Tracer::Tracer(Mode mode, Style style)
-    : mode_(mode)
+Tracer::Tracer(Output output)
+    : Tracer(output, DeduceDefaultStyle(output))
+{
+}
+
+Tracer::Tracer(Output output, UInt32 style)
+    : output_(output)
     , style_(style)
 {
     pthread_key_create(&threadKey_, DestroyThreadLocalState);
 }
 
-void* Tracer::CreateThreadLocalState()
+void* Tracer::CreateThreadLocalState(UInt32 style)
 {
-    return new ThreadLocalState;
+    auto* state = new ThreadLocalState();
+
+    state->ThreadIndex = MakeThreadIndex();
+
+    if (style & Style::Colored) {
+        FormatThreadColor(state->ThreadIndex, state->BeginColor, state->EndColor);
+    }
+
+    return state;
 }
 
 void Tracer::DestroyThreadLocalState(void* ptr)
@@ -54,7 +104,7 @@ Tracer::ThreadLocalState& Tracer::GetThreadLocalState()
     void* ptr = pthread_getspecific(threadKey_);
 
     if (!ptr) {
-        ptr = CreateThreadLocalState();
+        ptr = CreateThreadLocalState(style_);
         pthread_setspecific(threadKey_, ptr);
     }
 
@@ -63,7 +113,7 @@ Tracer::ThreadLocalState& Tracer::GetThreadLocalState()
 
 void Tracer::OperationBegin(const Operation& op)
 {
-    if (mode_ == Mode::Noop) {
+    if (output_ == Output::Null) {
         return;
     }
 
@@ -94,7 +144,7 @@ void Tracer::OperationBegin(const Operation& op)
 
 void Tracer::Message(const char* format, ...)
 {
-    if (mode_ == Mode::Noop) {
+    if (output_ == Output::Null) {
         return;
     }
 
@@ -119,7 +169,7 @@ void Tracer::Message(const char* format, ...)
 
 void Tracer::OperationEnd(const Operation& op, OSStatus status)
 {
-    if (mode_ == Mode::Noop) {
+    if (output_ == Output::Null) {
         return;
     }
 
@@ -153,13 +203,20 @@ std::string Tracer::FormatOperationBegin(const Operation& op, UInt32 depth)
 
     std::ostringstream ss;
 
-    if (style_ == Style::Hierarchical) {
+    const auto& threadState = GetThreadLocalState();
+    const auto threadID = GetThreadID();
+
+    ss << threadState.BeginColor << "T" << threadID << " ";
+
+    if (style_ & Style::Hierarchical) {
         ss << "|";
         for (UInt32 i = 0; i < depth; i++) {
             ss << "-";
         }
         ss << " ";
     }
+
+    ss << threadState.EndColor;
 
     ss << op.Name << " begin";
 
@@ -196,13 +253,20 @@ std::string Tracer::FormatMessage(const char* message, UInt32 depth)
 
     std::ostringstream ss;
 
-    if (style_ == Style::Hierarchical) {
+    const auto& threadState = GetThreadLocalState();
+    const auto threadID = GetThreadID();
+
+    ss << threadState.BeginColor << "T" << threadID << " ";
+
+    if (style_ & Style::Hierarchical) {
         ss << "|";
         for (UInt32 i = 0; i <= depth; i++) {
             ss << "-";
         }
         ss << " ";
     }
+
+    ss << threadState.EndColor;
 
     ss << message;
 
@@ -217,13 +281,20 @@ std::string Tracer::FormatOperationEnd(const Operation& op, OSStatus status, UIn
 
     std::ostringstream ss;
 
-    if (style_ == Style::Hierarchical) {
+    const auto& threadState = GetThreadLocalState();
+    const auto threadID = GetThreadID();
+
+    ss << threadState.BeginColor << "T" << threadID << " ";
+
+    if (style_ & Style::Hierarchical) {
         ss << "|";
         for (UInt32 i = 0; i < depth; i++) {
             ss << "-";
         }
         ss << " ";
     }
+
+    ss << threadState.EndColor;
 
     ss << op.Name << " end";
 
@@ -238,19 +309,19 @@ std::string Tracer::FormatOperationEnd(const Operation& op, OSStatus status, UIn
 
 void Tracer::Print(const char* message)
 {
-    switch (mode_) {
-    case Mode::Noop:
+    switch (output_) {
+    case Output::Null:
         return;
 
-    case Mode::Stderr:
+    case Output::Stderr:
         fprintf(stderr, "[aspl] %s\n", message);
         return;
 
-    case Mode::Syslog:
-        syslog(LOG_NOTICE, "[aspl] [tid:%lu] %s", GetThreadID(), message);
+    case Output::Syslog:
+        syslog(LOG_NOTICE, "[aspl] %s", message);
         return;
 
-    case Mode::Custom:
+    case Output::Custom:
         return;
     }
 }

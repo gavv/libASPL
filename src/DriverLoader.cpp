@@ -210,7 +210,8 @@ std::string MakeSharedLibField(const std::string& bundlePath,
 
 DriverLoader::DriverLoader(std::shared_ptr<Tracer> tracer,
     const DriverLoaderParameters& params)
-    : tracer_(tracer ? std::move(tracer) : std::make_shared<Tracer>(Tracer::Mode::Stderr))
+    : tracer_(
+          tracer ? std::move(tracer) : std::make_shared<Tracer>(Tracer::Output::Stderr))
     , params_(params)
 {
 }

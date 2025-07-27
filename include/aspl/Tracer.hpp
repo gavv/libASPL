@@ -34,34 +34,32 @@ namespace aspl {
 class Tracer
 {
 public:
-    //! Tracing mode.
-    enum class Mode
+    //! Tracer output.
+    enum class Output
     {
         //! No operation.
-        //! Don't perform any tracing.
-        Noop,
-
+        //! Ignore all messages with minimal overhead.
+        Null,
         //! Standard error stream.
-        //! Send all messages to stderr.
+        //! Print all messages to stderr.
         Stderr,
-
         //! System log.
         //! Send all messages to syslog().
         Syslog,
-
         //! Custom mode.
         //! Use if derived class does something different.
         Custom,
     };
 
-    //! Tracing style.
-    enum class Style
+    //! Tracing style flags.
+    struct Style
     {
+        //! No styling.
+        static constexpr UInt32 None = 0;
         //! Indent nested operations.
-        Hierarchical,
-
-        //! No indentation.
-        Flat,
+        static constexpr UInt32 Hierarchical = (1 << 0);
+        //! Enable ANSI colors.
+        static constexpr UInt32 Colored = (1 << 1);
     };
 
     //! Operation flags.
@@ -69,7 +67,6 @@ public:
     {
         //! This operation is read-only, i.e. doesn't change object state.
         static constexpr UInt32 Readonly = (1 << 0);
-
         //! This operation is intended to be called on real-time thread on hot path.
         //! Such operations are traced only if the user enabled the option
         //! DeviceParameters::EnableRealtimeTracing
@@ -121,9 +118,16 @@ public:
     };
 
     //! Initialize tracer.
-    //! Mode defines where to send messages.
+    //! Output defines where to send messages.
+    //! Style is selected automatically:
+    //!  - for Output::Stderr, if stderr isatty(), uses Style::Hierarchical|Style::Colored
+    //!  - otherwise uses Style::Hierarchical
+    explicit Tracer(Output output = Output::Syslog);
+
+    //! Initialize tracer.
+    //! Output defines where to send messages.
     //! Style defines how to format messages.
-    explicit Tracer(Mode mode = Mode::Syslog, Style style = Style::Hierarchical);
+    Tracer(Output output, UInt32 style);
 
     Tracer(const Tracer&) = delete;
     Tracer& operator=(const Tracer&) = delete;
@@ -172,19 +176,24 @@ protected:
 private:
     struct ThreadLocalState
     {
+        UInt64 ThreadIndex = 0;
+
         UInt32 DepthCounter = 0;
         UInt32 IgnoreCounter = 0;
+
+        char BeginColor[16] = {0};
+        char EndColor[8] = {0};
     };
 
-    static void* CreateThreadLocalState();
+    static void* CreateThreadLocalState(UInt32 style);
     static void DestroyThreadLocalState(void*);
 
     ThreadLocalState& GetThreadLocalState();
 
     static constexpr size_t MaxMessageLen = 1024;
 
-    const Mode mode_;
-    const Style style_;
+    const Output output_;
+    const UInt32 style_;
 
     pthread_key_t threadKey_;
 };

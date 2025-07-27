@@ -15,18 +15,18 @@ class MockTracer : public aspl::Tracer
 {
 public:
     MockTracer()
-        : aspl::Tracer(Mode::Custom, Style::Hierarchical)
+        : aspl::Tracer(Output::Stderr)
     {
         if (const char* traceEnv = getenv("ASPL_TRACE")) {
-            consoleEnabled_ = strcmp(traceEnv, "1") == 0;
+            printEnabled_ = strcmp(traceEnv, "1") == 0;
         }
     }
 
 protected:
     void Print(const char* message) override
     {
-        if (consoleEnabled_) {
-            fprintf(stderr, "%s\n", message);
+        if (printEnabled_) {
+            Tracer::Print(message);
         }
 
         // Detect unpaired operations errors reported by Tracer.
@@ -36,7 +36,7 @@ protected:
     }
 
 private:
-    bool consoleEnabled_ = false;
+    bool printEnabled_ = false;
 };
 
 } // anonymous namespace

@@ -15,7 +15,8 @@ namespace aspl {
 VirtualHost::VirtualHost(std::shared_ptr<Tracer> tracer,
     const VirtualHostParameters& params)
     : params_(params)
-    , tracer_(tracer ? std::move(tracer) : std::make_shared<Tracer>(Tracer::Mode::Stderr))
+    , tracer_(
+          tracer ? std::move(tracer) : std::make_shared<Tracer>(Tracer::Output::Stderr))
 {
     hostInterface_.PropertiesChanged = PropertiesChangedJumper;
     hostInterface_.RequestDeviceConfigurationChange =
