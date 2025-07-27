@@ -219,7 +219,7 @@ public:
                    : std::function<void(ValueType)>{});
     }
 
-    //! Register custom property with getter and optional setter.
+    //! Register custom read-only property with getter.
     //!
     //! This overload is for read-only properties (without setter).
     //!
