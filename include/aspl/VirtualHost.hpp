@@ -488,10 +488,10 @@ protected:
     //! Called from WaitEvent() every time before sleep.
     //!
     //! @remarks
-    //!  - @p safetyZone is true if WaitEvent() wait for safety zone end.
+    //!  - @p inSafetyZone is true if WaitEvent() is waiting for safety zone end.
     //!  - @p wakeupTime specifies when WaitEvent() plan to wake up.
     void TraceTickImpl(const VirtualEventInfo::IOTimerTickInfo& tickInfo,
-        bool safetyZone,
+        bool inSafetyZone,
         const std::chrono::steady_clock::time_point& currentTime,
         const std::chrono::steady_clock::time_point& wakeupTime);
 

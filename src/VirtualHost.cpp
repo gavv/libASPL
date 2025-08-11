@@ -519,7 +519,7 @@ bool VirtualHost::DoNextTickImpl(chrono::steady_clock::time_point currentTime,
 }
 
 void VirtualHost::TraceTickImpl(const VirtualEventInfo::IOTimerTickInfo& tickInfo,
-    bool safetyZone,
+    bool inSafetyZone,
     const chrono::steady_clock::time_point& currentTime,
     const chrono::steady_clock::time_point& wakeupTime)
 {
@@ -529,13 +529,13 @@ void VirtualHost::TraceTickImpl(const VirtualEventInfo::IOTimerTickInfo& tickInf
 
     tracer_->Message(
         "VirtualHost::TraceTickImpl()"
-        " nextTick=%lld nextTickTime=%+.3fms wakeupTime=%+.3fms safetyZone=%s",
+        " nextTick=%lld nextTickTime=%+.3fms wakeupTime=%+.3fms inSafetyZone=%s",
         static_cast<long long>(tickInfo.Number),
         chrono::duration_cast<chrono::nanoseconds>(tickInfo.Time - currentTime).count() /
             1e6,
         chrono::duration_cast<chrono::nanoseconds>(wakeupTime - currentTime).count() /
             1e6,
-        safetyZone ? "true" : "false");
+        inSafetyZone ? "true" : "false");
 }
 
 std::shared_ptr<VirtualEventInfo> VirtualHost::GenerateTickEvent(

@@ -645,7 +645,6 @@ OSStatus DriverAdapter::WriteClientOutput(AudioObjectID deviceObjectID,
         kAudioServerPlugInIOOperationMixOutput,
         ioCycle.BatchFrameCount,
         &ioCycleInfo);
-
     if (status != kAudioHardwareNoError) {
         goto end;
     }

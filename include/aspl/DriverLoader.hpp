@@ -244,7 +244,7 @@ public:
         //!  Driver's reference counter is 1 upon initialization ans is expected to remain
         //!  so upon destruction. If you call driver's AddRef() manually, be sure to call
         //!  Release() before destroying Handle. Otherwise, driver deinitialization
-        //!  won't be trigerred, but driver's library will be unloaded anyway.
+        //!  won't be triggered, but driver's library will be unloaded anyway.
         ~Handle();
 
         //! Get driver reference.
