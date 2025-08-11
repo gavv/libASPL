@@ -23,16 +23,15 @@ public:
     }
 
 protected:
-    void PrintImpl(const char* message) override
+    void PrintImpl(Category category, const char* message) override
     {
         if (printEnabled_) {
-            Tracer::PrintImpl(message);
+            // Actually print only if enabled via env.
+            Tracer::PrintImpl(category, message);
         }
 
-        // Detect unpaired operations errors reported by Tracer.
-        if (strstr(message, "Tracer")) {
-            FAIL() << message;
-        }
+        // Fail test on bug.
+        ASSERT_FALSE(category == Category::Alert);
     }
 
 private:

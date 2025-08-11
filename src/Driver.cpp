@@ -6,9 +6,16 @@
 #include "Bridge.hpp"
 #include "Variant.hpp"
 
-#include <cstddef>
+#include <stddef.h>
+#include <syslog.h>
 
 namespace aspl {
+
+namespace {
+
+static constexpr UInt64 MagicCookie = 0xDECAFC0FFEEBAD11ull;
+
+} // namespace
 
 Driver::Driver(std::shared_ptr<Context> context,
     std::shared_ptr<Plugin> plugin,
@@ -18,6 +25,8 @@ Driver::Driver(std::shared_ptr<Context> context,
     , storage_(storage ? std::move(storage) : std::make_shared<Storage>(context_))
 {
     GetContext()->Tracer->Message("Driver::Driver()");
+
+    cookie_ = MagicCookie;
 
     driverInterfacePointer_ = &driverInterface_;
     driverInterface_ = {
@@ -55,6 +64,8 @@ Driver::Driver(std::shared_ptr<Context> context,
 Driver::~Driver()
 {
     GetContext()->Tracer->Message("Driver::~Driver()");
+
+    cookie_ = 0;
 }
 
 std::shared_ptr<const Context> Driver::GetContext() const
@@ -99,8 +110,15 @@ Driver* Driver::GetDriver(AudioServerPlugInDriverRef driverRef)
         return nullptr;
     }
 
-    return reinterpret_cast<Driver*>(
+    Driver* driver = reinterpret_cast<Driver*>(
         reinterpret_cast<UInt8*>(driverInterface) - offsetof(Driver, driverInterface_));
+
+    if (driver->cookie_ != MagicCookie) {
+        Tracer::UnboundBug("Driver: Attempt to dereference invalid or deleted driver");
+        return nullptr;
+    }
+
+    return driver;
 }
 
 void Driver::SetDriverHandler(std::shared_ptr<DriverRequestHandler> handler)
@@ -206,6 +224,10 @@ ULONG Driver::Release(void* driverRef)
 
     driver->GetContext()->Tracer->Message(
         "Driver::Release() refCounter=%lu", static_cast<unsigned long>(counter));
+
+    if (static_cast<long>(counter) < 0) {
+        driver->GetContext()->Tracer->Bug("Driver: Unpaired AddRef/Release");
+    }
 
     return counter;
 }

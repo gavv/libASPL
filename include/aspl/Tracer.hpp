@@ -24,13 +24,13 @@ namespace aspl {
 //! are automatically indented.
 //!
 //! If you want to change formatting, you can use one of the predefined
-//! styles or override FormatXXX() methods.
+//! styles or override FormatXxxImpl() methods.
 //!
 //! If you want to change tracer output, you can use one of the predefined
-//! modes or override Print() method.
+//! modes or override PrintImpl().
 //!
 //! If you want to exclude some operations from trace, you can override
-//! ShouldIgnore() method.
+//! FilterImpl() method.
 class Tracer
 {
 public:
@@ -48,6 +48,8 @@ public:
         Syslog,
         //! Custom mode.
         //! Use if derived class does something different.
+        //! @remarks
+        //!  If you're using this, it is expected that you override PrintImpl().
         Custom,
     };
 
@@ -66,11 +68,25 @@ public:
     struct Flags
     {
         //! This operation is read-only, i.e. doesn't change object state.
+        //! Such operations are traced by default, but you can filter them out by
+        //! overriding FilterImpl().
         static constexpr UInt32 Readonly = (1 << 0);
+
         //! This operation is intended to be called on real-time thread on hot path.
-        //! Such operations are traced only if the user enabled the option
-        //! DeviceParameters::EnableRealtimeTracing
+        //! Such operations are traced only if the user enabled it via options
+        //! like DeviceParameters::EnableRealtimeTracing.
         static constexpr UInt32 Realtime = (1 << 1);
+    };
+
+    //! Trace message category.
+    enum class Category
+    {
+        //! Usual tracing messages.
+        //! Used for most messages.
+        Trace,
+        //! Unrecoverable failures.
+        //! Used for messages produced by Bug().
+        Alert,
     };
 
     //! Operation info.
@@ -135,17 +151,26 @@ public:
     virtual ~Tracer() = default;
 
     //! Called when an operations starts.
-    //! Default implementation formats arguments and calls Print().
+    //! Default implementation formats arguments and calls PrintImpl().
     virtual void OperationBegin(const Operation& operation);
 
     //! Called to print message to log.
-    //! Default implementation formats arguments and calls Print().
+    //! Default implementation formats arguments and calls PrintImpl().
     virtual void Message(const char* format, ...) __attribute__((format(printf, 2, 3)));
 
     //! Called when an operations completes.
     //! Zero status indicates operation success.
-    //! Default implementation formats arguments and calls Print().
+    //! Default implementation formats arguments and calls PrintImpl().
     virtual void OperationEnd(const Operation& operation, OSStatus status);
+
+    //! Called to report bugs detected at runtime.
+    //! Usually indicates serious unrecoverable problem like memory corruption.
+    //! Default implementation formats arguments and calls PrintImpl().
+    virtual void Bug(const char* format, ...) __attribute__((format(printf, 2, 3)));
+
+    //! Similar to Bug(), but called when there is no usable Tracer instance.
+    //! Prints message to syslog().
+    static void UnboundBug(const char* format, ...) __attribute__((format(printf, 1, 2)));
 
 protected:
     //! Format operation begin message into string.
@@ -170,9 +195,16 @@ protected:
         OSStatus status,
         UInt32 depth);
 
+    //! Format bug report into string.
+    //! Called by default implementation of Bug().
+    virtual void FormatBugReportImpl(char* buf,
+        size_t bufsz,
+        const char* message,
+        UInt32 depth);
+
     //! Print message somewhere.
-    //! Default implementation sends message to configure output (syslog, stderr).
-    virtual void PrintImpl(const char* message);
+    //! Default implementation sends message to configured output (syslog, stderr).
+    virtual void PrintImpl(Category category, const char* message);
 
     //! Check whether the operation should be included into tracing.
     //! If this method returns false, the operation itself, as well as
@@ -182,20 +214,7 @@ protected:
 
 private:
     static constexpr size_t MaxMessageLen = 1024;
-
-    struct ThreadLocalState
-    {
-        UInt64 ThreadIndex = 0;
-
-        UInt32 DepthCounter = 0;
-        UInt32 IgnoreCounter = 0;
-
-        char BeginColor[16] = {0};
-        char EndColor[8] = {0};
-
-        char MessageBuffer[MaxMessageLen] = {0};
-        char FormatBuffer[MaxMessageLen] = {0};
-    };
+    struct ThreadLocalState;
 
     static void* CreateThreadLocalState(UInt32 style);
     static void DestroyThreadLocalState(void*);

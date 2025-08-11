@@ -68,6 +68,7 @@ list(APPEND COMPILER_FLAGS
   "-Wuninitialized"
 
   # disable
+  "-Wno-format-nonliteral"
   "-Wno-invalid-offsetof"
   "-Wno-system-headers"
   "-Wno-unused-but-set-variable"

@@ -26,18 +26,14 @@ enum
     DepthHardLimit = 1000,
 };
 
-void __attribute__((format(printf, 4, 5)))
-Appendf(char* buf, size_t bufsz, size_t* off, const char* format, ...)
+void Appendv(char* buf, size_t bufsz, size_t* off, const char* format, va_list args)
 {
     if (*off >= bufsz) {
         return;
     }
 
-    va_list args;
-    va_start(args, format);
     size_t avail = bufsz - *off;
     int written = vsnprintf(buf + *off, avail, format, args);
-    va_end(args);
 
     if (written > 0) {
         if (static_cast<size_t>(written) < avail) {
@@ -48,6 +44,15 @@ Appendf(char* buf, size_t bufsz, size_t* off, const char* format, ...)
     }
 
     buf[*off] = '\0';
+}
+
+void __attribute__((format(printf, 4, 5)))
+Appendf(char* buf, size_t bufsz, size_t* off, const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    Appendv(buf, bufsz, off, format, args);
+    va_end(args);
 }
 
 UInt64 GetThreadID()
@@ -90,6 +95,21 @@ UInt32 DeduceDefaultStyle(Tracer::Output output)
 
 } // namespace
 
+struct Tracer::ThreadLocalState
+{
+    UInt64 ThreadIndex = 0;
+
+    UInt32 DepthCounter = 0;
+    UInt32 IgnoreCounter = 0;
+
+    char MsgColor[16] = {0};
+    char BugColor[16] = {0};
+    char EndColor[8] = {0};
+
+    char MessageBuffer[MaxMessageLen] = {0};
+    char FormatBuffer[MaxMessageLen] = {0};
+};
+
 Tracer::Tracer(Output output)
     : Tracer(output, DeduceDefaultStyle(output))
 {
@@ -110,11 +130,13 @@ void* Tracer::CreateThreadLocalState(UInt32 style)
 
     if (style & Style::Colored) {
         const auto color = ChooseThreadColor(state->ThreadIndex);
-
-        snprintf(state->BeginColor,
-            sizeof(state->BeginColor),
+        snprintf(state->MsgColor,
+            sizeof(state->MsgColor),
             "\033[38;5;%um",
             static_cast<unsigned>(color));
+
+        snprintf(state->BugColor, sizeof(state->BugColor), "\033[1;38;5;203m");
+
         snprintf(state->EndColor, sizeof(state->EndColor), "\033[0m");
     }
 
@@ -149,9 +171,7 @@ void Tracer::OperationBegin(const Operation& op)
     if (threadState.DepthCounter < DepthHardLimit) {
         threadState.DepthCounter++;
     } else {
-        PrintImpl(
-            "Tracer: detected unpaired OperationBegin/OperationEnd"
-            " or infinite recursion");
+        Bug("Tracer: Unpaired OperationBegin/OperationEnd or infinite recursion");
     }
 
     if (threadState.IgnoreCounter != 0 &&
@@ -169,7 +189,7 @@ void Tracer::OperationBegin(const Operation& op)
         op,
         threadState.DepthCounter);
 
-    PrintImpl(threadState.FormatBuffer);
+    PrintImpl(Category::Trace, threadState.FormatBuffer);
 }
 
 void Tracer::Message(const char* format, ...)
@@ -195,7 +215,7 @@ void Tracer::Message(const char* format, ...)
         threadState.MessageBuffer,
         threadState.DepthCounter);
 
-    PrintImpl(threadState.FormatBuffer);
+    PrintImpl(Category::Trace, threadState.FormatBuffer);
 }
 
 void Tracer::OperationEnd(const Operation& op, OSStatus status)
@@ -221,13 +241,49 @@ void Tracer::OperationEnd(const Operation& op, OSStatus status)
         status,
         threadState.DepthCounter);
 
-    PrintImpl(threadState.FormatBuffer);
+    PrintImpl(Category::Trace, threadState.FormatBuffer);
 
     if (threadState.DepthCounter != 0) {
         threadState.DepthCounter--;
     } else {
-        PrintImpl("Tracer: detected unpaired OperationBegin/OperationEnd");
+        Bug("Tracer: Unpaired OperationBegin/OperationEnd");
     }
+}
+
+void Tracer::Bug(const char* format, ...)
+{
+    if (output_ == Output::Null) {
+        return;
+    }
+
+    auto& threadState = GetThreadLocalState();
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(threadState.MessageBuffer, sizeof(threadState.MessageBuffer), format, args);
+    va_end(args);
+
+    FormatBugReportImpl(threadState.FormatBuffer,
+        sizeof(threadState.FormatBuffer),
+        threadState.MessageBuffer,
+        threadState.DepthCounter);
+
+    PrintImpl(Category::Alert, threadState.FormatBuffer);
+}
+
+void Tracer::UnboundBug(const char* format, ...)
+{
+    char buf[512] = {};
+    size_t off = 0;
+
+    Appendf(buf, sizeof(buf), &off, "[aspl] *** BUG DETECTED! *** ");
+
+    va_list args;
+    va_start(args, format);
+    Appendv(buf, sizeof(buf), &off, format, args);
+    va_end(args);
+
+    syslog(LOG_CRIT, "%s", buf);
 }
 
 void Tracer::FormatOperationBeginImpl(char* buf,
@@ -244,7 +300,11 @@ void Tracer::FormatOperationBeginImpl(char* buf,
 
     size_t off = 0;
 
-    Appendf(buf, bufsz, &off, "%sT%llu ", threadState.BeginColor, threadID);
+    Appendf(buf, bufsz, &off, "%s", threadState.MsgColor);
+
+    if (output_ == Output::Stderr) {
+        Appendf(buf, bufsz, &off, "T%llu ", threadID);
+    }
 
     if (style_ & Style::Hierarchical) {
         Appendf(buf, bufsz, &off, "|");
@@ -300,7 +360,11 @@ void Tracer::FormatMessageImpl(char* buf, size_t bufsz, const char* message, UIn
 
     size_t off = 0;
 
-    Appendf(buf, bufsz, &off, "%sT%llu ", threadState.BeginColor, threadID);
+    Appendf(buf, bufsz, &off, "%s", threadState.MsgColor);
+
+    if (output_ == Output::Stderr) {
+        Appendf(buf, bufsz, &off, "T%llu ", threadID);
+    }
 
     if (style_ & Style::Hierarchical) {
         Appendf(buf, bufsz, &off, "|");
@@ -330,7 +394,11 @@ void Tracer::FormatOperationEndImpl(char* buf,
 
     size_t off = 0;
 
-    Appendf(buf, bufsz, &off, "%sT%llu ", threadState.BeginColor, threadID);
+    Appendf(buf, bufsz, &off, "%s", threadState.MsgColor);
+
+    if (output_ == Output::Stderr) {
+        Appendf(buf, bufsz, &off, "T%llu ", threadID);
+    }
 
     if (style_ & Style::Hierarchical) {
         Appendf(buf, bufsz, &off, "|");
@@ -351,7 +419,40 @@ void Tracer::FormatOperationEndImpl(char* buf,
     }
 }
 
-void Tracer::PrintImpl(const char* message)
+void Tracer::FormatBugReportImpl(char* buf,
+    size_t bufsz,
+    const char* message,
+    UInt32 depth)
+{
+    auto& threadState = GetThreadLocalState();
+    auto threadID = GetThreadID();
+
+    size_t off = 0;
+
+    Appendf(buf, bufsz, &off, "%s", threadState.MsgColor);
+
+    if (output_ == Output::Stderr) {
+        Appendf(buf, bufsz, &off, "T%llu ", threadID);
+    }
+
+    if (style_ & Style::Hierarchical) {
+        Appendf(buf, bufsz, &off, "|");
+        for (UInt32 i = 0; i < depth; i++) {
+            Appendf(buf, bufsz, &off, "-");
+        }
+        Appendf(buf, bufsz, &off, " ");
+    }
+
+    Appendf(buf, bufsz, &off, "%s", threadState.BugColor);
+
+    Appendf(buf, bufsz, &off, "*** BUG DETECTED! ***");
+
+    Appendf(buf, bufsz, &off, "%s", threadState.EndColor);
+
+    Appendf(buf, bufsz, &off, " %s", message);
+}
+
+void Tracer::PrintImpl(Category category, const char* message)
 {
     switch (output_) {
     case Output::Null:
@@ -359,9 +460,19 @@ void Tracer::PrintImpl(const char* message)
 
     case Output::Stderr:
         fprintf(stderr, "[aspl] %s\n", message);
+        if (category == Category::Alert) {
+            fflush(stderr);
+        }
         return;
 
     case Output::Syslog:
+        switch (category) {
+        case Category::Alert:
+            syslog(LOG_CRIT, "[aspl] %s", message);
+            return;
+        case Category::Trace:
+            break;
+        }
         syslog(LOG_NOTICE, "[aspl] %s", message);
         return;
 

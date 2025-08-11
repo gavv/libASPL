@@ -184,6 +184,7 @@ private:
 
     // Reference counter
     std::atomic<ULONG> refCounter_ = 0;
+    std::atomic<UInt64> cookie_ = 0;
 };
 
 } // namespace aspl
