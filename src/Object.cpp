@@ -206,6 +206,17 @@ void Object::DetachOwner()
     ownerObject_ = nullptr;
 }
 
+std::shared_ptr<Object> Object::SharedFromThis()
+{
+    try {
+        return shared_from_this();
+    }
+    catch (const std::bad_weak_ptr&) {
+        GetContext()->Tracer->Bug("%s: Instance not managed by shared_ptr", className_);
+        return nullptr;
+    }
+}
+
 void Object::NotifyPropertiesChanged(std::vector<AudioObjectPropertySelector> selectors,
     AudioObjectPropertyScope scope,
     AudioObjectPropertyElement element) const

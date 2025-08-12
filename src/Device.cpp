@@ -500,9 +500,12 @@ std::shared_ptr<Stream> Device::AddStreamAsync(Direction dir)
 
 std::shared_ptr<Stream> Device::AddStreamAsync(const StreamParameters& params)
 {
-    auto stream = std::make_shared<Stream>(
-        GetContext(), std::static_pointer_cast<Device>(shared_from_this()), params);
+    auto device = std::static_pointer_cast<Device>(SharedFromThis());
+    if (!device) {
+        return nullptr;
+    }
 
+    auto stream = std::make_shared<Stream>(GetContext(), std::move(device), params);
     AddStreamAsync(stream);
 
     return stream;
@@ -1634,7 +1637,7 @@ void Device::RequestOwnershipChange(Object* owner, bool shouldHaveOwnership)
         // Device becomes visible to HAL.
         // HasOwner() now will return true.
         // RequestConfigurationChange() will enqueue changes instead of applying in-place.
-        owner->AddOwnedObject(shared_from_this());
+        owner->AddOwnedObject(SharedFromThis());
     } else {
         if (!HasOwner()) {
             // If we already don't have an owner, do nothing.
@@ -1690,13 +1693,15 @@ OSStatus Device::PerformConfigurationChange(AudioObjectID objectID,
 
     if (func) {
         GetContext()->Tracer->Message(
-            "Device::PerformConfigurationChange() performing queued change reqID=%lu",
+            "Device::PerformConfigurationChange()"
+            " performing queued change reqID=%lu",
             static_cast<unsigned long>(reqID));
 
         func();
     } else {
         GetContext()->Tracer->Message(
-            "Device::PerformConfigurationChange() ignoring null change request reqID=%lu",
+            "Device::PerformConfigurationChange()"
+            " ignoring null change request reqID=%lu",
             static_cast<unsigned long>(reqID));
     }
 
@@ -1716,7 +1721,8 @@ OSStatus Device::AbortConfigurationChange(AudioObjectID objectID,
     const auto reqID = changeAction;
 
     GetContext()->Tracer->Message(
-        "Device::PerformConfigurationChange() aborting change request reqID=%lu",
+        "Device::PerformConfigurationChange()"
+        " aborting change request reqID=%lu",
         static_cast<unsigned long>(reqID));
 
     pendingConfigurationRequests_.erase(reqID);

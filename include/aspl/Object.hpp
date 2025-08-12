@@ -323,6 +323,12 @@ public:
 
     //! @}
 
+protected:
+    //! Wraps shared_from_this().
+    //! On error, reports bug to tracer and returns null.
+    //! Does not throw.
+    std::shared_ptr<Object> SharedFromThis();
+
 private:
     struct CustomProperty;
 
