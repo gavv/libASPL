@@ -51,26 +51,37 @@ namespace aspl {
 //!     if (!CFEqual(typeUUID, kAudioServerPlugInTypeUUID)) {
 //!       return nullptr;
 //!     }
+//!     // IMPORTANT:
+//!     //   1. always use shared_ptr for driver
+//!     //   2. keep driver alive after returning reference
 //!     static auto driver = std::make_shared<aspl::Driver>();
 //!     return driver->GetReference();
 //!   }
 //! @endcode
 //!
-//! Don't forget do declare your entry point in Info.plist of the plugin.
+//! Don't forget to declare your entry point in Info.plist of the plugin.
 //!
-//! Sandbox
-//! -------
+//! Lifetime
+//! --------
 //!
-//! CoreAudio daemon runs drivers in a sandbox. Each driver runs in separate
-//! process and is isolated from other drivers.
+//! The user is responsible for:
 //!
-//! Sandbox forbids access to filesystem and other system resources. However,
-//! access to sockets, shared memory, and XPC is allowed.
+//!   1. Creating aspl::Driver and storing in std::shared_ptr.
+//!   2. Keeping shared_ptr alive during the driver lifetime.
+//!
+//! When driver's shared_ptr expires, it automatically unregisters from HAL.
+//! If there are any pending requests from HAL to driver, they eventually fail.
+//!
+//! Normally driver's shared_ptr should be alive until driver bundle is
+//! unloaded, e.g. have static lifetime.
+//!
+//! Driver tries to detect violations of these rules and report them to tracer.
+//! Sometimes there is no access to tracer, and bug is reported to syslog().
 //!
 //! Initialization
 //! --------------
 //!
-//! Right after the Driver object is created, it is not fully initialized yet. The
+//! Right after the Driver object is created, it is not yet fully initialized. The
 //! final initialization is performed by HAL asynchronously, after returning from
 //! plugin entry point.
 //!
@@ -80,7 +91,16 @@ namespace aspl {
 //!
 //! The user can be notified when the initialization is done by providing custom
 //! DriverRequestHandler, or by inheriting Driver and overriding InitializeImpl().
-class Driver
+//!
+//! Sandbox
+//! -------
+//!
+//! CoreAudio daemon runs drivers in a sandbox. Each driver runs in a separate
+//! process and is isolated from other drivers.
+//!
+//! Sandbox forbids access to filesystem and other system resources. However,
+//! access to sockets, shared memory, and XPC is allowed.
+class Driver : public std::enable_shared_from_this<Driver>
 {
 public:
     //! Construct driver.
@@ -109,14 +129,31 @@ public:
     //! Get plugin interface.
     //! Plugin interface is a table with function pointers which implement
     //! various plugin operations.
+    //! @pre
+    //!  Uses shared_from_this() and hence can't be called from driver constructor
+    //!  (relevant when you inherit aspl::Driver and override constructor).
     const AudioServerPlugInDriverInterface& GetPluginInterface() const;
 
     //! Get driver reference.
-    //! This is what should be returned from plugin entry point.
+    //! This is what should be returned from plugin entry point to HAL.
+    //! @pre
+    //!  Uses shared_from_this() and hence can't be called from driver constructor
+    //!  (relevant when you inherit aspl::Driver and override constructor).
+    //! @note
+    //!  Returns a reference-counted COM object for HAL.
+    //!  aspl::Driver must exist while HAL uses COM object, otherwise it becomes
+    //!  a so called "dangling reference".
+    //!  When HAL attempts to invoke driver operation via dangling reference, operation
+    //!  fails and reports a bug to syslog() via Tracer::UnbdoundBug().
     AudioServerPlugInDriverRef GetReference();
 
     //! Cast driver reference back to driver.
-    static Driver* GetDriver(AudioServerPlugInDriverRef driverRef);
+    //! If driver is deleted and AudioServerPlugInDriverRef is dangling
+    //! reference, reports bug to tracer and returns null.
+    //! @pre
+    //!  AudioServerPlugInDriverRef must be a valid reference previously returned
+    //!  from GetReference() method, otherwise things happen.
+    static std::shared_ptr<Driver> GetDriver(AudioServerPlugInDriverRef driverRef);
 
     //! Set handler for HAL requests to driver.
     //! Optional. Use when you need to do custom handling.
@@ -131,7 +168,18 @@ public:
 protected:
     //! Get mutable pointer to context.
     //! Context contains data shared among all driver objects, so use with care.
+    //! @note
+    //!  Recommended usage is only setting Context::Host field from InitializeImpl().
     std::shared_ptr<Context> GetMutableContext();
+
+    //! Get mutable pointer to driver vtable.
+    //! Vtable is shared with HAL, so use with care.
+    //! @note
+    //!  Recommended usage is only from entry point before returning to HAL.
+    //! @pre
+    //!  Uses shared_from_this() and hence can't be called from driver constructor
+    //!  (relevant when you inherit aspl::Driver and override constructor).
+    AudioServerPlugInDriverInterface& GetMutablePluginInterface();
 
     //! Initialize driver.
     //! Default implementation stores hostRef to Context and invokes
@@ -142,15 +190,28 @@ protected:
 
     //! Create device.
     //! Default implementation returns kAudioHardwareUnsupportedOperationError.
+    //! @note
+    //!  Your driver can create and delete devices at any time (see aspl::Plugin).
+    //!  This method, in contrast, is called when HAL asks you to create device.
+    //!  This is optional and driver may not support this.
     virtual OSStatus CreateDeviceImpl(CFDictionaryRef description,
         const AudioServerPlugInClientInfo* clientInfo,
         AudioObjectID* outDeviceObjectID);
 
     //! Destroy device.
     //! Default implementation returns kAudioHardwareUnsupportedOperationError.
+    //! @note
+    //!  Your driver can create and delete devices at any time (see aspl::Plugin).
+    //!  This method, in contrast, is called when HAL asks you to delete device.
+    //!  This is optional and driver may not support this.
     virtual OSStatus DestroyDeviceImpl(AudioObjectID objectID);
 
 private:
+    // Reference-counted control block
+    struct ControlBlock;
+
+    static ControlBlock* GetControlBlock(AudioServerPlugInDriverRef driverRef);
+
     // COM methods
     static HRESULT QueryInterface(void* driverRef, REFIID iid, LPVOID* outInterface);
 
@@ -169,6 +230,7 @@ private:
     static OSStatus DestroyDeviceJumper(AudioServerPlugInDriverRef driverRef,
         AudioObjectID objectID);
 
+    // Object tree
     const std::shared_ptr<Context> context_;
     const std::shared_ptr<Plugin> plugin_;
     const std::shared_ptr<Storage> storage_;
@@ -178,13 +240,10 @@ private:
         std::variant<std::shared_ptr<DriverRequestHandler>, DriverRequestHandler*>>
         driverHandler_;
 
-    // Method table
-    AudioServerPlugInDriverInterface driverInterface_;
-    AudioServerPlugInDriverInterface* driverInterfacePointer_;
-
-    // Reference counter
-    std::atomic<ULONG> refCounter_ = 0;
-    std::atomic<UInt64> cookie_ = 0;
+    // Driver Control Block with ref counter and vtable
+    // May outlive driver if HAL still uses AudioServerPlugInDriverRef, to be able
+    // to report lifetime errors gracefully
+    ControlBlock* dcb_;
 };
 
 } // namespace aspl
