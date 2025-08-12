@@ -106,6 +106,7 @@ OSStatus Driver::Initialize()
     const auto handler = GetVariantPtr(handlerVariant);
 
     if (handler) {
+        GetContext()->Tracer->Message("DriverRequestHandler::OnInitialize()");
         return handler->OnInitialize();
     }
 

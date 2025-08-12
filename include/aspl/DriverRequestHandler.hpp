@@ -21,7 +21,8 @@ public:
 
     virtual ~DriverRequestHandler() = default;
 
-    //! Invoked during asynchronous driver initialization.
+    //! Invoked when HAL asynchronously initializes driver, at some point after
+    //! driver is loaded and created.
     virtual OSStatus OnInitialize()
     {
         return kAudioHardwareNoError;

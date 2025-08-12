@@ -33,11 +33,11 @@ namespace aspl {
 //!
 //! Driver fills this struct with its private functions. Each of them just finds
 //! the registered object by ID and redirects operation to it. Objects are searched
-//! in Context::Dispatcher. Every object requires Context as constructor argument
+//! in Context::Dispatcher. Every such object requires Context as constructor argument
 //! and automatically registers and unregisters itself in Dispatcher.
 //!
 //! Driver also provides Storage object, which provides API for persistent storage
-//! associated with plugin, and managed by CoreAudio daemon.
+//! associated with the plugin. Storage is managed by CoreAudio daemon.
 //!
 //! By default driver creates its own Context, Plugin, and Storage objects, but you
 //! can provide your own if desired.
@@ -58,6 +58,18 @@ namespace aspl {
 //!
 //! Don't forget do declare your entry point in Info.plist of the plugin.
 //!
+//! Sandbox
+//! -------
+//!
+//! CoreAudio daemon runs drivers in a sandbox. Each driver runs in separate
+//! process and is isolated from other drivers.
+//!
+//! Sandbox forbids access to filesystem and other system resources. However,
+//! access to sockets, shared memory, and XPC is allowed.
+//!
+//! Initialization
+//! --------------
+//!
 //! Right after the Driver object is created, it is not fully initialized yet. The
 //! final initialization is performed by HAL asynchronously, after returning from
 //! plugin entry point.
@@ -67,7 +79,7 @@ namespace aspl {
 //! errors for all requests, etc.
 //!
 //! The user can be notified when the initialization is done by providing custom
-//! DriverRequestHandler, or by inheriting Driver and overriding appropriate method.
+//! DriverRequestHandler, or by inheriting Driver and overriding Initialize().
 class Driver
 {
 public:
@@ -119,6 +131,8 @@ public:
 protected:
     //! Initialize driver.
     //! Default implementation invokes DriverRequestHandler::OnInitialize().
+    //! Invoked when HAL asynchronously initializes driver, at some point after
+    //! driver is loaded and created.
     virtual OSStatus Initialize();
 
     //! Create device.
