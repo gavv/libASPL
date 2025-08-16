@@ -120,6 +120,19 @@ struct DeviceParameters
     //!   IORequestHandler is responsible for mixing in this case.
     bool EnableMixing = true;
 
+    //! Enable extra protection against overflows and other errors.
+    //!
+    //! If true, aspl::Device makes a copy of HAL buffer before passing it to
+    //! IORequestHandler, and checks for overflows and unexpected modifications. In
+    //! addition, after IORequestHandler, it poisons buffer with a repeating pattern
+    //! to make unauthorized reads from released buffer more visible.
+    //!
+    //! If violation is detected, it is reported via Tracer::Bug() and device stops
+    //! functioning. If enabling this flag causes noise or clicking without any reports,
+    //! most likely your code either reads buffer beyond boundaries or reads from
+    //! buffer after returning from IORequestHandler.
+    bool EnableBufferProtection = false;
+
     //! If true, realtime calls are logged to tracer.
     //! This is not suitable for production use because tracer is not realtime-safe
     //! and because realtime operations are too frequent.
@@ -1203,8 +1216,29 @@ protected:
     //! @}
 
 private:
+    enum class ProtectionType : UInt32
+    {
+        ReadOnly,
+        WriteOnly,
+        ReadWrite,
+    };
+
     // value checkers for async setters
     OSStatus CheckNominalSampleRate(Float64 rate) const;
+
+    // buffer overflow protection
+    void ResizeProtectionBuffer(size_t requiredSize);
+    bool AllowReportProtection();
+    void* StartProtection(ProtectionType protection,
+        void* ioMainBuffer,
+        UInt32 ioBytesCount);
+    OSStatus FinishProtection(const char* operation,
+        ProtectionType protection,
+        void* ioMainBuffer,
+        UInt32 ioBytesCount);
+
+    static constexpr UInt32 BufferGuardSize = 128;
+    static constexpr UInt8 BufferGuardPattern = 0x7A;
 
     // these fields are immutable and can be accessed w/o lock
     const DeviceParameters params_;
@@ -1285,6 +1319,10 @@ private:
     // current zero timestamp, last values returned by GetZeroTimeStamp()
     Float64 currentPeriodTimestamp_ = 0;
     UInt64 currentPeriodHostTime_ = 0;
+
+    // buffer overflow protection
+    std::vector<UInt8> protectedBuffer_;
+    bool protectionFailure_ = false;
 };
 
 } // namespace aspl

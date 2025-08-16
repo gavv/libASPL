@@ -10,6 +10,7 @@
 #include "VolumeCurve.hpp"
 
 #include <algorithm>
+#include <cstring>
 
 #include <mach/mach_time.h>
 
@@ -31,6 +32,10 @@ Device::Device(std::shared_ptr<const Context> context, const DeviceParameters& p
 {
     SetControlHandler(nullptr);
     SetIOHandler(nullptr);
+
+    if (params_.EnableBufferProtection) {
+        ResizeProtectionBuffer(2048 * params_.ChannelCount * sizeof(Float32));
+    }
 }
 
 std::string Device::GetName() const
@@ -1482,6 +1487,10 @@ OSStatus Device::DoIOOperationImpl(AudioObjectID streamID,
     void* ioMainBuffer,
     void* ioSecondaryBuffer)
 {
+    if (protectionFailure_) {
+        return kAudioHardwareUnspecifiedError;
+    }
+
     auto client = GetClientByID(clientID);
     auto stream = GetStreamByID(streamID);
 
@@ -1494,66 +1503,102 @@ OSStatus Device::DoIOOperationImpl(AudioObjectID streamID,
 
     const auto ioHandler = GetIOHandler();
 
+    void* ioProtectedBuffer = nullptr;
+    OSStatus status = kAudioHardwareNoError;
+
     switch (operationID) {
     case kAudioServerPlugInIOOperationReadInput:
+        ioProtectedBuffer =
+            StartProtection(ProtectionType::WriteOnly, ioMainBuffer, ioBytesCount);
         ioHandler->OnReadClientInput(client,
             stream,
             currentPeriodTimestamp_,
             ioCycleInfo->mInputTime.mSampleTime,
-            ioMainBuffer,
+            static_cast<void*>(ioProtectedBuffer),
             ioBytesCount);
+        status = FinishProtection(
+            "OnReadClientInput", ProtectionType::WriteOnly, ioMainBuffer, ioBytesCount);
         break;
 
     case kAudioServerPlugInIOOperationProcessInput:
+        ioProtectedBuffer =
+            StartProtection(ProtectionType::ReadWrite, ioMainBuffer, ioBytesCount);
         ioHandler->OnProcessClientInput(client,
             stream,
             currentPeriodTimestamp_,
             ioCycleInfo->mInputTime.mSampleTime,
-            static_cast<Float32*>(ioMainBuffer),
+            static_cast<Float32*>(ioProtectedBuffer),
             ioFrameCount,
             ioChannelCount);
+        status = FinishProtection("OnProcessClientInput",
+            ProtectionType::ReadWrite,
+            ioMainBuffer,
+            ioBytesCount);
         break;
 
     case kAudioServerPlugInIOOperationMixOutput:
+        ioProtectedBuffer =
+            StartProtection(ProtectionType::ReadWrite, ioMainBuffer, ioBytesCount);
         ioHandler->OnProcessClientOutput(client,
             stream,
             currentPeriodTimestamp_,
             ioCycleInfo->mOutputTime.mSampleTime,
-            static_cast<Float32*>(ioMainBuffer),
+            static_cast<Float32*>(ioProtectedBuffer),
             ioFrameCount,
             ioChannelCount);
+        status = FinishProtection("OnProcessClientOutput",
+            ProtectionType::ReadWrite,
+            ioMainBuffer,
+            ioBytesCount);
+        if (status != kAudioHardwareNoError) {
+            break;
+        }
 
+        ioProtectedBuffer =
+            StartProtection(ProtectionType::ReadOnly, ioMainBuffer, ioBytesCount);
         ioHandler->OnWriteClientOutput(client,
             stream,
             currentPeriodTimestamp_,
             ioCycleInfo->mOutputTime.mSampleTime,
-            static_cast<const Float32*>(ioMainBuffer),
+            static_cast<const Float32*>(ioProtectedBuffer),
             ioFrameCount,
             ioChannelCount);
+        status = FinishProtection(
+            "OnWriteClientOutput", ProtectionType::ReadOnly, ioMainBuffer, ioBytesCount);
         break;
 
     case kAudioServerPlugInIOOperationProcessMix:
+        ioProtectedBuffer =
+            StartProtection(ProtectionType::ReadWrite, ioMainBuffer, ioBytesCount);
         ioHandler->OnProcessMixedOutput(stream,
             currentPeriodTimestamp_,
             ioCycleInfo->mOutputTime.mSampleTime,
-            static_cast<Float32*>(ioMainBuffer),
+            static_cast<Float32*>(ioProtectedBuffer),
             ioFrameCount,
             ioChannelCount);
+        status = FinishProtection("OnProcessMixedOutput",
+            ProtectionType::ReadWrite,
+            ioMainBuffer,
+            ioBytesCount);
         break;
 
     case kAudioServerPlugInIOOperationWriteMix:
+        ioProtectedBuffer =
+            StartProtection(ProtectionType::ReadOnly, ioMainBuffer, ioBytesCount);
         ioHandler->OnWriteMixedOutput(stream,
             currentPeriodTimestamp_,
             ioCycleInfo->mOutputTime.mSampleTime,
-            ioMainBuffer,
+            static_cast<const void*>(ioProtectedBuffer),
             ioBytesCount);
+        status = FinishProtection(
+            "OnWriteMixedOutput", ProtectionType::ReadOnly, ioMainBuffer, ioBytesCount);
         break;
 
     default:
         break;
     }
 
-    return kAudioHardwareNoError;
+    return status;
 }
 
 OSStatus Device::EndIOOperation(AudioObjectID objectID,
@@ -1726,6 +1771,106 @@ OSStatus Device::AbortConfigurationChange(AudioObjectID objectID,
         static_cast<unsigned long>(reqID));
 
     pendingConfigurationRequests_.erase(reqID);
+
+    return kAudioHardwareNoError;
+}
+
+void Device::ResizeProtectionBuffer(size_t requiredSize)
+{
+    if (protectedBuffer_.size() < requiredSize) {
+        protectedBuffer_.resize(requiredSize);
+
+        memset(protectedBuffer_.data(), BufferGuardPattern, protectedBuffer_.size());
+    }
+}
+
+void* Device::StartProtection(ProtectionType protection,
+    void* ioMainBuffer,
+    UInt32 ioBytesCount)
+{
+    if (!params_.EnableBufferProtection) {
+        return ioMainBuffer;
+    }
+
+    ResizeProtectionBuffer(ioBytesCount + BufferGuardSize * 2);
+
+    if (protection == ProtectionType::WriteOnly) {
+        // Expect that operation doesn't read from buffer, poison it
+        memset(
+            protectedBuffer_.data() + BufferGuardSize, BufferGuardPattern, ioBytesCount);
+    } else if (protection == ProtectionType::ReadOnly ||
+               protection == ProtectionType::ReadWrite) {
+        // Expect that operation reads from buffer, copy data from HAL
+        memcpy(protectedBuffer_.data() + BufferGuardSize, ioMainBuffer, ioBytesCount);
+    }
+
+    return protectedBuffer_.data() + BufferGuardSize;
+}
+
+OSStatus Device::FinishProtection(const char* operation,
+    ProtectionType protection,
+    void* ioMainBuffer,
+    UInt32 ioBytesCount)
+{
+    if (!params_.EnableBufferProtection) {
+        return kAudioHardwareNoError;
+    }
+
+    // Check guard before buffer
+    for (UInt32 i = 0; i < BufferGuardSize; ++i) {
+        if (protectedBuffer_[i] != BufferGuardPattern) {
+            GetContext()->Tracer->Bug(
+                "Device: Detected buffer overflow in IORequestHandler::%s():"
+                " bufferSize=%u guardsSize=-%u,+%u modifiedByte=-%u",
+                operation,
+                unsigned(ioBytesCount),
+                unsigned(BufferGuardSize),
+                unsigned(BufferGuardSize),
+                unsigned(BufferGuardSize - i));
+            protectionFailure_ = true;
+            return kAudioHardwareUnspecifiedError;
+        }
+    }
+
+    // Check guard after buffer
+    for (UInt32 i = 0; i < BufferGuardSize; ++i) {
+        if (protectedBuffer_[BufferGuardSize + ioBytesCount + i] != BufferGuardPattern) {
+            GetContext()->Tracer->Bug(
+                "Device: Detected buffer overflow in IORequestHandler::%s():"
+                " bufferSize=%u guardsSize=-%u,+%u modifiedByte=end+%u",
+                operation,
+                unsigned(ioBytesCount),
+                unsigned(BufferGuardSize),
+                unsigned(BufferGuardSize),
+                unsigned(i));
+            protectionFailure_ = true;
+            return kAudioHardwareUnspecifiedError;
+        }
+    }
+
+    if (protection == ProtectionType::ReadOnly) {
+        // Expect that operation doesn't write to buffer
+        for (UInt32 i = 0; i < ioBytesCount; ++i) {
+            if (static_cast<const UInt8*>(ioMainBuffer)[i] !=
+                protectedBuffer_[BufferGuardSize + i]) {
+                GetContext()->Tracer->Bug(
+                    "Device: Detected modification of read-only buffer in"
+                    " IORequestHandler::%s(): bufferSize=%u modifiedByte=%u",
+                    operation,
+                    unsigned(ioBytesCount),
+                    unsigned(i));
+                protectionFailure_ = true;
+                return kAudioHardwareUnspecifiedError;
+            }
+        }
+    } else if (protection == ProtectionType::WriteOnly ||
+               protection == ProtectionType::ReadWrite) {
+        // Expect that operation writes to buffer, copy data to HAL
+        memcpy(ioMainBuffer, protectedBuffer_.data() + BufferGuardSize, ioBytesCount);
+    }
+
+    // Poison buffer
+    memset(protectedBuffer_.data() + BufferGuardSize, BufferGuardPattern, ioBytesCount);
 
     return kAudioHardwareNoError;
 }
