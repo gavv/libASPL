@@ -530,7 +530,7 @@ std::pair<OSStatus, std::vector<T>> DriverAdapter::GetVectorProperty(
 
     auto [status, dataSize] =
         GetPropertySize(objectID, clientProcessID, selector, scope, element);
-    if (status != kAudioHardwareNoError) {
+    if (status != kAudioHardwareNoError || dataSize == 0) {
         return std::make_pair(status, std::vector<T>{});
     }
 
