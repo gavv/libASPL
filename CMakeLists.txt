@@ -82,6 +82,26 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${COMPILER_FLAGS}")
 string(REPLACE ";" " " LINKER_FLAGS "${LINKER_FLAGS}")
 set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${LINKER_FLAGS}")
 
+function(add_gen_target)
+  cmake_parse_arguments(PARSE_ARGV 0 arg "" "OUTFILE" "COMMAND")
+  set(OUTPATH "src/${arg_OUTFILE}")
+  add_custom_target("${arg_OUTFILE}"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMAND
+      if [ ! -f "${OUTPATH}" ]\; then
+        ${arg_COMMAND} \;
+      else
+        echo "${OUTPATH} already exists -- skipping" \;
+      fi
+    COMMENT
+      "Generating ${OUTPATH}"
+    BYPRODUCTS
+      # Absolute path necessary here since CMake assumes build dir by default:
+      "${PROJECT_SOURCE_DIR}/${OUTPATH}"
+  )
+  set(SOURCE_LIST "${SOURCE_LIST};${OUTPATH}" PARENT_SCOPE)
+endfunction()
+
 set(OBJECT_LIST
   "Device"
   "MuteControl"
@@ -91,76 +111,30 @@ set(OBJECT_LIST
   "VolumeControl"
 )
 
-add_custom_target("gen")
-
 foreach(CLASS IN LISTS OBJECT_LIST)
-  if(NOT EXISTS "${PROJECT_SOURCE_DIR}/src/${CLASS}.g.cpp")
-    # automatically generate after "make clobber"
-    set(BYPRODUCTS "${PROJECT_SOURCE_DIR}/src/${CLASS}.g.cpp")
-  else()
-    # don't automatically re-generate if already exists
-    set(BYPRODUCTS "")
-  endif()
-  add_custom_command(
-    TARGET "gen"
-    COMMAND cd "${PROJECT_SOURCE_DIR}" &&
-      "${PROJECT_SOURCE_DIR}/scripts/generate-accessors.py"
-        -i "src/${CLASS}.json"
-        -o "src/${CLASS}.g.cpp"
-    COMMENT
-      "Generating src/${CLASS}.g.cpp"
-    BYPRODUCTS
-      "${BYPRODUCTS}"
-    )
-
-  list(APPEND SOURCE_LIST
-    "${PROJECT_SOURCE_DIR}/src/${CLASS}.cpp"
-    "${PROJECT_SOURCE_DIR}/src/${CLASS}.g.cpp"
-    )
+  add_gen_target(
+    OUTFILE ${CLASS}.g.cpp
+    COMMAND ./scripts/generate-accessors.py
+      -i "src/${CLASS}.json"
+      -o "src/${CLASS}.g.cpp"
+  )
+  list(APPEND SOURCE_LIST "src/${CLASS}.cpp")
 endforeach()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/src/Bridge.g.cpp")
-  set(BYPRODUCTS "${PROJECT_SOURCE_DIR}/src/Bridge.g.cpp")
-else()
-  set(BYPRODUCTS "")
-endif()
-add_custom_command(
-  TARGET "gen"
-  COMMAND cd "${PROJECT_SOURCE_DIR}" &&
-    "${PROJECT_SOURCE_DIR}/scripts/generate-bridge.py"
+add_gen_target(
+  OUTFILE "Bridge.g.cpp"
+  COMMAND ./scripts/generate-bridge.py
     -i "src/Bridge.json"
     -o "src/Bridge.g.cpp"
-  COMMENT
-    "Generating src/Bridge.g.cpp"
-  BYPRODUCTS
-    "${BYPRODUCTS}"
-  )
+)
 
-list(APPEND SOURCE_LIST
-  "${PROJECT_SOURCE_DIR}/src/Bridge.g.cpp"
-  )
-
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/src/Strings.g.cpp")
-  set(BYPRODUCTS "${PROJECT_SOURCE_DIR}/src/Strings.g.cpp")
-else()
-  set(BYPRODUCTS "")
-endif()
-add_custom_command(
-  TARGET "gen"
-  COMMAND cd "${PROJECT_SOURCE_DIR}" &&
-    "${PROJECT_SOURCE_DIR}/scripts/generate-strings.py"
+add_gen_target(
+  OUTFILE "Strings.g.cpp"
+  COMMAND  ./scripts/generate-strings.py
     -c "${CMAKE_CXX_COMPILER}"
     -s "${CMAKE_OSX_SYSROOT}"
     -o "src/Strings.g.cpp"
-  COMMENT
-    "Generating src/Strings.g.cpp"
-  BYPRODUCTS
-    "${BYPRODUCTS}"
-  )
-
-list(APPEND SOURCE_LIST
-  "${PROJECT_SOURCE_DIR}/src/Strings.g.cpp"
-  )
+)
 
 list(APPEND SOURCE_LIST
   "src/Client.cpp"

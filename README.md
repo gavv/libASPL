@@ -606,22 +606,10 @@ Build and run tests:
 make test
 ```
 
-Run code generation:
-
-```
-make gen
-```
-
-Remove build results:
-
-```
-make clean
-```
-
 Remove build results and generated files:
 
 ```
-make clobber
+make clean
 ```
 
 Format code:
