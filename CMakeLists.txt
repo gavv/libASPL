@@ -9,12 +9,14 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
   COMMAND sh -c "cd \"${PROJECT_SOURCE_DIR}\" && git describe --tags --abbrev=0"
   )
-string(REGEX MATCH "v?([0-9.]+)" RESULT ${GIT_TAG})
+string(REGEX MATCH "v?([0-9.]+)" RESULT "${GIT_TAG}")
 set(GIT_TAG "${CMAKE_MATCH_1}")
 if(NOT GIT_TAG STREQUAL "")
   message(STATUS "Detected version tag from git: ${GIT_TAG}")
+  set(PACKAGE_VERSION "${GIT_TAG}")
 else()
   message(WARNING "Unable to detect version tag from git")
+  set(PACKAGE_VERSION "0.0.0")
 endif()
 
 if(CMAKE_OSX_SYSROOT STREQUAL "")
@@ -32,8 +34,6 @@ else()
 endif()
 
 set(PACKAGE_NAME libASPL)
-set(PACKAGE_VERSION ${GIT_TAG})
-
 set(LIB_TARGET libASPL)
 set(LIB_NAME ASPL)
 set(TEST_NAME aspl-test)
