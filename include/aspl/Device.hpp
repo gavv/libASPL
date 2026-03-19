@@ -1223,6 +1223,7 @@ private:
     std::atomic<UInt32> latency_;
     std::atomic<UInt32> safetyOffset_;
     std::atomic<UInt32> zeroTimeStampPeriod_;
+    const bool zeroTimeStampPeriodBasedOffSampleRate_;
     std::atomic<Float64> nominalSampleRate_;
 
     std::atomic<SInt32> startCount_ = 0;
