@@ -26,6 +26,7 @@ Device::Device(std::shared_ptr<const Context> context, const DeviceParameters& p
     , safetyOffset_(params.SafetyOffset)
     , zeroTimeStampPeriod_(
           params_.ZeroTimeStampPeriod ? params_.ZeroTimeStampPeriod : params_.SampleRate)
+    , zeroTimeStampPeriodBasedOffSampleRate_(!params_.ZeroTimeStampPeriod)
     , nominalSampleRate_(params.SampleRate)
     , preferredChannelsForStereo_({1, 2})
 {
@@ -161,6 +162,11 @@ OSStatus Device::CheckNominalSampleRate(Float64 rate) const
 OSStatus Device::SetNominalSampleRateImpl(Float64 rate)
 {
     nominalSampleRate_ = rate;
+
+    if(zeroTimeStampPeriodBasedOffSampleRate_)
+    {
+        SetZeroTimeStampPeriodImpl(rate);
+    }
 
     return kAudioHardwareNoError;
 }
@@ -500,8 +506,7 @@ std::shared_ptr<Stream> Device::AddStreamAsync(Direction dir)
 
 std::shared_ptr<Stream> Device::AddStreamAsync(const StreamParameters& params)
 {
-    auto stream = std::make_shared<Stream>(
-        GetContext(), std::static_pointer_cast<Device>(shared_from_this()), params);
+    auto stream = CreateStream(params);
 
     AddStreamAsync(stream);
 
@@ -1576,6 +1581,11 @@ OSStatus Device::EndIOOperation(AudioObjectID objectID,
 
 end:
     return status;
+}
+
+std::shared_ptr<Stream> Device::CreateStream(const StreamParameters& params)
+{
+    return std::make_shared<Stream>(GetContext(), std::static_pointer_cast<Device>(shared_from_this()), params);
 }
 
 OSStatus Device::EndIOOperationImpl(UInt32 clientID,

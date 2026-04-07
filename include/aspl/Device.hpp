@@ -1202,6 +1202,8 @@ protected:
 
     //! @}
 
+    virtual std::shared_ptr<Stream> CreateStream(const StreamParameters& params);
+
 private:
     // value checkers for async setters
     OSStatus CheckNominalSampleRate(Float64 rate) const;
@@ -1223,6 +1225,7 @@ private:
     std::atomic<UInt32> latency_;
     std::atomic<UInt32> safetyOffset_;
     std::atomic<UInt32> zeroTimeStampPeriod_;
+    const bool zeroTimeStampPeriodBasedOffSampleRate_;
     std::atomic<Float64> nominalSampleRate_;
 
     std::atomic<SInt32> startCount_ = 0;
