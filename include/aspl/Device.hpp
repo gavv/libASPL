@@ -1202,6 +1202,8 @@ protected:
 
     //! @}
 
+    virtual std::shared_ptr<Stream> CreateStream(const StreamParameters& params);
+
 private:
     // value checkers for async setters
     OSStatus CheckNominalSampleRate(Float64 rate) const;
